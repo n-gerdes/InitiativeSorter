@@ -1,0 +1,4 @@
+guard_1 +1 hp:13
+guard_2 +1 hp:13
+guard_3 +1 hp:13
+guard_4 +1 hp:13

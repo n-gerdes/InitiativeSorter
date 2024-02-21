@@ -1,0 +1,7 @@
+Veteran_Knight +3 hp:52/52
+Corpse_Hound +2 hp:39/39
+Warhorse +1 hp:19/19
+Conscript_1 +1 hp:16/16
+Conscript_2 +1 hp:16/16
+Conscript_3 +1 hp:16/16
+Conscript_4 +1 hp:16/16

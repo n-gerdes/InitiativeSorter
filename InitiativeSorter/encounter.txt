@@ -1,0 +1,10 @@
+Shiv 22 hp:1/31
+Conscript_4 19 hp:14/16
+Conscript_6 19 hp:14/16
+Conscript_1 19 hp:4/16
+Devleik 18 hp:36/36
+Menna 17 hp:17/28
+Conscript_3 11 hp:16
+Conscript_5 10 hp:16
+Zrird 6 hp:26/26
+Conscript_2 3 hp:16
