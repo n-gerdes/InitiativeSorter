@@ -382,8 +382,18 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					mod_string = lowercase.substr(second_space_index + 1, lowercase.length() - (second_space_index + 1));
 					try
 					{
-						int initiative = std::stoi(initiative_string);
-;						int modifier = std::stoi(mod_string);
+						int initiative; 
+						int modifier;
+						if (initiative_string[0] == '+' || initiative_string[0] == '-')
+						{
+							initiative = std::stoi(mod_string);
+							modifier = std::stoi(initiative_string);
+						}
+						else
+						{
+							initiative = std::stoi(initiative_string);
+							modifier = std::stoi(mod_string);
+						}
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp);
 
 					}

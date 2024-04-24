@@ -1,2 +1,0 @@
-Basic_Knight_Unit +2 hp:142
-Veteran +3 hp:52

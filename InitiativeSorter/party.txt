@@ -1,4 +1,4 @@
-Devleik +4 hp:43/43
-Zrird +2 hp:31/31
-Menna +3 hp:39/39
-Shiv +2 hp:38/38
+Zrird +2 hp:36/36
+Menna +3 hp:46/46
+Shiv +2 hp:45/45
+Manus +4 hp:55/55

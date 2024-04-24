@@ -1,0 +1,3 @@
+Bandit_1 +1 hp:11
+Bandit_2 +1 hp:11
+Bandit_3 +1 hp:11
