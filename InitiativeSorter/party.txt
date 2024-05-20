@@ -2,3 +2,9 @@ Zrird +2 hp:36/36
 Menna +3 hp:46/46
 Shiv +2 hp:45/45
 Manus +4 hp:55/55
+Draft_Horse_1 -1 hp:19
+Draft_Horse_2 -1 hp:19
+Warhorse +1 hp:19
+Shivs_Horse +0 hp:13
+Manus_Horse +0 hp:13
+Zrird_Horse +0 hp:13

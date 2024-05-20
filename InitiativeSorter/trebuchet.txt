@@ -1,4 +1,4 @@
 VK_1 +3 hp:39
 VK_2 +3 hp:39
 VK_3 +3 hp:39
-SimpleMelees hp:20
+SimpleMelees 0 hp:20

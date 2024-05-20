@@ -139,16 +139,18 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 	return true;
 }
 
-inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file)
+//Process command/add a creature, and return whether or not a creature was added.
+inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line)
 {
+	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
 	std::string lowercase, name, initiative_string, mod_string;
 	std::cout << "Enter creature name + initiative:" << std::endl;
-	if (using_file)
+	if (using_file && !info_already_in_line)
 	{
 		if (file.eof() || !file.good())
 		{
-			return;
+			return false;
 		}
 		else
 		{
@@ -156,87 +158,91 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			std::cout << line << std::endl;
 		}
 	}
-	else
+	else if (!info_already_in_line)
 	{
 		std::getline(std::cin, line);
 	}
 	bool used_command = false;
 
-	for (auto i = creatures.begin(); i != creatures.end(); ++i)
+	if (takes_commands)
 	{
-		std::string lowercase_name = (*i).get_name();
-		std::string dummy_line = line;
-		make_lowercase(dummy_line);
-		make_lowercase(lowercase_name);
-
-		auto get_number_arg = [&]() -> int {
-			size_t first_space = dummy_line.find(" ");
-			size_t second_space = dummy_line.find(" ", first_space + 1);
-
-			std::string sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
-			int value = std::stoi(sub);
-			return value;
-		};
-
-		if (
-			comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
-			comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) ||
-			comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
-			comp_substring("md " + lowercase_name + " ", dummy_line, ("md " + lowercase_name + " ").length()))
+		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
-			try {
-				int val = get_number_arg();
-				i->set_initiative(val);
-				creatures.sort();
-				used_command = true;
-				break;
-			}
-			catch (const std::exception& E) {
+			std::string lowercase_name = (*i).get_name();
+			std::string dummy_line = line;
+			make_lowercase(dummy_line);
+			make_lowercase(lowercase_name);
 
-			}
-		}
-		else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
-		{
-			try {
-				size_t slash_index = dummy_line.find("/");
-				if (slash_index != std::string::npos)
-				{
-					try {
-						int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
-						i->set_max_hp(max_hp);
-					}
-					catch (const std::exception& e)
-					{
-						std::cout << "Could not parse new Max HP - only changing current HP\n";
-					}
+			auto get_number_arg = [&]() -> int {
+				size_t first_space = dummy_line.find(" ");
+				size_t second_space = dummy_line.find(" ", first_space + 1);
 
-				}
+				std::string sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
+				int value = std::stoi(sub);
+				return value;
+			};
 
-				int val = get_number_arg();
-				i->set_hp(val);
-				used_command = true;
-				break;
-			}
-			catch (const std::exception& E) {
-
-			}
-		}
-		else if (
-			dummy_line == "remove " + lowercase_name ||
-			dummy_line == "rm " + lowercase_name)
-		{
-			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			if (
+				comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
+				comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) ||
+				comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
+				comp_substring("md " + lowercase_name + " ", dummy_line, ("md " + lowercase_name + " ").length()))
 			{
-				creature& c = *i;
-				if (get_lowercase(c.get_name()) == lowercase_name)
-				{
-					creatures.erase(i);
+				try {
+					int val = get_number_arg();
+					i->set_initiative(val);
+					creatures.sort();
+					used_command = true;
 					break;
 				}
+				catch (const std::exception& E) {
+
+				}
 			}
-			used_command = true;
+			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t slash_index = dummy_line.find("/");
+					if (slash_index != std::string::npos)
+					{
+						try {
+							int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
+							i->set_max_hp(max_hp);
+						}
+						catch (const std::exception& e)
+						{
+							std::cout << "Could not parse new Max HP - only changing current HP\n";
+						}
+
+					}
+
+					int val = get_number_arg();
+					i->set_hp(val);
+					used_command = true;
+					break;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (
+				dummy_line == "remove " + lowercase_name ||
+				dummy_line == "rm " + lowercase_name)
+			{
+				for (auto i = creatures.begin(); i != creatures.end(); ++i)
+				{
+					creature& c = *i;
+					if (get_lowercase(c.get_name()) == lowercase_name)
+					{
+						creatures.erase(i);
+						break;
+					}
+				}
+				used_command = true;
+			}
 		}
 	}
+	
 	
 	if (!used_command && line != "")
 	{
@@ -273,7 +279,7 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					std::cout << "Could not parse HP - not adding creature" << std::endl;
 					max_hp = -1;
 					hp = -1;
-					return;
+					return false;
 				}
 			}
 			else
@@ -286,31 +292,37 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E)
 				{
 					std::cout << "Could not parse HP - not adding creature" << std::endl;
-					return;
+					return false;
 				}
 			}
 		}
 		trim(lowercase);
-		if (lowercase == "done" || 
+		if (
+			takes_commands 
+			&& 
+			(
+			lowercase == "done" || 
 			lowercase == "end" || 
 			lowercase == "stop" || 
 			lowercase == "start" || 
 			lowercase == "begin" || 
 			lowercase == "finish" || 
-			lowercase == "go")
+			lowercase == "go"
+			)
+			)
 		{
 			taking_intiatives = false;
-			return;
+			return false;
 		}
-		else if (lowercase == "back" || lowercase == "undo" || lowercase == "reverse" || lowercase == "cancel")
+		else if (takes_commands && (lowercase == "back" || lowercase == "undo" || lowercase == "reverse" || lowercase == "cancel"))
 		{
 			creatures.pop_back();
 		}
-		else if (lowercase == "reset" || lowercase == "clear")
+		else if (takes_commands && (lowercase == "reset" || lowercase == "clear"))
 		{
 			creatures.clear();
 		}
-		else if (comp_substring("load ", lowercase, 5))
+		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
 			std::ifstream new_file;
@@ -318,15 +330,15 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			if (!new_file.is_open())
 			{
 				std::cout << "Error: Could not open " << filename << std::endl;
-				return;
+				return false;
 			}
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false);
 				}
 				file.close();
-				return;
+				return false;
 			}
 		}
 		else
@@ -339,7 +351,7 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				if (!name_is_unique(name, creatures))
 				{
 					std::cout << "Names must be unique!" << std::endl;
-					return;
+					return false;
 				}
 				initiative_string = lowercase.substr(space_index + 1, lowercase.length() - (name.length() + 1));
 				try
@@ -349,11 +361,13 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp);
+						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
 						creatures.emplace_back(name, initiative, 0, max_hp, hp);
+						added_creature = true;
 					}
 				}
 				catch (const std::exception& E)
@@ -376,7 +390,7 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					if (!name_is_unique(name, creatures))
 					{
 						std::cout << "Names must be unique!" << std::endl;
-						return;
+						return false;
 					}
 					initiative_string = lowercase.substr(first_space_index + 1, second_space_index - first_space_index - 1);
 					mod_string = lowercase.substr(second_space_index + 1, lowercase.length() - (second_space_index + 1));
@@ -395,6 +409,7 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							modifier = std::stoi(mod_string);
 						}
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp);
+						added_creature = true;
 
 					}
 					catch (const std::exception& E)
@@ -409,6 +424,8 @@ inline void get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			}
 		}
 	}
+
+	return added_creature;
 }
 
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line)
@@ -453,6 +470,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::cout << "It's " << current_creature->get_name() << "\'s turn." << std::endl;
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
+		std::string original_dummy_line = dummy_line;
 		make_lowercase(dummy_line);
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish")
 			return;
@@ -519,11 +537,28 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			{
 				try {
 					int val = get_number_arg();
+					if (i->get_max_hp() == -1)
+					{
+						i->set_max_hp(val);
+					}
 					i->set_hp(val);
-					if (val == 0)
+					if (i->get_hp() == 0)
 					{
 						knocked_out_creature = &(*i);
 					}
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("max_hp " + lowercase_name + " ", dummy_line, ("max_hp " + lowercase_name + " ").length()))
+			{
+				try {
+					int val = get_number_arg();
+					i->set_max_hp(val);
+					if (i->get_hp() == -1)
+						i->set_hp(val);
 					used_command = true;
 				}
 				catch (const std::exception& E) {
@@ -570,18 +605,42 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 				}
 			}
-			else if (dummy_line == "add")
-			{
-				dummy_line = "";
-				std::ifstream file;
-				bool dummy_taking_initiatives = true;
-				get_creature(creatures, dummy_taking_initiatives, dummy_line, file);
-				creatures.sort();
-				used_command = true;
-			}
 
 			if (did_erase || used_command)
 				break;
+		}
+
+		if (!used_command && dummy_line.substr(0,4)=="add " && dummy_line.length()>4)
+		{
+			dummy_line = dummy_line.substr(4);
+			original_dummy_line = original_dummy_line.substr(4);
+			std::ifstream file;
+			bool dummy_taking_initiatives = true;
+			used_command = true;
+			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true);
+			if (success)
+			{
+				creatures.sort();
+			}
+			else
+			{
+				std::cout << "Error\n";
+			}
+		}
+		else if (!used_command && dummy_line == "add")
+		{
+			std::ifstream file;
+			bool dummy_taking_initiatives = true;
+			used_command = true;
+			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false);
+			if (success)
+			{
+				creatures.sort();
+			}
+			else
+			{
+				std::cout << "Error\n";
+			}
 		}
 
 		if(!used_command)
@@ -667,7 +726,7 @@ int main(int argc, char** args)
 	}
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file);
+		get_creature(creatures, taking_intiatives, line, file, true, false);
 	}
 
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
