@@ -1,8 +1,12 @@
-Manus 21 hp:55
-VK_3 +3 16 hp:39
-Shiv +2 16 hp:45
-Menna +3 15 hp:46
-Zrird +2 15 hp:36
-VK_2 +3 5 hp:39
-VK_4 +3 5 hp:39
-VK_1 +3 4 hp:39
+Shiv 22 hp:28/52
+Gabriel 21 hp:12/19
+B5 19 hp:35/52
+ManusHorse 16 hp:13/13
+Manus 15 hp:54/58
+B2 14 hp:42/52
+B4 9 hp:42/52
+Menna +3 6 hp:32/49
+Zrird +0 6 hp:41/41
+B3 4 hp:47/52
+DH2 3 hp:19
+DH1 1 hp:19

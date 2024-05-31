@@ -9,7 +9,7 @@
 typedef size_t index_t;
 class creature
 {
-	int initiative, modifier, hp, max_hp;
+	int initiative, modifier, hp, max_hp, turn_count;
 	std::string name;
 public:
 	inline void set_initiative(int new_initiative)
@@ -54,11 +54,22 @@ public:
 	inline int adjust_hp(int amount) {
 		if (max_hp != -1)
 		{
-			hp += amount;
-			if (hp > max_hp)
+			if (amount == INT_MAX)
+			{
 				hp = max_hp;
-			else if (hp < 0)
+			}
+			else if (amount == -INT_MAX)
+			{
 				hp = 0;
+			}
+			else
+			{
+				hp += amount;
+				if (hp > max_hp)
+					hp = max_hp;
+				else if (hp < 0)
+					hp = 0;
+			}
 		}
 		return hp;
 	}
@@ -84,6 +95,16 @@ public:
 		if (hp > new_max_hp)
 			hp = new_max_hp;
 	}
+
+	inline void set_turn_count(int tc)
+	{
+		turn_count = tc;
+	}
+
+	inline int get_turn_count()
+	{
+		return turn_count;
+	}
 };
 
 inline bool comp_substring(const std::string& first, const std::string& second, size_t chars_to_compare) {
@@ -106,6 +127,14 @@ inline void trim(std::string& str)
 
 	for (trailing_spaces = 0; str[str.length() - 1 - trailing_spaces] == ' ' && trailing_spaces < str.length(); ++trailing_spaces) {}
 	str = str.substr(0, str.length() - trailing_spaces);
+
+	
+	auto double_spaces = str.find("  ");
+	while (double_spaces < str.length())
+	{
+		str = str.substr(0, double_spaces) + str.substr(double_spaces + 1);
+		double_spaces = str.find("  ");
+	}
 }
 
 //Makes an existing string lowercase in place
@@ -140,7 +169,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 }
 
 //Process command/add a creature, and return whether or not a creature was added.
-inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line)
+inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword)
 {
 	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
@@ -243,6 +272,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 	}
 	
+	if (may_expect_add_keyword && line.size() > 4 && get_lowercase(line.substr(0, 4)) == "add ")
+	{
+		line = line.substr(4);
+	}
 	
 	if (!used_command && line != "")
 	{
@@ -335,7 +368,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true);
 				}
 				file.close();
 				return false;
@@ -373,6 +406,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E)
 				{
 					std::cout << "Error: Could not parse input (or ran out of memory - unlikely)" << std::endl;
+					//std::cout << E.what() << std::endl;
 				}
 
 			}
@@ -415,6 +449,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E)
 					{
 						std::cout << "Error: Could not parse input (or ran out of memory - unlikely)" << std::endl;
+						//std::cout << E.what() << std::endl;
 					}
 				}
 			}
@@ -450,7 +485,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			new_round = false;
 		}
 		std::cout << "Round " << current_round << std::endl << std::endl << std::endl;
-		int turn_count = 0;
+		int turn_count = 0; //Used to track the turn counts of each creature
 		creature* current_creature = nullptr;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
@@ -464,6 +499,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
 			}
 			std::cout << std::endl;
+			i->set_turn_count(turn_count);
 			++turn_count;
 		}
 		std::cout << std::endl;
@@ -477,6 +513,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		bool used_command = false;
 		bool did_erase = false;
+		int move_turn = -1;
 		std::string lowercase_current_creature_name = get_lowercase(current_creature->get_name());
 		for (auto i = creatures.begin(); i != creatures.end(); ++i) {
 			const std::string& lowercase_name = get_lowercase(i->get_name());
@@ -489,7 +526,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				size_t second_space = dummy_line.find(" ", first_space + 1);
 
 				std::string sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
-				int value = std::stoi(sub);
+				int value;
+				if (sub == " max")
+				{
+					value = INT_MAX;
+				}
+				else
+				{
+					value = std::stoi(sub);
+				}
 				return value;
 			};
 
@@ -530,7 +575,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					used_command = true;
 				}
 				catch (const std::exception& E) {
-
+					//std::cout << E.what() << std::endl;
 				}
 			}
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
@@ -590,6 +635,30 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				if (creatures.size() == 0)
 					return;
 			}
+			else if (dummy_line == "ko " + lowercase_name)
+			{
+				i->set_hp(0);
+				used_command = true;
+			}
+			else if (
+				(dummy_line == "reset " + lowercase_name)
+				)
+			{
+				i->set_hp(i->get_max_hp());
+				used_command = true;
+			}
+			else if (
+				(dummy_line == "trn " + lowercase_name) || 
+				(dummy_line == "turn " + lowercase_name) ||
+				(dummy_line == "goto " + lowercase_name) ||
+				(dummy_line == "go " + lowercase_name) ||
+				(dummy_line == "visit " + lowercase_name) ||
+				(dummy_line == lowercase_name)
+				)
+			{
+				move_turn = i->get_turn_count();
+				used_command = true;
+			}
 			else if (comp_substring("round ", dummy_line, 6))
 			{
 				try {
@@ -612,12 +681,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (!used_command && dummy_line.substr(0,4)=="add " && dummy_line.length()>4)
 		{
-			dummy_line = dummy_line.substr(4);
-			original_dummy_line = original_dummy_line.substr(4);
+			//dummy_line = dummy_line.substr(4);
+			//original_dummy_line = original_dummy_line.substr(4);
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true);
+			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true);
 			if (success)
 			{
 				creatures.sort();
@@ -632,7 +701,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false);
+			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false);
 			if (success)
 			{
 				creatures.sort();
@@ -645,6 +714,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if(!used_command)
 			++current_turn;
+
+		if (move_turn != -1)
+		{
+			current_turn = move_turn;
+		}
 
 		if (current_turn >= creatures.size())
 		{
@@ -726,7 +800,7 @@ int main(int argc, char** args)
 	}
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file, true, false);
+		get_creature(creatures, taking_intiatives, line, file, true, false, true);
 	}
 
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
