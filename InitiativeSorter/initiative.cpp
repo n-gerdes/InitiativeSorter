@@ -24,7 +24,10 @@ public:
 	{
 		return name;
 	}
-
+	inline int get_initiative_modifier() const
+	{
+		return modifier;
+	}
 	inline int get_max_hp() const {
 		return max_hp;
 	}
@@ -33,15 +36,15 @@ public:
 		return hp;
 	}
 	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp) : name(name), initiative(initiative), modifier(modifier),
-		hp(hp), max_hp(max_hp)
+		hp(hp), max_hp(max_hp), turn_count(-1)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
 	}
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
-		hp(-1), max_hp(-1)
+		hp(-1), max_hp(-1), turn_count(-1)
 	{}
-	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1)
+	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1)
 	{}
 
 	inline const bool operator<(const creature& other) const
@@ -104,6 +107,11 @@ public:
 	inline int get_turn_count()
 	{
 		return turn_count;
+	}
+
+	inline void set_name(const std::string& new_name)
+	{
+		name = new_name;
 	}
 };
 
@@ -173,8 +181,17 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 {
 	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
+	std::cout << std::endl << "________________________________________________" << std::endl;
 	std::string lowercase, name, initiative_string, mod_string;
-	std::cout << "Enter creature name + initiative:" << std::endl;
+	for (auto i = creatures.begin(); i != creatures.end(); ++i)
+	{
+		std::cout << i->get_name();
+		if (i->get_max_hp() != -1)
+			std::cout << " (" << i->get_max_hp() << " hp)";
+		
+		std::cout << std::endl;
+	}
+	std::cout << "\nEnter creature name + initiative:" << std::endl;
 	if (using_file && !info_already_in_line)
 	{
 		if (file.eof() || !file.good())
@@ -372,6 +389,26 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 				file.close();
 				return false;
+			}
+		}
+		else if (takes_commands && comp_substring("rename ", lowercase, 7))
+		{
+			std::string args = line.substr(7);
+			size_t delimeter = args.find(' ');
+			if (delimeter != std::string::npos)
+			{
+				std::string original = get_lowercase(args.substr(0, delimeter));
+				std::string new_name = args.substr(delimeter + 1);
+				std::cout << original << " / " << new_name << std::endl;
+				for (auto i = creatures.begin(); i != creatures.end(); ++i)
+				{
+					creature& c = *i;
+					if (get_lowercase(c.get_name()) == original)
+					{
+						c.set_name(new_name);
+						break;
+					}
+				}
 			}
 		}
 		else
@@ -578,6 +615,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					//std::cout << E.what() << std::endl;
 				}
 			}
+			else if (comp_substring("heal all ", dummy_line, 9))
+			{
+				try {
+					int val = get_number_arg();
+					i->adjust_hp(val);
+					if(i == (--creatures.end()))
+						used_command = true;
+					
+				}
+				catch (const std::exception& E) {
+					//std::cout << E.what() << std::endl;
+				}
+			}
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
 			{
 				try {
@@ -604,11 +654,17 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_max_hp(val);
 					if (i->get_hp() == -1)
 						i->set_hp(val);
-					used_command = true;
 				}
 				catch (const std::exception& E) {
 
 				}
+			}
+			else if (comp_substring("rename " + lowercase_name + " ", dummy_line, ("rename " + lowercase_name + " ").length()))
+			{
+				int len = ("rename " + lowercase_name + " ").length();
+				std::string new_name = original_dummy_line.substr(len);
+				i->set_name(new_name);
+				used_command = true;
 			}
 			else if (
 				comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
@@ -624,6 +680,29 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 				catch (const std::exception& E) {
 
+				}
+			}
+			else if (
+				comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()))
+			{
+				try {
+					int roll = 1 + (rand() % 20);
+					i->set_initiative( roll+(i->get_initiative_modifier()) );
+					creatures.sort();
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (dummy_line == "reroll all")
+			{
+				int roll = 1 + (rand() % 20);
+				i->set_initiative(roll + (i->get_initiative_modifier()));
+				if (i == (--creatures.end()))
+				{
+					used_command = true;
+					creatures.sort();
 				}
 			}
 			else if (dummy_line == "kill " + lowercase_name || 

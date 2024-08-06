@@ -1,12 +1,6 @@
-Shiv 22 hp:28/52
-Gabriel 21 hp:12/19
-B5 19 hp:35/52
-ManusHorse 16 hp:13/13
-Manus 15 hp:54/58
-B2 14 hp:42/52
-B4 9 hp:42/52
-Menna +3 6 hp:32/49
-Zrird +0 6 hp:41/41
-B3 4 hp:47/52
-DH2 3 hp:19
-DH1 1 hp:19
+Lair 20
+Zrird +2 hp:41/41
+Ash +1 hp:58/64
+Shiv +2 hp:23/52
+Manus +4 hp:53/58
+ID +1 2 hp:158

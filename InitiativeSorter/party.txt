@@ -1,4 +1,3 @@
-Zrird +2 hp:41/41
-Menna +3 hp:49/49
-Shiv +2 hp:52/52
-Manus +4 hp:58/58
+Zrird +2 hp:37/46
+Ash +1 hp:64/82
+Manus +5 hp:53/65

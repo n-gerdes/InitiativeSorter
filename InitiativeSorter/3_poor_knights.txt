@@ -1,3 +1,0 @@
-Poor_Knight_1 +2 hp:32/32
-Poor_Knight_2 +2 hp:32/32
-Poor_Knight_3 +2 hp:32/32

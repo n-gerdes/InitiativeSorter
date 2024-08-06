@@ -1,3 +1,0 @@
-Veteran_Knight_1 +3 hp:39
-Veteran_Knight_2 +3 hp:39
-Veteran_Knight_3 +3 hp:39
