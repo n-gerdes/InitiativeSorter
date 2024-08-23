@@ -1,4 +1,4 @@
-A very basic table top role playing game initiative tracker, which is capable of rolling initiatives, tracking turn orders, tracking hit points/round numbers, 
+A very basic table top role playing game turn tracker, which is capable of rolling initiatives, tracking turn orders, tracking hit points/round numbers, 
 and which allows you to add characters manually or load them from files.
 
 The following formats are supported as inputs to add creatures:
