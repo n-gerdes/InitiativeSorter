@@ -5,6 +5,7 @@
 #include <list>
 #include <random>
 #include <fstream>
+#include <climits>
 
 typedef size_t index_t;
 class creature
@@ -604,6 +605,30 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 				}
 			}
+			if (comp_substring("hurtr " + lowercase_name + " ", dummy_line, ("hurtr " + lowercase_name + " ").length()) ||
+				comp_substring("dmgr " + lowercase_name + " ", dummy_line, ("dmgr " + lowercase_name + " ").length()) ||
+				comp_substring("harmr " + lowercase_name + " ", dummy_line, ("harmr " + lowercase_name + " ").length()) ||
+				comp_substring("damager " + lowercase_name + " ", dummy_line, ("damager " + lowercase_name + " ").length()) ||
+				comp_substring("hurth " + lowercase_name + " ", dummy_line, ("hurth " + lowercase_name + " ").length()) ||
+				comp_substring("dmgh " + lowercase_name + " ", dummy_line, ("dmgh " + lowercase_name + " ").length()) ||
+				comp_substring("harmh " + lowercase_name + " ", dummy_line, ("harmh " + lowercase_name + " ").length()) ||
+				comp_substring("damageh " + lowercase_name + " ", dummy_line, ("damageh " + lowercase_name + " ").length())
+				)
+			{
+				try {
+					int val = get_number_arg();
+					val >>= 1;
+					i->adjust_hp(-val);
+					if (i->get_hp() == 0)
+					{
+						knocked_out_creature = &(*i);
+					}
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
 			else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()))
 			{
 				try {
@@ -654,6 +679,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_max_hp(val);
 					if (i->get_hp() == -1)
 						i->set_hp(val);
+					used_command = true;
 				}
 				catch (const std::exception& E) {
 
@@ -701,6 +727,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				i->set_initiative(roll + (i->get_initiative_modifier()));
 				if (i == (--creatures.end()))
 				{
+					used_command = true;
+					creatures.sort();
+				}
+			}
+			else if (dummy_line == "reset")
+			{
+				int roll = 1 + (rand() % 20);
+				i->set_initiative(roll + (i->get_initiative_modifier()));
+				i->set_hp(i->get_max_hp());
+				if (i == (--creatures.end()))
+				{
+					turn_count = 0;
+					move_turn = creatures.begin()->get_turn_count();
 					used_command = true;
 					creatures.sort();
 				}
