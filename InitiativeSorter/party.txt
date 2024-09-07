@@ -1,3 +1,4 @@
-Zrird +2 hp:37/46
-Ash +1 hp:64/82
-Manus +5 hp:53/65
+Zrird +2 hp:51/51
+Ash +1 hp:91/91
+Manus +5 hp:65/65
+Jene +3 hp:38/38

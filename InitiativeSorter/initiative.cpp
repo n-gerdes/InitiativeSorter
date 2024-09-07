@@ -860,7 +860,7 @@ int main(int argc, char** args)
 	std::cout << "When prompted, add creatures by giving its name, initiative, and modifier. The name must be one word." << std::endl;
 	std::cout << "The initiative and modifier must be separated by a space (i.e., \"Rogue 17 +6\")" << std::endl;
 	std::cout << "When you're done entering creatures, type \'done\' to finish (not case sensitive)" << std::endl;
-	std::cout << "When you're tracking initiatives, pressing the \'Enter'\ key will advance the initiative counter." << std::endl;
+	std::cout << "When you're tracking initiatives, pressing the \'Enter\' key will advance the initiative counter." << std::endl;
 	std::cout << std::endl;
 	std::cout << "You can also make it roll initiatives for you by telling it a modifier instead of a roll" << std::endl;
 	std::cout << "(i.e., \"Barbarian +3\")" << std::endl;
@@ -870,7 +870,7 @@ int main(int argc, char** args)
 	std::cout << std::endl;
 	std::cout << "You can also set a creature's HP with the \'hp\' command." << std::endl;
 	std::cout << std::endl;
-	std::cout << "You must manually kill creatures with 0 HP via the \'kill'\ command." << std::endl;
+	std::cout << "You must manually kill creatures with 0 HP via the \'kill\' command." << std::endl;
 	std::cout << std::endl << std::endl;
 
 	const static bool PROMPT_FILE_LOAD = false;
