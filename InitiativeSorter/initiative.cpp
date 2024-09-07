@@ -930,7 +930,7 @@ int main(int argc, char** args)
 	{
 		track_initiatives(creatures, line);
 	}
-	std::cout << "Combat has ended. Press \'\enter\' to terminate program." << std::endl;
+	std::cout << "Combat has ended. Press \'enter\' to terminate program." << std::endl;
 	std::getline(std::cin, line);
 	return 0;
 }
