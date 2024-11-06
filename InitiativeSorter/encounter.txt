@@ -1,6 +1,7 @@
-Lair 20
-Zrird +2 hp:41/41
-Ash +1 hp:58/64
-Shiv +2 hp:23/52
-Manus +4 hp:53/58
-ID +1 2 hp:158
+archers +3 hp:150
+
+armor1 +3 22 hp:39
+armor2 +3 22 hp:39
+armor3 +3 21 hp:39
+armor4 +3 17 hp:39
+armor5 +3 9 hp:39

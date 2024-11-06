@@ -1,0 +1,11 @@
+quinn +2 hp:10
+mera +2 hp:8
+hubert +1 hp:14
+hayden +2 hp:10
+greer +2 hp:13
+shiv +2 hp:10
+wisp +9 hp:22
+scarecrow +1 hp:36
+pumpkin_head +1 hp:36
+eugene -1 hp:33
+mayor +2 hp:45

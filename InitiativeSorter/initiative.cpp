@@ -509,6 +509,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	size_t current_round = 1;
 	bool new_round = false;
 	creature* knocked_out_creature = nullptr;
+	std::string turn_msg = "";
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
 		clear();
@@ -517,6 +518,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::cout << knocked_out_creature->get_name() << " WAS KNOCKED OUT!" << std::endl << std::endl;
 			knocked_out_creature = nullptr;
 		}
+		if (turn_msg != "")
+		{
+			std::cout << turn_msg << std::endl;
+		}
+		turn_msg = "";
 		if (new_round)
 		{
 			std::cout << "Start of a new round." << std::endl;
@@ -542,6 +548,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		std::cout << std::endl;
 		std::cout << "It's " << current_creature->get_name() << "\'s turn." << std::endl;
+		if (current_creature->get_hp() == 0)
+		{
+			std::cout << "\t" << current_creature->get_name() << " HAS 0 HP!" << std::endl;
+		}
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
 		std::string original_dummy_line = dummy_line;
@@ -562,10 +572,18 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			auto get_number_arg = [&]() -> int {
 				size_t first_space = dummy_line.find(" ");
 				size_t second_space = dummy_line.find(" ", first_space + 1);
-
-				std::string sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
 				int value;
-				if (sub == " max")
+				std::string sub;
+				if (second_space == std::string::npos)
+				{
+					sub = dummy_line.substr(first_space);
+				}
+				else
+				{
+					sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
+				}
+
+				if (sub == " max" || sub == " all")
 				{
 					value = INT_MAX;
 				}
@@ -573,6 +591,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					value = std::stoi(sub);
 				}
+
 				return value;
 			};
 
@@ -605,6 +624,22 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 				}
 			}
+			else if (comp_substring("hurt all ", dummy_line, 9) ||
+					 comp_substring("dmg all ", dummy_line, 8) ||
+					 comp_substring("harm all ", dummy_line, 9) ||
+					 comp_substring("damage all ", dummy_line, 11))
+			{
+				try {
+					int val = get_number_arg();
+					i->adjust_hp(-val);
+					if (i == (--creatures.end()))
+						used_command = true;
+
+				}
+				catch (const std::exception& E) {
+					//std::cout << E.what() << std::endl;
+				}
+			}
 			if (comp_substring("hurtr " + lowercase_name + " ", dummy_line, ("hurtr " + lowercase_name + " ").length()) ||
 				comp_substring("dmgr " + lowercase_name + " ", dummy_line, ("dmgr " + lowercase_name + " ").length()) ||
 				comp_substring("harmr " + lowercase_name + " ", dummy_line, ("harmr " + lowercase_name + " ").length()) ||
@@ -629,7 +664,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
-			else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()))
+			else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
 			{
 				try {
 					int val = get_number_arg();
@@ -653,7 +689,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					//std::cout << E.what() << std::endl;
 				}
 			}
-			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
+			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
+					 comp_substring("health " + lowercase_name + " ", dummy_line, ("health " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " health ", dummy_line, (lowercase_name + " health ").length()))
 			{
 				try {
 					int val = get_number_arg();
@@ -672,7 +711,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
-			else if (comp_substring("max_hp " + lowercase_name + " ", dummy_line, ("max_hp " + lowercase_name + " ").length()))
+			else if (comp_substring("max_hp " + lowercase_name + " ", dummy_line, ("max_hp " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " max_hp ", dummy_line, (lowercase_name + " max_hp ").length()) ||
+					 comp_substring("max_health " + lowercase_name + " ", dummy_line, ("max_health " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " max_health ", dummy_line, (lowercase_name + " max_health ").length()))
 			{
 				try {
 					int val = get_number_arg();
@@ -685,7 +727,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
-			else if (comp_substring("rename " + lowercase_name + " ", dummy_line, ("rename " + lowercase_name + " ").length()))
+			else if (comp_substring("rename " + lowercase_name + " ", dummy_line, ("rename " + lowercase_name + " ").length()) ||
+					 comp_substring(lowercase_name + " rename ", dummy_line, (lowercase_name + " rename ").length()))
 			{
 				int len = ("rename " + lowercase_name + " ").length();
 				std::string new_name = original_dummy_line.substr(len);
@@ -693,23 +736,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				used_command = true;
 			}
 			else if (
-				comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
-				comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) || 
-				comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
-				comp_substring("md " + lowercase_name + " ", dummy_line, ("md " + lowercase_name + " ").length())   )
-			{
-				try {
-					int val = get_number_arg();
-					i->set_initiative(val);
-					creatures.sort();
-					used_command = true;
-				}
-				catch (const std::exception& E) {
-
-				}
-			}
-			else if (
-				comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()))
+				comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()) ||
+				comp_substring(lowercase_name + " reroll ", dummy_line, (lowercase_name + " reroll ").length()))
 			{
 				try {
 					int roll = 1 + (rand() % 20);
@@ -791,6 +819,34 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				catch (const std::exception& E) {
 					
 				}
+			}
+			else if (
+				comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
+				comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) ||
+				comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
+				comp_substring("md " + lowercase_name + " ", dummy_line, ("md " + lowercase_name + " ").length()) ||
+				comp_substring("init " + lowercase_name + " ", dummy_line, ("init " + lowercase_name + " ").length()) ||
+				comp_substring("initiative " + lowercase_name + " ", dummy_line, ("initiative " + lowercase_name + " ").length()) ||
+				comp_substring("int " + lowercase_name + " ", dummy_line, ("int " + lowercase_name + " ").length()) ||
+				comp_substring("i " + lowercase_name + " ", dummy_line, ("i " + lowercase_name + " ").length()) ||
+				comp_substring("m " + lowercase_name + " ", dummy_line, ("m " + lowercase_name + " ").length()) ||
+				comp_substring(lowercase_name + " mv ", dummy_line, (lowercase_name + " mv ").length()) ||
+				comp_substring(lowercase_name + " md ", dummy_line, (lowercase_name + " md ").length()) ||
+				comp_substring(lowercase_name + " mod ", dummy_line, (lowercase_name + " mod ").length()) ||
+				comp_substring(lowercase_name + " i ", dummy_line, (lowercase_name + " i ").length()) ||
+				comp_substring(lowercase_name + " init ", dummy_line, (lowercase_name + " init ").length()) ||
+				comp_substring(lowercase_name + " initiative ", dummy_line, (lowercase_name + " initiative ").length()) ||
+				comp_substring(lowercase_name + " ", dummy_line, lowercase_name.length() + 1))
+				{
+					try {
+						int val = get_number_arg();
+						i->set_initiative(val);
+						creatures.sort();
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+						//std::cout << E.what() << std::endl;
+					}
 			}
 
 			if (did_erase || used_command)

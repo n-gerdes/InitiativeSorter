@@ -1,0 +1,11 @@
+boss +1 5 hp:161
+lost +1 2 hp:78
+lonely +1 hp:112
+wretch1 +1 hp:10
+wretch2 +1 hp:10
+wretch3 +1 hp:10
+wretchA +1 hp:10
+wretchB +1 hp:10
+wretchC +1 hp:10
+wretchD +1 hp:10
+moon -4 hp:202
