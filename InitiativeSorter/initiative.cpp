@@ -11,11 +11,68 @@ typedef size_t index_t;
 static int initial_round = 1; //Global variables are a bad practice but this is a tiny program
 static std::string initial_turn = ""; //Stores name of character whose turn will start
 
+//Makes an existing string lowercase in place
+inline void make_lowercase(std::string& str)
+{
+	for (index_t i = 0; i < str.length(); ++i)
+		str[i] = std::tolower(str[i]);
+}
+
+//Returns a copy of a string that's made to be lowercase, while preserving the original
+inline std::string get_lowercase(std::string str) //Pass by value creates a copy that I can make lowercase before returning
+{
+	make_lowercase(str);
+	return str;
+}
+
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count;
 	std::string name;
+	std::list<std::string> flags;
 public:
+	inline const std::list<std::string>& get_flags() const
+	{
+		return flags;
+	}
+
+	inline std::string get_flag_list() const
+	{
+		std::string list;
+		for (auto i = flags.begin(); i != flags.end(); ++i)
+		{
+			list += (*i);
+			list += ",";
+		}
+		if (list.length() != 0)
+		{
+			list.resize(list.size() - 1); //Remove characters appended at the end
+		}
+
+		return list;
+	}
+
+	inline void add_flag(const std::string& new_flag)
+	{
+		if (new_flag.length() != 0 && std::find(flags.begin(), flags.end(), new_flag)==flags.end())
+		{
+			flags.push_back(new_flag);
+		}
+	}
+
+	inline void remove_flag(const std::string& flag)
+	{
+		std::string lowerc = get_lowercase(flag);
+		for (auto i = flags.begin(); i != flags.end(); ++i)
+		{
+			if (get_lowercase(*i) == lowerc)
+			{
+				flags.erase(i);
+				return;
+			}
+		}
+	}
+
 	inline void set_initiative(int new_initiative)
 	{
 		initiative = new_initiative;
@@ -39,11 +96,33 @@ public:
 	inline int get_hp() const{
 		return hp;
 	}
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp) : name(name), initiative(initiative), modifier(modifier),
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, const std::string& flags_list) : name(name), initiative(initiative), modifier(modifier),
 		hp(hp), max_hp(max_hp), turn_count(-1)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
+
+		if (max_hp != -1 && hp < 0)
+			hp = 0;
+
+		if (flags_list != "")
+		{
+			std::string flag = "";
+			for (size_t i = 0; i < flags_list.size(); ++i)
+			{
+				char c = flags_list[i];
+				if (c==',')
+				{
+					add_flag(flag);
+					flag = "";
+				}
+				else
+				{
+					flag += c;
+				}
+			}
+			add_flag(flag);
+		}
 	}
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
 		hp(-1), max_hp(-1), turn_count(-1)
@@ -149,20 +228,6 @@ inline void trim(std::string& str)
 	}
 }
 
-//Makes an existing string lowercase in place
-inline void make_lowercase(std::string& str)
-{
-	for (index_t i = 0; i < str.length(); ++i)
-		str[i] = std::tolower(str[i]);
-}
-
-//Returns a copy of a string that's made to be lowercase, while preserving the original
-inline std::string get_lowercase(std::string str) //Pass by value creates a copy that I can make lowercase before returning
-{
-	make_lowercase(str);
-	return str;
-}
-
 //Lazy but cross-platform way to "clear" the screen
 inline void clear()
 {
@@ -173,7 +238,7 @@ inline void clear()
 inline bool name_is_unique(const std::string& name, const std::list<creature>& creatures)
 {
 	std::string lowerc = get_lowercase(name);
-	if (lowerc == "all" || lowerc == "reset" || lowerc == "round" || lowerc == "quit")
+	if (lowerc == "all" || lowerc == "reset" || lowerc == "round" || lowerc == "quit" || lowerc == "hp")
 		return false;
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 	{
@@ -210,6 +275,10 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 				std::string hp = std::to_string(i->get_hp());
 				line += " hp:" + hp + "/" + max_hp;
 			}
+			if (i->get_flags().size() != 0)
+			{
+				line += "flags:" + i->get_flag_list();
+			}
 			line += "\n";
 
 			out << line;
@@ -239,6 +308,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		std::cout << i->get_name();
 		if (i->get_max_hp() != -1)
 			std::cout << " (" << i->get_max_hp() << " hp)";
+		if (i->get_flags().size() != 0)
+			std::cout << "; [" << i->get_flag_list() << "]";
 		
 		std::cout << std::endl;
 	}
@@ -261,7 +332,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	}
 	bool used_command = false;
 
-	if (takes_commands)
+	if (takes_commands) //In hindsight this is an awful way to parse commands.
 	{
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
@@ -296,8 +367,436 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				}
 			}
+			else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rf " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->remove_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rf ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->remove_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("fr " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->remove_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " fr ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->remove_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("f " + lowercase_name + " ", dummy_line, ("f " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("f " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " f ", dummy_line, (lowercase_name + " f ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " f ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("flag " + lowercase_name + " ", dummy_line, ("flag " + lowercase_name + " ").length()) )
+			{
+				try {
+					size_t start_length = ("flag " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " flag ", dummy_line, (lowercase_name + " flag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flag ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("add_flag " + lowercase_name + " ", dummy_line, ("add_flag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("add_flag " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " add_flag ", dummy_line, (lowercase_name + " add_flag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " add_flag ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("flag_add " + lowercase_name + " ", dummy_line, ("flag_add " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flag_add " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " flag_add ", dummy_line, (lowercase_name + " flag_add ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flag_add ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+
+
+			else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("addf " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " addf ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("adf " + lowercase_name + " ", dummy_line, ("adf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adf " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " adf ", dummy_line, (lowercase_name + " adf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adf ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+
+			else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmf " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("frm " + lowercase_name + " ", dummy_line, ("frm " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("frm " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rmf ", dummy_line, (lowercase_name + " rmf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmf ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " frm ", dummy_line, (lowercase_name + " frm ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " frm ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("rmflag " + lowercase_name + " ", dummy_line, ("rmflag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmflag " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("flagrm " + lowercase_name + " ", dummy_line, ("flagrm " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flagrm " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rmflag ", dummy_line, (lowercase_name + " rmflag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmflag ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " flagrm ", dummy_line, (lowercase_name + " flagrm ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flagrm ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+
+			else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rf " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("fr " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rf ").length();
+					std::string arg =line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " fr ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("rflag " + lowercase_name + " ", dummy_line, ("rflag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rflag " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("flagr " + lowercase_name + " ", dummy_line, ("flagr " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flagr " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rflag ", dummy_line, (lowercase_name + " rflag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rflag ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " flagr ", dummy_line, (lowercase_name + " flagr ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flagr ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+
+
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
 			{
+				int val = get_number_arg();
 				try {
 					size_t slash_index = dummy_line.find("/");
 					if (slash_index != std::string::npos)
@@ -312,8 +811,39 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 
 					}
+					else
+					{
+						i->set_max_hp(val);
+					}
+					i->set_hp(val);
+					used_command = true;
+					break;
+				}
+				catch (const std::exception& E) {
 
-					int val = get_number_arg();
+				}
+			}
+			else if (comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()))
+			{
+				int val = get_number_arg();
+				try {
+					size_t slash_index = dummy_line.find("/");
+					if (slash_index != std::string::npos)
+					{
+						try {
+							int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
+							i->set_max_hp(max_hp);
+						}
+						catch (const std::exception& e)
+						{
+							std::cout << "Could not parse new Max HP - only changing current HP\n";
+						}
+
+					}
+					else
+					{
+						i->set_max_hp(val);
+					}
 					i->set_hp(val);
 					used_command = true;
 					break;
@@ -327,6 +857,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				dummy_line == "rm " + lowercase_name)
 			{
 				bool removed_all = false;
+				if (get_lowercase(initial_turn) == lowercase_name)
+					initial_turn = "";
 				for (auto rmi = creatures.begin(); rmi != creatures.end(); ++rmi)
 				{
 					creature& c = *rmi;
@@ -365,6 +897,20 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		int hp = -1;
 		trim(line);
 		lowercase = get_lowercase(line);
+		std::string flags;
+		index_t flags_index = lowercase.find("flags:");
+		if (flags_index != std::string::npos)
+		{
+			size_t space_after_flags_index = lowercase.find(' ', flags_index);
+			size_t length = space_after_flags_index - flags_index;
+			flags = line.substr(flags_index+6,length-6);
+			if (space_after_flags_index == std::string::npos)
+			{
+				space_after_flags_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			trim(lowercase);
+		}
 		index_t hp_index = lowercase.find("hp:");
 		if (hp_index != std::string::npos)
 		{
@@ -376,7 +922,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_hp_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, hp_index) + lowercase.substr(space_after_hp_index + 1, lowercase.length() - space_after_hp_index - 1);
-			
+			trim(lowercase);
 			index_t slash_index = hp_text.find('/');
 			index_t colon_index = hp_text.find(":");
 			
@@ -535,13 +1081,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, flags);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, flags);
 						added_creature = true;
 					}
 				}
@@ -559,6 +1105,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				if (second_space_index == first_space_index + 1)
 				{
 					std::cout << "Error: Malformed input" << std::endl;
+					//std::cout << lowercase << std::endl;
 				}
 				else
 				{
@@ -584,7 +1131,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, flags);
 						added_creature = true;
 
 					}
@@ -595,9 +1142,21 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 			}
+			else if (number_of_spaces == 0)
+			{
+				index_t end = line.find(' ');
+				if (end == std::string::npos)
+				{
+					end = lowercase.length();
+				}
+				name = line.substr(0, end);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, flags);
+				added_creature = true;
+			}
 			else
 			{
 				std::cout << "Error: Malformed input (did you forget the space, or add extras?)" << std::endl;
+				//std::cout << lowercase << std::endl;
 			}
 		}
 	}
@@ -663,6 +1222,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::cout << i->get_name() << " [" << i->get_initiative() << "]";
 			if (i->get_max_hp() != -1) {
 				std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
+			}
+			if (i->get_flags().size() != 0)
+			{
+				std::cout << " | FLAGS: " << i->get_flag_list();
 			}
 			std::cout << std::endl;
 			i->set_turn_count(turn_count);
@@ -819,6 +1382,326 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					//std::cout << E.what() << std::endl;
 				}
 			}
+			else if (comp_substring("flag " + lowercase_name + " ", dummy_line, ("flag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flag " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " flag ", dummy_line, (lowercase_name + " flag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flag ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("f " + lowercase_name + " ", dummy_line, ("f " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("f " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " f ", dummy_line, (lowercase_name + " f ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " f ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+
+			else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("addf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " addf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("adf " + lowercase_name + " ", dummy_line, ("adf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " adf ", dummy_line, (lowercase_name + " adf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+
+			else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("frm " + lowercase_name + " ", dummy_line, ("frm " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("frm " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rmf ", dummy_line, (lowercase_name + " rmf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " frm ", dummy_line, (lowercase_name + " frm ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " frm ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("rmflag " + lowercase_name + " ", dummy_line, ("rmflag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmflag " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("flagrm " + lowercase_name + " ", dummy_line, ("flagrm " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flagrm " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rmflag ", dummy_line, (lowercase_name + " rmflag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmflag ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " flagrm ", dummy_line, (lowercase_name + " flagrm ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flagrm ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+
+			else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("fr " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " fr ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("rflag " + lowercase_name + " ", dummy_line, ("rflag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rflag " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("flagr " + lowercase_name + " ", dummy_line, ("flagr " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flagr " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " rflag ", dummy_line, (lowercase_name + " rflag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rflag ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " flagr ", dummy_line, (lowercase_name + " flagr ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flagr ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
 					 comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
 					 comp_substring("health " + lowercase_name + " ", dummy_line, ("health " + lowercase_name + " ").length()) ||
@@ -1058,6 +1941,8 @@ int main(int argc, char** args)
 	std::cout << std::endl;
 	std::cout << "You must manually kill creatures with 0 HP via the \'kill\' command." << std::endl;
 	std::cout << std::endl << std::endl;
+	std::cout << "Flags can be specified when adding creatures with the 'flags:' modifier. Flags are comma-separated and do not permit spaces." << std::endl;
+	std::cout << "Flags can also be added or removed with 'flag', 'rmflag', and other variations." << std::endl;
 
 	const static bool PROMPT_FILE_LOAD = false;
 	

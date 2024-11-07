@@ -6,6 +6,7 @@ armor3 21 +3 hp:24/39
 Ash 20 +1 hp:86/101
 Manus 18 +5 hp:59/74
 armor4 17 +3 hp:24/39
+guy2 17 +0flags:A,B,C
 guy 14 +1
 Zrird 10 +2 hp:41/56
 armor5 9 +3 hp:24/39

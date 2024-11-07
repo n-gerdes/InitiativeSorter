@@ -1,0 +1,3 @@
+reset
+egnji 6 +0
+round 1
