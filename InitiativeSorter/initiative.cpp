@@ -8,6 +8,9 @@
 #include <climits>
 
 typedef size_t index_t;
+static int initial_round = 1; //Global variables are a bad practice but this is a tiny program
+static std::string initial_turn = ""; //Stores name of character whose turn will start
+
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count;
@@ -169,12 +172,59 @@ inline void clear()
 
 inline bool name_is_unique(const std::string& name, const std::list<creature>& creatures)
 {
+	std::string lowerc = get_lowercase(name);
+	if (lowerc == "all" || lowerc == "reset" || lowerc == "round" || lowerc == "quit")
+		return false;
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 	{
-		if (get_lowercase(name) == get_lowercase(i->get_name()))
+		if (lowerc == get_lowercase(i->get_name()))
 			return false;
 	}
 	return true;
+}
+
+inline void save_state(const std::string& filename, std::list<creature>& creatures, const std::string& turn, int round_num)
+{
+	try {
+		std::ofstream out;
+		out.open(filename);
+		if (!out.is_open())
+			throw;
+		out << "reset\n";
+		for (auto i = creatures.begin(); i != creatures.end(); ++i)
+		{
+			std::string name = i->get_name();
+			std::string mod = std::to_string(i->get_initiative_modifier());
+			std::string init = std::to_string(i->get_initiative());
+
+			std::string line = name + " " + init;
+			if (i->get_initiative_modifier() >= 0)
+				line += " +" + mod;
+			else
+				line += " " + mod;
+
+
+			if (i->get_max_hp() != -1)
+			{
+				std::string max_hp = std::to_string(i->get_max_hp());
+				std::string hp = std::to_string(i->get_hp());
+				line += " hp:" + hp + "/" + max_hp;
+			}
+			line += "\n";
+
+			out << line;
+		}
+
+		out << "round " << std::to_string(round_num) << std::endl;
+		if (turn != "")
+			out << "turn " << turn << std::endl;
+
+		out.close();
+	}
+	catch (const std::exception& E)
+	{
+		std::cout << "Error saving to file '" << filename << "'" << std::endl;
+	}
 }
 
 //Process command/add a creature, and return whether or not a creature was added.
@@ -276,16 +326,30 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				dummy_line == "remove " + lowercase_name ||
 				dummy_line == "rm " + lowercase_name)
 			{
-				for (auto i = creatures.begin(); i != creatures.end(); ++i)
+				bool removed_all = false;
+				for (auto rmi = creatures.begin(); rmi != creatures.end(); ++rmi)
 				{
-					creature& c = *i;
+					creature& c = *rmi;
 					if (get_lowercase(c.get_name()) == lowercase_name)
 					{
-						creatures.erase(i);
+						bool erased_first = false;
+						if (i == creatures.begin())
+							erased_first = true;
+						if (!erased_first)
+							--i;
+						creatures.erase(rmi);
+						if (erased_first)
+							i = creatures.begin();
+						if (creatures.size() == 0)
+							removed_all = true;
 						break;
 					}
 				}
 				used_command = true;
+				if (removed_all)
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -392,6 +456,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				return false;
 			}
 		}
+		else if (takes_commands && (comp_substring("save ", lowercase, 5)))
+		{
+			std::string filename = lowercase.substr(5);
+			save_state(filename, creatures, initial_turn, initial_round);
+			return false;
+		}
 		else if (takes_commands && comp_substring("rename ", lowercase, 7))
 		{
 			std::string args = line.substr(7);
@@ -410,6 +480,40 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						break;
 					}
 				}
+			}
+		}
+		else if (takes_commands && comp_substring("round ", lowercase, 6))
+		{
+			std::string args = line.substr(6);
+			try
+			{
+				initial_round = std::stoi(args);
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Invalid round number" << std::endl;
+			}
+		}
+		else if (takes_commands && comp_substring("turn ", lowercase, 5))
+		{
+			std::string args = line.substr(5);
+			std::string args_lower = get_lowercase(args);
+			bool found_character = false;
+			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			{
+				if (get_lowercase(i->get_name()) == args_lower)
+				{
+					found_character = true;
+					break;
+				}
+			}
+			if (!found_character)
+			{
+				std::cout << "Error: could not find character '" << args << "'" << std::endl;
+			}
+			else
+			{
+				initial_turn = args_lower;
 			}
 		}
 		else
@@ -506,10 +610,28 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	//std::sort(creatures.begin(), creatures.end());
 	creatures.sort();
 	index_t current_turn = 0;
-	size_t current_round = 1;
+	size_t current_round = initial_round;
 	bool new_round = false;
 	creature* knocked_out_creature = nullptr;
 	std::string turn_msg = "";
+	if (initial_turn != "")
+	{
+		int init_turn_setter = 0;
+		for (auto i = creatures.begin(); i != creatures.end(); ++i)
+		{
+			std::string lowerc = get_lowercase(i->get_name());
+			if (lowerc == initial_turn)
+			{
+				break;
+			}
+			++init_turn_setter;
+		}
+		if (init_turn_setter == creatures.size())
+		{
+			init_turn_setter = 0;
+		}
+		current_turn = init_turn_setter;
+	}
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
 		clear();
@@ -609,7 +731,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (comp_substring("hurt " + lowercase_name + " ", dummy_line, ("hurt " + lowercase_name + " ").length()) ||
 				comp_substring("dmg " + lowercase_name + " ", dummy_line, ("dmg " + lowercase_name + " ").length()) ||
 				comp_substring("harm " + lowercase_name + " ", dummy_line, ("harm " + lowercase_name + " ").length()) ||
-				comp_substring("damage " + lowercase_name + " ", dummy_line, ("damage " + lowercase_name + " ").length()))
+				comp_substring("damage " + lowercase_name + " ", dummy_line, ("damage " + lowercase_name + " ").length()) ||
+				comp_substring("d " + lowercase_name + " ", dummy_line, ("d " + lowercase_name + " ").length()) ||
+				comp_substring("h " + lowercase_name + " ", dummy_line, ("h " + lowercase_name + " ").length()))
 			{
 				try {
 					int val = get_number_arg();
@@ -640,7 +764,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					//std::cout << E.what() << std::endl;
 				}
 			}
-			if (comp_substring("hurtr " + lowercase_name + " ", dummy_line, ("hurtr " + lowercase_name + " ").length()) ||
+			else if (comp_substring("save ", dummy_line, 5))
+			{
+				std::string filename = dummy_line.substr(5);
+				save_state(filename, creatures, current_creature->get_name(), current_round);
+				used_command = true;
+			}
+			else if (comp_substring("hurtr " + lowercase_name + " ", dummy_line, ("hurtr " + lowercase_name + " ").length()) ||
 				comp_substring("dmgr " + lowercase_name + " ", dummy_line, ("dmgr " + lowercase_name + " ").length()) ||
 				comp_substring("harmr " + lowercase_name + " ", dummy_line, ("harmr " + lowercase_name + " ").length()) ||
 				comp_substring("damager " + lowercase_name + " ", dummy_line, ("damager " + lowercase_name + " ").length()) ||
