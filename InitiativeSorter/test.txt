@@ -1,12 +1,3 @@
 reset
-archers 23 +3 hp:135/150
-armor1 22 +3 hp:24/39
-armor2 22 +3 hp:24/39
-armor3 21 +3 hp:24/39
-Ash 20 +1 hp:86/101
-Manus 18 +5 hp:59/74
-armor4 17 +3 hp:24/39
-Zrird 10 +2 hp:41/56
-armor5 9 +3 hp:24/39
-round 7
-turn armor3
+new_guy
+load test2.txt

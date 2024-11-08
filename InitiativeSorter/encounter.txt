@@ -1,7 +1,7 @@
 archers +3 hp:150
 
-armor1 +3 22 hp:39
-armor2 +3 22 hp:39
-armor3 +3 21 hp:39
-armor4 +3 17 hp:39
-armor5 +3 9 hp:39
+armor1 +3 22 hp:39 flags:R
+armor2 +3 22 hp:39 flags:R
+armor3 +3 21 hp:39 flags:R
+armor4 +3 17 hp:39 flags:R
+armor5 +3 9 hp:39 flags:R

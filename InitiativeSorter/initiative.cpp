@@ -111,7 +111,7 @@ public:
 			for (size_t i = 0; i < flags_list.size(); ++i)
 			{
 				char c = flags_list[i];
-				if (c==',')
+				if (c==',' || c=='&')
 				{
 					add_flag(flag);
 					flag = "";
@@ -334,6 +334,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 	if (takes_commands) //In hindsight this is an awful way to parse commands.
 	{
+		std::string& original_dummy_line = line;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			std::string lowercase_name = (*i).get_name();
@@ -524,6 +525,33 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 
+			else if (comp_substring("rmfg " + lowercase_name + " ", dummy_line, ("rmfg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmfg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring(lowercase_name + " rmfg ", dummy_line, (lowercase_name + " rmfg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmfg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
 
 
 			else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
@@ -538,7 +566,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
 			{
 				try {
@@ -551,7 +579,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 
 			else if (comp_substring("adf " + lowercase_name + " ", dummy_line, ("adf " + lowercase_name + " ").length()))
 			{
@@ -565,7 +593,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " adf ", dummy_line, (lowercase_name + " adf ").length()))
 			{
 				try {
@@ -578,7 +606,62 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
+			}
+
+			else if (comp_substring("adflg " + lowercase_name + " ", dummy_line, ("adflg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adflg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
 				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " adflg ", dummy_line, (lowercase_name + " adflg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adflg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring("rmflg " + lowercase_name + " ", dummy_line, ("rmflg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmflg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring(lowercase_name + " rmflg ", dummy_line, (lowercase_name + " rmflg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmflg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
 
 
 			else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
@@ -593,7 +676,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring("frm " + lowercase_name + " ", dummy_line, ("frm " + lowercase_name + " ").length()))
 			{
 				try {
@@ -606,7 +689,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " rmf ", dummy_line, (lowercase_name + " rmf ").length()))
 			{
 				try {
@@ -619,7 +702,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " frm ", dummy_line, (lowercase_name + " frm ").length()))
 			{
 				try {
@@ -632,7 +715,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring("rmflag " + lowercase_name + " ", dummy_line, ("rmflag " + lowercase_name + " ").length()))
 			{
 				try {
@@ -645,7 +728,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring("flagrm " + lowercase_name + " ", dummy_line, ("flagrm " + lowercase_name + " ").length()))
 			{
 				try {
@@ -658,7 +741,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " rmflag ", dummy_line, (lowercase_name + " rmflag ").length()))
 			{
 				try {
@@ -671,7 +754,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " flagrm ", dummy_line, (lowercase_name + " flagrm ").length()))
 			{
 				try {
@@ -684,7 +767,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 
 
 			else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
@@ -699,7 +782,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
 			{
 				try {
@@ -712,7 +795,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
 			{
 				try {
@@ -725,7 +808,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
 			{
 				try {
@@ -738,7 +821,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 			else if (comp_substring("rflag " + lowercase_name + " ", dummy_line, ("rflag " + lowercase_name + " ").length()))
 			{
 				try {
@@ -751,7 +834,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+				
+			}
+
 			else if (comp_substring("flagr " + lowercase_name + " ", dummy_line, ("flagr " + lowercase_name + " ").length()))
 			{
 				try {
@@ -764,7 +849,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
+
 			else if (comp_substring(lowercase_name + " rflag ", dummy_line, (lowercase_name + " rflag ").length()))
 			{
 				try {
@@ -777,7 +863,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
+
 			else if (comp_substring(lowercase_name + " flagr ", dummy_line, (lowercase_name + " flagr ").length()))
 			{
 				try {
@@ -790,8 +877,63 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E) {
 
 				}
-				}
+			}
 
+			else if (comp_substring("adfl " + lowercase_name + " ", dummy_line, ("adfl " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adfl " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring("adlf " + lowercase_name + " ", dummy_line, ("adlf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adlf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring(lowercase_name + " adfl ", dummy_line, (lowercase_name + " adfl ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adfl ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+
+			else if (comp_substring(lowercase_name + " adlf ", dummy_line, (lowercase_name + " adlf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adlf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
 
 
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
@@ -911,6 +1053,35 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
 			trim(lowercase);
 		}
+
+		flags_index = lowercase.find("fl:");
+		if ((flags_index != std::string::npos) && (flags.length()==0))
+		{
+			size_t space_after_flags_index = lowercase.find(' ', flags_index);
+			size_t length = space_after_flags_index - flags_index;
+			flags = line.substr(flags_index + 3, length - 3);
+			if (space_after_flags_index == std::string::npos)
+			{
+				space_after_flags_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			trim(lowercase);
+		}
+
+		flags_index = lowercase.find("f:");
+		if ( (flags_index != std::string::npos) && (flags.length()==0))
+		{
+			size_t space_after_flags_index = lowercase.find(' ', flags_index);
+			size_t length = space_after_flags_index - flags_index;
+			flags = line.substr(flags_index + 2, length - 2);
+			if (space_after_flags_index == std::string::npos)
+			{
+				space_after_flags_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			trim(lowercase);
+		}
+
 		index_t hp_index = lowercase.find("hp:");
 		if (hp_index != std::string::npos)
 		{
@@ -998,7 +1169,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					get_creature(creatures, taking_intiatives, line, new_file, true, false, true);
 				}
-				file.close();
+				new_file.close();
 				return false;
 			}
 		}
@@ -1240,6 +1411,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
 		std::string original_dummy_line = dummy_line;
+		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish")
 			return;
@@ -1357,6 +1529,37 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
+			else if ((comp_substring("load ", dummy_line, 5)))
+			{
+				std::string filename = line.substr(5, line.length() - 5);
+				std::ifstream new_file;
+				new_file.open(filename);
+				used_command = true;
+				if (!new_file.is_open())
+				{
+					std::cout << "Error: Could not open " << filename << std::endl;
+				}
+				else {
+					bool taking_initiatives = false;
+					while (new_file.good() && !new_file.eof())
+					{
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true);
+					}
+					new_file.close();
+					creatures.sort();
+					turn_count = current_creature->get_turn_count();
+					current_turn = 0;
+					for (auto i = creatures.begin(); i != creatures.end(); ++i)
+					{
+						if (i->get_name() == current_creature->get_name())
+						{
+
+							break;
+						}
+						++current_turn;
+					}
+				}
+			}
 			else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
 					 comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
 			{
@@ -1408,6 +1611,90 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
+
+			else if (comp_substring("adflg " + lowercase_name + " ", dummy_line, ("adflg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adflg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " adflg ", dummy_line, (lowercase_name + " adflg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adflg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("rmflg " + lowercase_name + " ", dummy_line, ("rmflg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmflg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring(lowercase_name + " rmflg ", dummy_line, (lowercase_name + " rmflg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmflg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("rmfg " + lowercase_name + " ", dummy_line, ("rmfg " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmfg " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring(lowercase_name + " rmfg ", dummy_line, (lowercase_name + " rmfg ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmfg ").length();
+					std::string arg = line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
 			else if (comp_substring("f " + lowercase_name + " ", dummy_line, ("f " + lowercase_name + " ").length()))
 			{
 				try {
@@ -1434,6 +1721,115 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				}
 			}
+
+			else if (comp_substring("add_flag " + lowercase_name + " ", dummy_line, ("add_flag " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("add_flag " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " add_flag ", dummy_line, (lowercase_name + " add_flag ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " add_flag ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("flag_add " + lowercase_name + " ", dummy_line, ("flag_add " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("flag_add " + lowercase_name + " ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " flag_add ", dummy_line, (lowercase_name + " flag_add ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " flag_add ").length();
+					std::string arg = line.substr(start_length);
+					used_command = true;
+
+					i->add_flag(arg);
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("adfl " + lowercase_name + " ", dummy_line, ("adfl " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adfl " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring("adlf " + lowercase_name + " ", dummy_line, ("adlf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("adlf " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring(lowercase_name + " adfl ", dummy_line, (lowercase_name + " adfl ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adfl ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring(lowercase_name + " adlf ", dummy_line, (lowercase_name + " adlf ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " adlf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->add_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
 
 
 			else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
@@ -1490,6 +1886,60 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 				}
 
+
+			else if (comp_substring("rmfl " + lowercase_name + " ", dummy_line, ("rmfl " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmfl " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring("rmlf " + lowercase_name + " ", dummy_line, ("rmlf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = ("rmfl " + lowercase_name + " ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+
+			else if (comp_substring(lowercase_name + " rmfl ", dummy_line, (lowercase_name + " rmfl ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rmfl ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
+			else if (comp_substring(lowercase_name + " rmlf ", dummy_line, (" rmlf " + lowercase_name + " ").length()))
+			{
+				try {
+					size_t start_length = (lowercase_name + " rlmf ").length();
+					std::string arg = original_dummy_line.substr(start_length);
+
+					i->remove_flag(arg);
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+				}
 
 			else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
 			{
