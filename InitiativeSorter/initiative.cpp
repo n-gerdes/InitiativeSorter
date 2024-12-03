@@ -27,7 +27,7 @@ inline std::string get_lowercase(std::string str) //Pass by value creates a copy
 
 class creature
 {
-	int initiative, modifier, hp, max_hp, turn_count;
+	int initiative, modifier, hp, max_hp, turn_count, temp_hp;
 	std::string name;
 	std::list<std::string> flags;
 public:
@@ -96,7 +96,12 @@ public:
 	inline int get_hp() const{
 		return hp;
 	}
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, const std::string& flags_list) : name(name), initiative(initiative), modifier(modifier),
+
+	inline int get_temp_hp() const {
+		return temp_hp;
+	}
+
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
 		hp(hp), max_hp(max_hp), turn_count(-1)
 	{
 		if (hp > max_hp)
@@ -125,9 +130,9 @@ public:
 		}
 	}
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
-		hp(-1), max_hp(-1), turn_count(-1)
+		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0)
 	{}
-	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1)
+	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0)
 	{}
 
 	inline const bool operator<(const creature& other) const
@@ -150,11 +155,25 @@ public:
 			}
 			else
 			{
-				hp += amount;
-				if (hp > max_hp)
-					hp = max_hp;
-				else if (hp < 0)
-					hp = 0;
+				if (amount < 0)
+				{
+					temp_hp += amount;
+					if (temp_hp < 0)
+					{
+						hp += temp_hp;
+						temp_hp = 0;
+						if (hp < 0)
+							hp = 0;
+					}
+				}
+				else
+				{
+					hp += amount;
+					if (hp > max_hp)
+						hp = max_hp;
+					else if (hp < 0)
+						hp = 0;
+				}
 			}
 		}
 		return hp;
@@ -171,6 +190,11 @@ public:
 				hp = 0;
 		}
 		return hp;
+	}
+
+	inline void set_temp_hp(int thp)
+	{
+		temp_hp = thp;
 	}
 
 	inline void set_max_hp(int new_max_hp)
@@ -277,7 +301,7 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			}
 			if (i->get_flags().size() != 0)
 			{
-				line += "flags:" + i->get_flag_list();
+				line += " flags:" + i->get_flag_list();
 			}
 			line += "\n";
 
@@ -936,6 +960,111 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			}
 
 
+			else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()))
+			{
+				int val = get_number_arg();
+				
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring(lowercase_name + " buffer ", dummy_line, (lowercase_name + " buffer ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring(lowercase_name + " temphp ", dummy_line, (lowercase_name + " temphp ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+			}
+			else if (comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()))
+			{
+				int val = get_number_arg();
+
+				if (val < 0)
+				{
+					std::cout << "Temp HP must be a non-negative number." << std::endl;
+				}
+				else
+				{
+					i->set_temp_hp(val);
+				}
+				}
+
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
 			{
 				int val = get_number_arg();
@@ -1037,6 +1166,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	{
 		int max_hp = -1;
 		int hp = -1;
+		int temp_hp = 0;
 		trim(line);
 		lowercase = get_lowercase(line);
 		std::string flags;
@@ -1079,6 +1209,120 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_flags_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			trim(lowercase);
+		}
+
+		index_t& temp_hp_index = flags_index;
+		temp_hp_index = lowercase.find("temp:");
+		if (temp_hp_index != std::string::npos && temp_hp==0)
+		{
+			size_t space_after_index = lowercase.find(' ', temp_hp_index);
+			size_t length = space_after_index - flags_index;
+			std::string sub = line.substr(temp_hp_index + 5, length - 5);
+			try
+			{
+				//std::cout << "////" << sub << "/////\n";
+				temp_hp = std::stoi(sub);
+				if (temp_hp < 0)
+				{
+					temp_hp = 0;
+					throw;
+				}
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Temp HP must be a positive number" << std::endl;
+				return false;
+			}
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			trim(lowercase);
+		}
+
+		temp_hp_index = lowercase.find("temp_hp:");
+		if (temp_hp_index != std::string::npos && temp_hp == 0)
+		{
+			size_t space_after_index = lowercase.find(' ', temp_hp_index);
+			size_t length = space_after_index - flags_index;
+			std::string sub = line.substr(temp_hp_index + 8, length - 8);
+			try
+			{
+				temp_hp = std::stoi(sub);
+				if (temp_hp < 0)
+				{
+					temp_hp = 0;
+					throw;
+				}
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Temp HP must be a positive number" << std::endl;
+				return false;
+			}
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			trim(lowercase);
+		}
+
+		temp_hp_index = lowercase.find("thp:");
+		if (temp_hp_index != std::string::npos && temp_hp == 0)
+		{
+			size_t space_after_index = lowercase.find(' ', temp_hp_index);
+			size_t length = space_after_index - flags_index;
+			std::string sub = line.substr(temp_hp_index + 4, length - 4);
+			try
+			{
+				temp_hp = std::stoi(sub);
+				if (temp_hp < 0)
+				{
+					temp_hp = 0;
+					throw;
+				}
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Temp HP must be a positive number" << std::endl;
+				return false;
+			}
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			trim(lowercase);
+		}
+
+		temp_hp_index = lowercase.find("buffer:");
+		if (temp_hp_index != std::string::npos && temp_hp == 0)
+		{
+			size_t space_after_index = lowercase.find(' ', temp_hp_index);
+			size_t length = space_after_index - flags_index;
+			std::string sub = line.substr(temp_hp_index + 7, length - 7);
+			try
+			{
+				temp_hp = std::stoi(sub);
+				if (temp_hp < 0)
+				{
+					temp_hp = 0;
+					throw;
+				}
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Temp HP must be a positive number" << std::endl;
+				return false;
+			}
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
 			trim(lowercase);
 		}
 
@@ -1252,13 +1496,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, flags);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, flags);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags);
 						added_creature = true;
 					}
 				}
@@ -1302,7 +1546,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, flags);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags);
 						added_creature = true;
 
 					}
@@ -1321,7 +1565,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					end = lowercase.length();
 				}
 				name = line.substr(0, end);
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, flags);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags);
 				added_creature = true;
 			}
 			else
@@ -1392,7 +1636,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			std::cout << i->get_name() << " [" << i->get_initiative() << "]";
 			if (i->get_max_hp() != -1) {
-				std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
+				if(i->get_temp_hp() == 0)
+					std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
+				else
+					std::cout << "; " << i->get_hp() << "[+" << i->get_temp_hp() << " temp]" << " / " << i->get_max_hp() << " HP";
 			}
 			if (i->get_flags().size() != 0)
 			{
@@ -1518,6 +1765,25 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				try {
 					int val = get_number_arg();
 					val >>= 1;
+					i->adjust_hp(-val);
+					if (i->get_hp() == 0)
+					{
+						knocked_out_creature = &(*i);
+					}
+					used_command = true;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("hurtd " + lowercase_name + " ", dummy_line, ("hurtd " + lowercase_name + " ").length()) ||
+				comp_substring("dmgd " + lowercase_name + " ", dummy_line, ("dmgd " + lowercase_name + " ").length()) ||
+				comp_substring("hurtv " + lowercase_name + " ", dummy_line, ("hurtv " + lowercase_name + " ").length()) ||
+				comp_substring("dmgv " + lowercase_name + " ", dummy_line, ("dmgv " + lowercase_name + " ").length()))
+			{
+				try {
+					int val = get_number_arg();
+					val <<= 1;
 					i->adjust_hp(-val);
 					if (i->get_hp() == 0)
 					{
@@ -2152,6 +2418,33 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 			}
 
+
+			else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()) ||
+				comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()) ||
+
+				comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()) ||
+				comp_substring(lowercase_name + " temphp ", dummy_line, (lowercase_name + " temphp ").length()) ||
+
+				comp_substring(lowercase_name + " buffer ", dummy_line, (lowercase_name + " buffer ").length()) ||
+				comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()) ||
+
+				comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()) ||
+				comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
+				{
+					try {
+						int val = get_number_arg();
+						if (val < 0)
+							throw;
+
+						i->set_temp_hp(val);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+
 			else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
 					 comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
 					 comp_substring("health " + lowercase_name + " ", dummy_line, ("health " + lowercase_name + " ").length()) ||
@@ -2227,6 +2520,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				int roll = 1 + (rand() % 20);
 				i->set_initiative(roll + (i->get_initiative_modifier()));
 				i->set_hp(i->get_max_hp());
+				current_round = 1;
 				if (i == (--creatures.end()))
 				{
 					turn_count = 0;

@@ -1,7 +1,10 @@
-archers +3 hp:150
-
-armor1 +3 22 hp:39 flags:R
-armor2 +3 22 hp:39 flags:R
-armor3 +3 21 hp:39 flags:R
-armor4 +3 17 hp:39 flags:R
-armor5 +3 9 hp:39 flags:R
+reset
+Ash 20 +1 hp:45/111
+Otto 14 +1 hp:59/59
+Manus 12 +5 hp:77/77
+Zrird 10 +2 hp:58/58
+simples 0 +0
+hm1 +3 hp:39
+hm2 +3 hp:39
+r hp:161 flags:L1,L2,L3
+round 1

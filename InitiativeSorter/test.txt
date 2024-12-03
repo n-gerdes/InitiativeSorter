@@ -1,3 +1,2 @@
-reset
 new_guy
 load test2.txt

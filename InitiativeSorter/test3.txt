@@ -1,3 +1,4 @@
-reset
-egnji 6 +0
-round 1
+A
+B
+C
+load test.txt

@@ -1,3 +1,3 @@
-Zrird +2 hp:56/56
-Ash +1 hp:101/101
-Manus +5 hp:74/74
+Zrird +2 hp:58/58
+Ash +1 hp:98/111
+Manus +5 hp:77/77

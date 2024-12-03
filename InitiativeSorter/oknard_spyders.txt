@@ -1,0 +1,3 @@
+s1 +4 hp:37 flags:web,puppet
+s2 +4 hp:37 flags:web,puppet
+s3 +4 hp:37 flags:web,puppet
