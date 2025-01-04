@@ -1,10 +1,6 @@
 reset
-Ash 20 +1 hp:45/111
-Otto 14 +1 hp:59/59
-Manus 12 +5 hp:77/77
-Zrird 10 +2 hp:58/58
-simples 0 +0
-hm1 +3 hp:39
-hm2 +3 hp:39
-r hp:161 flags:L1,L2,L3
+Manus 23 +5 hp:82/102
+Ash 21 +1 hp:17/17
+Gabriel 5 +0 hp:60/60
 round 1
+turn Manus

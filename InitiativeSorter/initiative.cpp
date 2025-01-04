@@ -429,6 +429,8 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "add"
 		|| lowerc == "undo"
 		|| lowerc == "redo"
+		|| lowerc == "u"
+		|| lowerc == "r"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -2279,7 +2281,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish")
 			return;
-		else if (dummy_line == "undo")
+		else if (dummy_line == "undo" || dummy_line == "u")
 		{
 			buffer_manipulation_state = STATE_UNDO;
 			//Increment buffer iterators
@@ -2293,7 +2295,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			continue;
 		}
-		else if (dummy_line == "redo")
+		else if (dummy_line == "redo" || dummy_line == "r")
 		{
 			buffer_manipulation_state = STATE_REDO;
 			if (creatures_buffer_iterator != creatures_buffer.begin())
