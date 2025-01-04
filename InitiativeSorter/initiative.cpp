@@ -431,6 +431,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "redo"
 		|| lowerc == "u"
 		|| lowerc == "r"
+		|| lowerc == "leave"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -850,8 +851,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				make_lowercase(dummy_line);
 				make_lowercase(lowercase_name);
 
-
-				if (
+				if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave")
+					exit(0);
+				else if (
 					comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
 					comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) ||
 					comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
@@ -1668,7 +1670,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			}
 		}
 	}
-	
+	trim(line);
 	if (may_expect_add_keyword && line.size() > 4 && get_lowercase(line.substr(0, 4)) == "add ")
 	{
 		line = line.substr(4);
@@ -1679,8 +1681,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		int max_hp = -1;
 		int hp = -1;
 		int temp_hp = 0;
-		trim(line);
+		
 		lowercase = get_lowercase(line);
+		if (lowercase == "quit" || lowercase == "end" || lowercase == "stop" || lowercase == "terminate" || lowercase == "finish" || lowercase == "leave")
+			exit(0);
 		std::string flags;
 		index_t flags_index = lowercase.find("flags:");
 		if (flags_index != std::string::npos)
@@ -2279,7 +2283,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		int move_turn = -1;
 		//std::string lowercase_current_creature_name = get_lowercase(current_creature->get_name());
 
-		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish")
+		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave")
 			return;
 		else if (dummy_line == "undo" || dummy_line == "u")
 		{
