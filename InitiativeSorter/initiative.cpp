@@ -433,6 +433,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "r"
 		|| lowerc == "leave"
 		|| lowerc == "close"
+		|| lowerc == "t"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
