@@ -1500,6 +1500,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						i->set_temp_hp(val);
 					}
 				}
+				else if (comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()))
+				{
+					int val = get_number_arg(dummy_line);
+
+					if (val < 0)
+					{
+						std::cout << "Temp HP must be a non-negative number." << std::endl;
+					}
+					else
+					{
+						i->set_temp_hp(val);
+					}
+					}
 				else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
 				{
 					int val = get_number_arg(dummy_line);
@@ -1527,6 +1540,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 				else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
+				{
+					int val = get_number_arg(dummy_line);
+
+					if (val < 0)
+					{
+						std::cout << "Temp HP must be a non-negative number." << std::endl;
+					}
+					else
+					{
+						i->set_temp_hp(val);
+					}
+				}
+				else if (comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()))
 				{
 					int val = get_number_arg(dummy_line);
 
@@ -3056,7 +3082,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()) ||
 
 					comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()) ||
-					comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
+					comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()) ||
+
+					comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length())
+					)
 					{
 						try {
 							int val = get_number_arg(dummy_line);
