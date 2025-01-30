@@ -34,11 +34,12 @@ class creature
 	std::list<std::string> flags;
 public:
 	std::list<std::string> aliases;
+	bool touched = false;
 	inline const std::list<std::string>& get_flags() const
 	{
 		return flags;
 	}
-
+	
 	void add_alias(const std::string& new_alias)
 	{
 		aliases.push_back(new_alias);
@@ -404,102 +405,106 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "as"
 		|| lowerc == "al"
 		|| lowerc == "rf"
-		|| lowerc == "quit"
-		|| lowerc == "end"
-		|| lowerc == "stop"
-		|| lowerc == "terminate"
-		|| lowerc == "finish"
-		|| lowerc == "fr"
-		|| lowerc == "f"
-		|| lowerc == "add_flag"
-		|| lowerc == "rmfg"
-		|| lowerc == "addf"
-		|| lowerc == "adf"
-		|| lowerc == "adflg"
-		|| lowerc == "rmflg"
-		|| lowerc == "rmf"
-		|| lowerc == "frm"
-		|| lowerc == "rmflag"
-		|| lowerc == "flagrm"
-		|| lowerc == "rflag"
-		|| lowerc == "flagr"
-		|| lowerc == "adfl"
-		|| lowerc == "adlf"
-		|| lowerc == "temp_hp"
-		|| lowerc == "thp"
-		|| lowerc == "buffer"
-		|| lowerc == "temp_hp"
-		|| lowerc == "temphp"
-		|| lowerc == "hp"
-		|| lowerc == "rm"
-		|| lowerc == "remove"
-		|| lowerc == "hurt"
-		|| lowerc == "dmg"
-		|| lowerc == "harm"
-		|| lowerc == "damage"
-		|| lowerc == "d"
-		|| lowerc == "h"
-		|| lowerc == "hurt"
-		|| lowerc == "hurt all"
-		|| lowerc == "dmg all"
-		|| lowerc == "damage all"
-		|| lowerc == "harm all"
-		|| lowerc == "save"
-		|| lowerc == "load"
-		|| lowerc == "hurtr"
-		|| lowerc == "dmgr"
-		|| lowerc == "harmr"
-		|| lowerc == "damager"
-		|| lowerc == "hurth"
-		|| lowerc == "dmgh"
-		|| lowerc == "harmh"
-		|| lowerc == "damageh"
-		|| lowerc == "hurtv"
-		|| lowerc == "dmgv"
-		|| lowerc == "harmv"
-		|| lowerc == "damagev"
-		|| lowerc == "hurtv"
-		|| lowerc == "dmgv"
-		|| lowerc == "harmv"
-		|| lowerc == "damagev"
-		|| lowerc == "hurtd"
-		|| lowerc == "dmgd"
-		|| lowerc == "harmd"
-		|| lowerc == "damaged"
-		|| lowerc == "hurtd"
-		|| lowerc == "dmgd"
-		|| lowerc == "harmd"
-		|| lowerc == "damaged"
-		|| lowerc == "heal"
-		|| lowerc == "heal all"
-		|| lowerc == "health"
-		|| lowerc == "max_hp"
-		|| lowerc == "max_health"
-		|| lowerc == "rename"
-		|| lowerc == "reroll"
-		|| lowerc == "reset"
-		|| lowerc == "kill"
-		|| lowerc == "die"
-		|| lowerc == "rm"
-		|| lowerc == "ko"
-		|| lowerc == "trn"
-		|| lowerc == "turn"
-		|| lowerc == "goto"
-		|| lowerc == "go"
-		|| lowerc == "visit"
-		|| lowerc == "round"
-		|| lowerc == "add"
-		|| lowerc == "undo"
-		|| lowerc == "redo"
-		|| lowerc == "u"
-		|| lowerc == "r"
-		|| lowerc == "leave"
-		|| lowerc == "close"
-		|| lowerc == "t"
-		|| lowerc == "temp"
-		|| lowerc == "regen"
-		|| lowerc == "disable"
-		|| lowerc == "roll"
+			|| lowerc == "quit"
+			|| lowerc == "end"
+			|| lowerc == "stop"
+			|| lowerc == "terminate"
+			|| lowerc == "finish"
+			|| lowerc == "fr"
+			|| lowerc == "f"
+			|| lowerc == "add_flag"
+			|| lowerc == "rmfg"
+			|| lowerc == "addf"
+			|| lowerc == "adf"
+			|| lowerc == "adflg"
+			|| lowerc == "rmflg"
+			|| lowerc == "rmf"
+			|| lowerc == "frm"
+			|| lowerc == "rmflag"
+			|| lowerc == "flagrm"
+			|| lowerc == "rflag"
+			|| lowerc == "flagr"
+			|| lowerc == "adfl"
+			|| lowerc == "adlf"
+			|| lowerc == "temp_hp"
+			|| lowerc == "thp"
+			|| lowerc == "buffer"
+			|| lowerc == "temp_hp"
+			|| lowerc == "temphp"
+			|| lowerc == "hp"
+			|| lowerc == "rm"
+			|| lowerc == "remove"
+			|| lowerc == "hurt"
+			|| lowerc == "dmg"
+			|| lowerc == "harm"
+			|| lowerc == "damage"
+			|| lowerc == "d"
+			|| lowerc == "h"
+			|| lowerc == "hurt"
+			|| lowerc == "hurt all"
+			|| lowerc == "dmg all"
+			|| lowerc == "damage all"
+			|| lowerc == "harm all"
+			|| lowerc == "save"
+			|| lowerc == "load"
+			|| lowerc == "hurtr"
+			|| lowerc == "dmgr"
+			|| lowerc == "harmr"
+			|| lowerc == "damager"
+			|| lowerc == "hurth"
+			|| lowerc == "dmgh"
+			|| lowerc == "harmh"
+			|| lowerc == "damageh"
+			|| lowerc == "hurtv"
+			|| lowerc == "dmgv"
+			|| lowerc == "harmv"
+			|| lowerc == "damagev"
+			|| lowerc == "hurtv"
+			|| lowerc == "dmgv"
+			|| lowerc == "harmv"
+			|| lowerc == "damagev"
+			|| lowerc == "hurtd"
+			|| lowerc == "dmgd"
+			|| lowerc == "harmd"
+			|| lowerc == "damaged"
+			|| lowerc == "hurtd"
+			|| lowerc == "dmgd"
+			|| lowerc == "harmd"
+			|| lowerc == "damaged"
+			|| lowerc == "heal"
+			|| lowerc == "heal all"
+			|| lowerc == "health"
+			|| lowerc == "max_hp"
+			|| lowerc == "max_health"
+			|| lowerc == "rename"
+			|| lowerc == "reroll"
+			|| lowerc == "reset"
+			|| lowerc == "kill"
+			|| lowerc == "die"
+			|| lowerc == "rm"
+			|| lowerc == "ko"
+			|| lowerc == "trn"
+			|| lowerc == "turn"
+			|| lowerc == "goto"
+			|| lowerc == "go"
+			|| lowerc == "visit"
+			|| lowerc == "round"
+			|| lowerc == "add"
+			|| lowerc == "undo"
+			|| lowerc == "redo"
+			|| lowerc == "u"
+			|| lowerc == "r"
+			|| lowerc == "leave"
+			|| lowerc == "close"
+			|| lowerc == "t"
+			|| lowerc == "temp"
+			|| lowerc == "regen"
+			|| lowerc == "disable"
+			|| lowerc == "roll"
+			|| lowerc == "hp all"
+			|| lowerc == "all hp"
+			|| lowerc == "health all"
+			|| lowerc == "all health"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -878,7 +883,6 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 		}
 		
 	}
-
 	return value;
 };
 
@@ -2497,6 +2501,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
+			i->touched = false;
 			if (current_turn == turn_count)
 			{
 				std::cout << "  ---> ";
@@ -2642,7 +2647,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
-						i->adjust_hp(-val);
+						if (!i->touched)
+						{
+							i->adjust_hp(-val);
+							i->touched = true;
+						}
 						if (i == (--creatures.end()))
 							used_command = true;
 
@@ -2788,7 +2797,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
-						i->adjust_hp(val);
+						if (!i->touched)
+						{
+							i->adjust_hp(val);
+							i->touched = true;
+						}
+						
 						if(i == (--creatures.end()))
 							used_command = true;
 					
@@ -3393,6 +3407,38 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						}
 						catch (const std::exception& E) {
 
+						}
+					}
+
+
+				else if (comp_substring("hp all ", dummy_line, 7) ||
+					comp_substring("all hp ", dummy_line, 7) ||
+					comp_substring("health all ", dummy_line, 11) ||
+					comp_substring("all health ", dummy_line, 11))
+					{
+						try {
+							if (i->touched == false)
+							{
+								bool is_signed = false;
+								int val = get_number_arg(dummy_line, is_signed);
+								if (i->get_max_hp() == -1)
+								{
+									i->set_max_hp(val, false);
+								}
+								i->set_hp(val, is_signed);
+								if (i->get_hp() == 0)
+								{
+									knocked_out_creature = &(*i);
+								}
+								i->touched = true;
+							}
+							
+							if (i == (--creatures.end()))
+								used_command = true;
+
+						}
+						catch (const std::exception& E) {
+							//std::cout << E.what() << std::endl;
 						}
 					}
 
