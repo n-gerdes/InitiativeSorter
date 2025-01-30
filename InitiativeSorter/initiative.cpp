@@ -245,8 +245,13 @@ public:
 		return hp;
 	}
 
-	inline int set_hp(int new_hp)
+	inline int set_hp(int new_hp, bool is_signed)
 	{
+		if (is_signed)
+		{
+			adjust_hp(new_hp);
+			return hp;
+		}
 		if (max_hp != -1)
 		{
 			hp = new_hp;
@@ -258,18 +263,39 @@ public:
 		return hp;
 	}
 
-	inline void set_temp_hp(int thp)
+	inline void set_temp_hp(int thp, bool is_signed)
 	{
-		temp_hp = thp;
+		if (is_signed)
+			temp_hp += thp;
+		else
+			temp_hp = thp;
+
+		if (temp_hp < 0)
+			temp_hp = 0;
 	}
 
-	inline void set_max_hp(int new_max_hp)
+	inline void set_max_hp(int new_max_hp, bool is_signed)
 	{
-		if (new_max_hp < 1)
-			new_max_hp = 1;
-		max_hp = new_max_hp;
-		if (hp > new_max_hp)
-			hp = new_max_hp;
+		if (is_signed)
+		{
+			if (max_hp != -1)
+			{
+				max_hp += new_max_hp;
+				if (max_hp < 0)
+					max_hp = 0;
+
+				if (hp > max_hp)
+					hp = max_hp;
+			}
+		}
+		else
+		{
+			if (new_max_hp < 1)
+				new_max_hp = 1;
+			max_hp = new_max_hp;
+			if (hp > new_max_hp)
+				hp = new_max_hp;
+		}	
 	}
 
 	inline void set_turn_count(int tc)
@@ -764,8 +790,9 @@ inline int parse_dice(std::string& input)
 	return sum;
 }
 
-inline int get_number_arg(const std::string& dummy_line)
+inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 {
+	is_signed = false;
 	size_t first_space = dummy_line.find(" ");
 	size_t second_space = dummy_line.find(" ", first_space + 1);
 	int value;
@@ -789,6 +816,8 @@ inline int get_number_arg(const std::string& dummy_line)
 		if(is_digits(sub))
 		{
 			value = std::stoi(sub);
+			if (sub[0] == '+' || value < 0)
+				is_signed = true;
 		}
 		else
 		{
@@ -862,7 +891,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					comp_substring("md " + lowercase_name + " ", dummy_line, ("md " + lowercase_name + " ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed;
+						int val = get_number_arg(dummy_line, is_signed);
 						i->set_initiative(val);
 						creatures.sort();
 						used_command = true;
@@ -1477,7 +1507,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 				
 					if (val < 0)
 					{
@@ -1485,12 +1516,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1498,12 +1530,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1511,12 +1544,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 					}
 				else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1524,12 +1558,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1537,12 +1572,27 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
+					}
+				}
+				else if (comp_substring(lowercase_name + " temp ", dummy_line, (lowercase_name + " temp ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+
+					if (val < 0)
+					{
+						std::cout << "Temp HP must be a non-negative number." << std::endl;
+					}
+					else
+					{
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1550,12 +1600,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1563,12 +1614,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
+
 				}
 				else if (comp_substring(lowercase_name + " buffer ", dummy_line, (lowercase_name + " buffer ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1576,12 +1629,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
+
 				}
 				else if (comp_substring(lowercase_name + " temphp ", dummy_line, (lowercase_name + " temphp ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1589,12 +1644,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
 				}
 				else if (comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 
 					if (val < 0)
 					{
@@ -1602,20 +1658,36 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					else
 					{
-						i->set_temp_hp(val);
+						i->set_temp_hp(val, is_signed);
 					}
+				}
+				else if (comp_substring("temp " + lowercase_name + " ", dummy_line, ("temp " + lowercase_name + " ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+
+					if (val < 0)
+					{
+						std::cout << "Temp HP must be a non-negative number." << std::endl;
+					}
+					else
+					{
+						i->set_temp_hp(val, is_signed);
+					}
+
 				}
 
 				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 					try {
 						size_t slash_index = dummy_line.find("/");
 						if (slash_index != std::string::npos)
 						{
 							try {
 								int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
-								i->set_max_hp(max_hp);
+								i->set_max_hp(max_hp, false);
 							}
 							catch (const std::exception& e)
 							{
@@ -1625,9 +1697,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 						else
 						{
-							i->set_max_hp(val);
+							i->set_max_hp(val, false);
 						}
-						i->set_hp(val);
+						i->set_hp(val, is_signed);
 						used_command = true;
 						break;
 					}
@@ -1637,14 +1709,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 				else if (comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()))
 				{
-					int val = get_number_arg(dummy_line);
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
 					try {
 						size_t slash_index = dummy_line.find("/");
 						if (slash_index != std::string::npos)
 						{
 							try {
 								int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
-								i->set_max_hp(max_hp);
+								i->set_max_hp(max_hp, false);
 							}
 							catch (const std::exception& e)
 							{
@@ -1654,9 +1727,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 						else
 						{
-							i->set_max_hp(val);
+							i->set_max_hp(val, false);
 						}
-						i->set_hp(val);
+						i->set_hp(val, is_signed);
 						used_command = true;
 						break;
 					}
@@ -2372,7 +2445,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring("h " + lowercase_name + " ", dummy_line, ("h " + lowercase_name + " ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						i->adjust_hp(-val);
 						if (i->get_hp() == 0) 
 						{
@@ -2390,7 +2464,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						 comp_substring("damage all ", dummy_line, 11))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						i->adjust_hp(-val);
 						if (i == (--creatures.end()))
 							used_command = true;
@@ -2417,7 +2492,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					)
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						val >>= 1;
 						i->adjust_hp(-val);
 						if (i->get_hp() == 0)
@@ -2436,7 +2512,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring("dmgv " + lowercase_name + " ", dummy_line, ("dmgv " + lowercase_name + " ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						val <<= 1;
 						i->adjust_hp(-val);
 						if (i->get_hp() == 0)
@@ -2484,7 +2561,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						 comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						i->adjust_hp(val);
 						used_command = true;
 					}
@@ -2495,7 +2573,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else if (comp_substring("heal all ", dummy_line, 9))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						i->adjust_hp(val);
 						if(i == (--creatures.end()))
 							used_command = true;
@@ -3086,15 +3165,17 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()) ||
 
 					comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()) ||
-					comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length())
+					comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()) ||
+
+					comp_substring("temp " + lowercase_name + " ", dummy_line, ("temp " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " temp ", dummy_line, (lowercase_name + " temp ").length())
 					)
 					{
 						try {
-							int val = get_number_arg(dummy_line);
-							if (val < 0)
-								throw;
+							bool is_signed = false;
+							int val = get_number_arg(dummy_line, is_signed);
 
-							i->set_temp_hp(val);
+							i->set_temp_hp(val, is_signed);
 							used_command = true;
 						}
 						catch (const std::exception& E) {
@@ -3109,12 +3190,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						 comp_substring(lowercase_name + " health ", dummy_line, (lowercase_name + " health ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
 						if (i->get_max_hp() == -1)
 						{
-							i->set_max_hp(val);
+							i->set_max_hp(val, false);
 						}
-						i->set_hp(val);
+						i->set_hp(val, is_signed);
 						if (i->get_hp() == 0)
 						{
 							knocked_out_creature = &(*i);
@@ -3131,10 +3213,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						 comp_substring(lowercase_name + " max_health ", dummy_line, (lowercase_name + " max_health ").length()))
 				{
 					try {
-						int val = get_number_arg(dummy_line);
-						i->set_max_hp(val);
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
+						i->set_max_hp(val, is_signed);
 						if (i->get_hp() == -1)
-							i->set_hp(val);
+							i->set_hp(val, false);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -3177,7 +3260,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					int roll = 1 + (rand() % 20);
 					i->set_initiative(roll + (i->get_initiative_modifier()));
-					i->set_hp(i->get_max_hp());
+					i->set_hp(i->get_max_hp(), false);
 					current_round = 1;
 					if (i == (--creatures.end()))
 					{
@@ -3198,14 +3281,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 				else if (dummy_line == "ko " + lowercase_name)
 				{
-					i->set_hp(0);
+					i->set_hp(0, false);
 					used_command = true;
 				}
 				else if (
 					(dummy_line == "reset " + lowercase_name)
 					)
 				{
-					i->set_hp(i->get_max_hp());
+					i->set_hp(i->get_max_hp(), false);
 					used_command = true;
 				}
 				else if (
@@ -3254,7 +3337,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring(lowercase_name + " ", dummy_line, lowercase_name.length() + 1))
 					{
 						try {
-							int val = get_number_arg(dummy_line);
+							bool is_signed;
+							int val = get_number_arg(dummy_line, is_signed);
 							i->set_initiative(val);
 							creatures.sort();
 							used_command = true;
