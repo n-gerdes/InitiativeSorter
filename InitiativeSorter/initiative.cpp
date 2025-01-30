@@ -498,6 +498,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "temp"
 		|| lowerc == "regen"
 		|| lowerc == "disable"
+		|| lowerc == "roll"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -665,7 +666,7 @@ inline int parse_dice(std::string& input)
 	std::string temp;
 	//std::cout << "Preprocessing: " << input << std::endl;
 	temp.reserve(input.size());
-	size_t start = 0;
+	size_t start;
 	for (start = 0; start < input.size(); ++start)
 	{
 		char c = input[start];
@@ -3536,6 +3537,25 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							//std::cout << E.what() << std::endl;
 						}
 					}
+
+				else if (comp_substring("roll ", dummy_line, 5))
+				{
+					bool is_signed;
+					std::string base_dice_pattern = dummy_line.substr(5);
+					std::string dice_pattern;
+					for (size_t j = 0; j < base_dice_pattern.size(); ++j)
+					{
+						char c = base_dice_pattern[j];
+						if (c != ' ')
+							dice_pattern += c;
+					}
+					make_lowercase(dice_pattern);
+					turn_msg = "Rolled " + dice_pattern + ", got ";
+					int val = get_number_arg("roll " + dice_pattern, is_signed);
+					turn_msg += std::to_string(val);
+					used_command = true;
+					break;
+				}
 				
 				else if (
 					comp_substring("alias " + lowercase_name + " ", dummy_line, ("alias " + lowercase_name + " ").length())
