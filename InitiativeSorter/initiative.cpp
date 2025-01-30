@@ -28,7 +28,8 @@ inline std::string get_lowercase(std::string str) //Pass by value creates a copy
 
 class creature
 {
-	int initiative, modifier, hp, max_hp, turn_count, temp_hp;
+	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen;
+	bool temp_disable_regen = false;
 	std::string name;
 	std::list<std::string> flags;
 public:
@@ -146,8 +147,8 @@ public:
 		return temp_hp;
 	}
 
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
-		hp(hp), max_hp(max_hp), turn_count(-1)
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
@@ -196,9 +197,9 @@ public:
 		}
 	}
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
-		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0)
+		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0)
 	{}
-	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0)
+	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0)
 	{}
 
 	inline const bool operator<(const creature& other) const
@@ -263,6 +264,24 @@ public:
 		return hp;
 	}
 
+	inline void disable_regen_temp()
+	{
+		temp_disable_regen = true;
+	}
+
+	inline bool regen_is_temporarily_disabled()
+	{
+		return temp_disable_regen;
+	}
+
+	inline void set_regen(int regeneration)
+	{
+		if (regeneration < 0)
+			regeneration = 0;
+
+		regen = regeneration;
+	}
+
 	inline void set_temp_hp(int thp, bool is_signed)
 	{
 		if (is_signed)
@@ -272,6 +291,22 @@ public:
 
 		if (temp_hp < 0)
 			temp_hp = 0;
+	}
+
+	inline int get_regen()
+	{
+		if (temp_disable_regen)
+		{
+			temp_disable_regen = false;
+			return 0;
+		}
+		else
+			return regen;
+	}
+
+	inline int get_regen_raw()
+	{
+		return regen;
 	}
 
 	inline void set_max_hp(int new_max_hp, bool is_signed)
@@ -461,6 +496,8 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "close"
 		|| lowerc == "t"
 		|| lowerc == "temp"
+		|| lowerc == "regen"
+		|| lowerc == "disable"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -523,6 +560,17 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			{
 				out << "alias " << i->get_name() << " " << (*alias_iterator) << std::endl;
 			}
+
+			int regen_amnt = i->get_regen_raw();
+			bool is_regen_disabled = i->regen_is_temporarily_disabled();
+
+			if (regen_amnt != 0)
+			{
+				out << "regen " << i->get_name() << " " << regen_amnt << std::endl;
+				if (is_regen_disabled)
+					out << "disable " << i->get_name() << std::endl;
+			}
+
 		}
 
 		out << "round " << std::to_string(round_num) << std::endl;
@@ -1518,6 +1566,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()))
@@ -1532,6 +1581,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()))
@@ -1546,6 +1596,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 					}
 				else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
@@ -1560,6 +1611,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
@@ -1574,6 +1626,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring(lowercase_name + " temp ", dummy_line, (lowercase_name + " temp ").length()))
@@ -1588,6 +1641,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
@@ -1602,6 +1656,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()))
@@ -1616,6 +1671,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 
 				}
@@ -1631,6 +1687,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 
 				}
@@ -1646,6 +1703,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()))
@@ -1660,6 +1718,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 				}
 				else if (comp_substring("temp " + lowercase_name + " ", dummy_line, ("temp " + lowercase_name + " ").length()))
@@ -1674,8 +1733,41 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						i->set_temp_hp(val, is_signed);
+						used_command = true;
 					}
 
+				}
+
+				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+					if (val < 0)
+						val = 0;
+					i->set_regen(val);
+					used_command = true;
+				}
+
+				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+					if (val < 0)
+						val = 0;
+					i->set_regen(val);
+					used_command = true;
+				}
+
+				else if (comp_substring(lowercase_name + " disable", dummy_line, (lowercase_name + " disable").length()))
+				{
+					i->disable_regen_temp();
+					used_command = true;
+				}
+
+				else if (comp_substring("disable " + lowercase_name, dummy_line, ("disable " + lowercase_name).length()))
+				{
+					i->disable_regen_temp();
+					used_command = true;
 				}
 
 				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
@@ -1829,6 +1921,36 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
 			trim(lowercase);
 		}
+
+		index_t& regen_index = flags_index;
+
+		regen_index = lowercase.find("regen:");
+		int regen_amnt = 0;
+		if ((regen_index != std::string::npos) && regen_amnt==0)
+		{
+			size_t space_after_regen_index = lowercase.find(' ', regen_index);
+			size_t length = space_after_regen_index - regen_index;
+			std::string regen_string = line.substr(regen_index + 6, length - 6);
+			if (space_after_regen_index == std::string::npos)
+			{
+				space_after_regen_index = lowercase.length() - 1;
+			}
+			try
+			{
+				regen_amnt = std::stoi(regen_string);
+				if (regen_amnt < 0)
+					throw;
+				lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_regen_index + 1, lowercase.length() - space_after_regen_index - 1);
+				trim(lowercase);
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Regeneration amount must be a positive number" << std::endl;
+				regen_amnt = 0;
+				return false;
+			}
+		}
+
 		std::string aliases = "";
 		index_t& alias_index = flags_index;
 
@@ -1845,7 +1967,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
 			trim(lowercase);
 		}
-
+		
 		alias_index = lowercase.find("aliases:");
 		if ((flags_index != std::string::npos) && (aliases.length() == 0))
 		{
@@ -2145,13 +2267,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
 						added_creature = true;
 					}
 				}
@@ -2195,7 +2317,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
 						added_creature = true;
 
 					}
@@ -2214,7 +2336,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					end = lowercase.length();
 				}
 				name = line.substr(0, end);
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
 				added_creature = true;
 			}
 			else
@@ -2244,6 +2366,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	index_t current_turn = 0;
 	size_t current_round = initial_round;
 	bool new_round = false;
+	std::string previous_turn_creature_name = "";
 	creature* knocked_out_creature = nullptr;
 	std::string turn_msg = "";
 	if (initial_turn != "")
@@ -2274,7 +2397,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	std::list<std::string>::iterator turn_msg_buffer_iterator;
 	std::list<index_t>::iterator current_turn_buffer_iterator;
 	std::list<size_t>::iterator current_round_buffer_iterator;
-
+	bool new_turn = true;
 	auto save_buffer = [&]() -> void
 		{
 			if (buffer_manipulation_state == STATE_NODO)
@@ -2346,13 +2469,32 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::cout << "Round " << current_round << std::endl << std::endl << std::endl;
 		int turn_count = 0; //Used to track the turn counts of each creature
 		creature* current_creature = nullptr;
+		int regenerated_hp = 0;
+		
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			if (current_turn == turn_count)
 			{
 				std::cout << "  ---> ";
 				current_creature = &(*i);
+				if (current_creature->get_name() != previous_turn_creature_name)
+				{
+					new_turn = true;
+				}
+
+				if (new_turn)
+				{
+					int regen = current_creature->get_regen();
+					if (regen != 0 && (current_creature->get_hp() != current_creature->get_max_hp()))
+					{
+						int old_hp = current_creature->get_hp();
+						current_creature->adjust_hp(regen);
+						int new_hp = current_creature->get_hp();
+						regenerated_hp = new_hp - old_hp;
+					}
+				}
 			}
+
 			std::cout << i->get_display_names() << " [" << i->get_initiative() << "]";
 			if (i->get_max_hp() != -1) {
 				if(i->get_temp_hp() == 0)
@@ -2370,6 +2512,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		std::cout << std::endl;
 		std::cout << "It's " << current_creature->get_name() << "\'s turn." << std::endl;
+		previous_turn_creature_name = current_creature->get_name();
+		if (new_turn)
+		{
+			if (regenerated_hp != 0)
+				std::cout << current_creature->get_name() << " regenerated " << regenerated_hp << " hit points." << std::endl;
+			else
+				if (current_creature->get_regen() != 0)
+					std::cout << current_creature->get_name() << " usually regenerates " << current_creature->get_regen() << " hp, but didn't heal this round." << std::endl;
+		}
 		if (current_creature->get_hp() == 0)
 		{
 			std::cout << "\t" << current_creature->get_name() << " HAS 0 HP!" << std::endl;
@@ -2476,6 +2627,43 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						//std::cout << E.what() << std::endl;
 					}
 				}
+
+				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+					if (val < 0)
+						val = 0;
+					i->set_regen(val);
+					used_command = true;
+					break;
+				}
+
+				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
+				{
+					bool is_signed = false;
+					int val = get_number_arg(dummy_line, is_signed);
+					if (val < 0)
+						val = 0;
+					i->set_regen(val);
+					used_command = true;
+					break;
+				}
+
+				else if (comp_substring(lowercase_name + " disable", dummy_line, (lowercase_name + " disable").length()))
+				{
+					i->disable_regen_temp();
+					used_command = true;
+					break;
+				}
+
+				else if (comp_substring("disable " + lowercase_name, dummy_line, ("disable " + lowercase_name).length()))
+				{
+					i->disable_regen_temp();
+					used_command = true;
+					break;
+				}
+
 				else if (comp_substring("save ", dummy_line, 5))
 				{
 					std::string filename = dummy_line.substr(5);
@@ -3348,6 +3536,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							//std::cout << E.what() << std::endl;
 						}
 					}
+				
 				else if (
 					comp_substring("alias " + lowercase_name + " ", dummy_line, ("alias " + lowercase_name + " ").length())
 					)
@@ -3428,8 +3617,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 		}
 
-		if(!used_command)
+		if (!used_command)
+		{
 			++current_turn;
+			new_turn = true;
+		}
+		else
+		{
+			new_turn = false;
+		}
 
 		if (move_turn != -1)
 		{
@@ -3480,6 +3676,8 @@ int main(int argc, char** args)
 	std::cout << std::endl << std::endl;
 	std::cout << "Flags can be specified when adding creatures with the 'flags:' modifier. Flags are comma-separated and do not permit spaces." << std::endl;
 	std::cout << "Flags can also be added or removed with 'flag', 'rmflag', and other variations." << std::endl;
+	std::cout << "Can also track temp hp, as well as automatic regeneration with \'temp\' and \'regen\'" << std::endl;
+	std::cout << "The \'disable\' command temporarily disables a creature\'s regeneration for one round" << std::endl;
 
 	const static bool PROMPT_FILE_LOAD = false;
 	
