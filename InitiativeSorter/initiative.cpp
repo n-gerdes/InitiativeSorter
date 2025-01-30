@@ -86,14 +86,15 @@ public:
 
 	inline bool has_alias(const std::string& alias) const
 	{
+		std::string lowercalias = get_lowercase(alias);
 		for (auto i = aliases.begin(); i != aliases.end(); ++i)
 		{
-			if (get_lowercase(*i) == alias)
+			if (get_lowercase(*i) == lowercalias)
 			{
 				return true;
 			}
 		}
-		if (get_lowercase(name) == get_lowercase(alias))
+		if (get_lowercase(name) == lowercalias)
 			return true;
 		return false;
 	}
@@ -2104,6 +2105,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			size_t space_after_hp_index = lowercase.find(' ', hp_index);
 			size_t length = space_after_hp_index - hp_index;
 			std::string hp_text = lowercase.substr(hp_index, length);
+			
 			if (space_after_hp_index == std::string::npos)
 			{
 				space_after_hp_index = lowercase.length() - 1;
@@ -2115,12 +2117,20 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			
 			if (slash_index != std::string::npos)
 			{
+				std::string base_hp_text = hp_text;
+				hp_text = "";
+				for (size_t j = 0; j < base_hp_text.size(); ++j)
+				{
+					char c = base_hp_text[j];
+					if (c != ' ')
+						hp_text += c;
+				}
 				try
 				{
 					std::string max_hp_string = hp_text.substr(slash_index + 1, hp_text.length() - slash_index - 1);
 					std::string current_hp_string = hp_text.substr(colon_index + 1, slash_index - colon_index - 1);
-					max_hp = std::stoi(max_hp_string);
-					hp = std::stoi(current_hp_string);
+					max_hp = parse_dice(max_hp_string);
+					hp = parse_dice(current_hp_string);
 				}
 				catch (const std::exception& E)
 				{
@@ -2134,7 +2144,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				try
 				{
-					max_hp = std::stoi(hp_text.substr(colon_index + 1, hp_text.length() - colon_index - 1));
+					std::string parsed = hp_text.substr(colon_index + 1, hp_text.length() - colon_index - 1);
+					max_hp = parse_dice(parsed);
 					hp = max_hp;
 				}
 				catch (const std::exception& E)
@@ -2203,7 +2214,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				std::string original = get_lowercase(args.substr(0, delimeter));
 				std::string new_name = args.substr(delimeter + 1);
-				std::cout << original << " / " << new_name << std::endl;
+				if (!name_is_unique(new_name, creatures))
+				{
+					std::cout << "Names must be unique and cannot be shared with commands!\n";
+					return false;
+				}
+				//std::cout << original << " / " << new_name << std::endl;
 				for (auto i = creatures.begin(); i != creatures.end(); ++i)
 				{
 					creature& c = *i;
@@ -2258,7 +2274,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				name = line.substr(0, space_index);
 				if (!name_is_unique(name, creatures))
 				{
-					std::cout << "Names must be unique!" << std::endl;
+					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 					return false;
 				}
 				initiative_string = lowercase.substr(space_index + 1, lowercase.length() - (name.length() + 1));
@@ -2299,7 +2315,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					name = line.substr(0, first_space_index);
 					if (!name_is_unique(name, creatures))
 					{
-						std::cout << "Names must be unique!" << std::endl;
+						std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 						return false;
 					}
 					initiative_string = lowercase.substr(first_space_index + 1, second_space_index - first_space_index - 1);
@@ -2337,6 +2353,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					end = lowercase.length();
 				}
 				name = line.substr(0, end);
+				if (!name_is_unique(name, creatures))
+				{
+					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
+					return false;
+				}
 				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
 				added_creature = true;
 			}
@@ -3698,6 +3719,9 @@ int main(int argc, char** args)
 	std::cout << "Flags can also be added or removed with 'flag', 'rmflag', and other variations." << std::endl;
 	std::cout << "Can also track temp hp, as well as automatic regeneration with \'temp\' and \'regen\'" << std::endl;
 	std::cout << "The \'disable\' command temporarily disables a creature\'s regeneration for one round" << std::endl;
+	std::cout << std::endl << "Use \'roll [dice pattern]\' to tell the program to roll dice and tell you the output." << std::endl;
+	std::cout << "A die pattern (with no spaces) can also be used in most numerical inputs to roll dice instead." << std::endl;
+	std::cout << "\tIf the command applies to multiple creatures, it typically rolls each one separately." << std::endl;
 
 	const static bool PROMPT_FILE_LOAD = false;
 	
