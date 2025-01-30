@@ -663,6 +663,8 @@ struct dice
 
 inline int parse_dice(std::string& input)
 {
+	if (is_digits(input))
+		return std::stoi(input);
 	std::vector<dice> dmg_dice;
 	std::string temp;
 	//std::cout << "Preprocessing: " << input << std::endl;
