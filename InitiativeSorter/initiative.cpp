@@ -872,6 +872,7 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 	size_t second_space = dummy_line.find(" ", first_space + 1);
 	int value;
 	std::string sub;
+
 	if (second_space == std::string::npos)
 	{
 		sub = dummy_line.substr(first_space);
@@ -881,6 +882,36 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 		sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
 	}
 
+	size_t trunc;
+	for (trunc = 0; trunc < sub.size(); ++trunc)
+	{
+		char c = sub[trunc];
+		if (
+			!(
+				c == '0'
+				|| c == '1'
+				|| c == '2'
+				|| c == '3'
+				|| c == '4'
+				|| c == '5'
+				|| c == '6'
+				|| c == '7'
+				|| c == '8'
+				|| c == '9'
+				|| c == ' '
+				|| c == '-'
+				|| c == '+'
+				)
+			)
+			break;
+	}
+
+	if (trunc != sub.size())
+	{
+		sub.resize(trunc);
+	}
+
+	//std::cout << "PARSED SUBSTRING: " << sub << std::endl;
 	if (sub == " max" || sub == " all")
 	{
 		value = INT_MAX;
@@ -914,7 +945,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	{
 		std::cout << i->get_display_names();
 		if (i->get_max_hp() != -1)
-			std::cout << " (" << i->get_max_hp() << " hp)";
+			std::cout << " (" << i->get_hp() << "/" << i->get_max_hp() << " hp)";
 		if (i->get_flags().size() != 0)
 			std::cout << "; [" << i->get_flag_list() << "]";
 		
@@ -1821,11 +1852,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					i->disable_regen_temp();
 					used_command = true;
 				}
-
-				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()))
+				else if (comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
+					comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length())
+					)
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
+					//std::cout << "PARSED HP: " << val << std::endl;
 					try {
 						size_t slash_index = dummy_line.find("/");
 						if (slash_index != std::string::npos)
@@ -1833,6 +1866,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							try {
 								int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
 								i->set_max_hp(max_hp, false);
+								//std::cout << "PARSED MAX HP " << max_hp << std::endl;
 							}
 							catch (const std::exception& e)
 							{
@@ -1842,36 +1876,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 						else
 						{
-							i->set_max_hp(val, false);
-						}
-						i->set_hp(val, is_signed);
-						used_command = true;
-						break;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed);
-					try {
-						size_t slash_index = dummy_line.find("/");
-						if (slash_index != std::string::npos)
-						{
-							try {
-								int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
-								i->set_max_hp(max_hp, false);
-							}
-							catch (const std::exception& e)
-							{
-								std::cout << "Could not parse new Max HP - only changing current HP\n";
-							}
-
-						}
-						else
-						{
+							
 							i->set_max_hp(val, false);
 						}
 						i->set_hp(val, is_signed);
@@ -3552,16 +3557,33 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
-						if (i->get_max_hp() == -1)
-						{
-							i->set_max_hp(val, false);
+						//std::cout << "PARSED HP: " << val << std::endl;
+						try {
+							size_t slash_index = dummy_line.find("/");
+							if (slash_index != std::string::npos)
+							{
+								try {
+									int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
+									i->set_max_hp(max_hp, false);
+									//std::cout << "PARSED MAX HP " << max_hp << std::endl;
+								}
+								catch (const std::exception& e)
+								{
+									std::cout << "Could not parse new Max HP - only changing current HP\n";
+								}
+
+							}
+							else if (i->get_max_hp() == -1)
+							{
+								i->set_max_hp(val, false);
+							}
+							i->set_hp(val, is_signed);
+							used_command = true;
+							break;
 						}
-						i->set_hp(val, is_signed);
-						if (i->get_hp() == 0)
-						{
-							knocked_out_creature = &(*i);
+						catch (const std::exception& E) {
+
 						}
-						used_command = true;
 					}
 					catch (const std::exception& E) {
 
