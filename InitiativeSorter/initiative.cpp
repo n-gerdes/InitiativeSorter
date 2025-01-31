@@ -882,6 +882,11 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 		sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
 	}
 
+	if (sub == " max" || sub == " all")
+	{
+		return INT_MAX;
+	}
+
 	size_t trunc;
 	for (trunc = 0; trunc < sub.size(); ++trunc)
 	{
@@ -901,6 +906,8 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 				|| c == ' '
 				|| c == '-'
 				|| c == '+'
+				|| c == 'd'
+				|| c == 'D'
 				)
 			)
 			break;
@@ -912,25 +919,19 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 	}
 
 	//std::cout << "PARSED SUBSTRING: " << sub << std::endl;
-	if (sub == " max" || sub == " all")
+	
+	trim(sub);
+	if(is_digits(sub))
 	{
-		value = INT_MAX;
+		value = std::stoi(sub);
+		if (sub[0] == '+' || value < 0)
+			is_signed = true;
 	}
 	else
 	{
-		trim(sub);
-		if(is_digits(sub))
-		{
-			value = std::stoi(sub);
-			if (sub[0] == '+' || value < 0)
-				is_signed = true;
-		}
-		else
-		{
-			value = parse_dice(sub);
-		}
-		
+		value = parse_dice(sub);
 	}
+		
 	return value;
 };
 
@@ -2460,6 +2461,27 @@ std::list<std::string> turn_msg_buffer;
 std::list<index_t> current_turn_buffer;
 std::list<size_t> current_round_buffer;
 
+std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp)
+{
+	std::string str = name;
+	int diff = old_hp - new_hp;
+	if (diff < 0)
+		diff = -diff;
+	if (new_hp > old_hp)
+	{
+		str += " recovered " + std::to_string(diff) + " hp.";
+	}
+	else if (new_hp < old_hp)
+	{
+		str += " took " + std::to_string(diff) + " damage.";
+	}
+	else
+	{
+		return "";
+	}
+	return str;
+}
+
 //int buffer_index = 0; //0 refers to the head, 1 is previous state, 2 is state before, etc.
 
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line)
@@ -2708,11 +2730,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
+						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
+						int new_hp = i->get_hp();
 						if (i->get_hp() == 0) 
 						{
 							knocked_out_creature = &(*i);
 						}
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -2823,12 +2848,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
 						val >>= 1;
+						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
+						int new_hp = i->get_hp();
 						if (i->get_hp() == 0)
 						{
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
 					}
 					catch (const std::exception& E) {
 
@@ -2843,12 +2871,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
 						val <<= 1;
+						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
+						int new_hp = i->get_hp();
 						if (i->get_hp() == 0)
 						{
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
 					}
 					catch (const std::exception& E) {
 
@@ -2891,7 +2922,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int val = get_number_arg(dummy_line, is_signed);
+						int old_hp = i->get_hp();
 						i->adjust_hp(val);
+						int new_hp = i->get_hp();
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -3556,6 +3590,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
+						int old_hp = i->get_hp();
 						int val = get_number_arg(dummy_line, is_signed);
 						//std::cout << "PARSED HP: " << val << std::endl;
 						try {
@@ -3578,6 +3613,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								i->set_max_hp(val, false);
 							}
 							i->set_hp(val, is_signed);
+							int new_hp = i->get_hp();
+							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
 							used_command = true;
 							break;
 						}
