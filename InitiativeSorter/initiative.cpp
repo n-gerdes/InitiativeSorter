@@ -28,7 +28,7 @@ inline std::string get_lowercase(std::string str) //Pass by value creates a copy
 
 class creature
 {
-	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen;
+	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
 	bool temp_disable_regen = false;
 	std::string name;
 	std::list<std::string> flags;
@@ -50,6 +50,18 @@ public:
 		std::list<std::string> all_names = aliases;
 		all_names.push_back(get_lowercase(name));
 		return all_names;
+	}
+
+	inline int get_ac() const
+	{
+		return ac;
+	}
+
+	inline void set_ac(int new_ac)
+	{
+		ac = new_ac;
+		if (ac < 1)
+			ac = -1;
 	}
 
 	std::string get_display_names() const
@@ -149,8 +161,8 @@ public:
 		return temp_hp;
 	}
 
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
-		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration)
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
@@ -198,10 +210,12 @@ public:
 				aliases.push_back(alias);
 		}
 	}
+
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
-		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0)
+		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1)
 	{}
-	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0)
+
+	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1)
 	{}
 
 	inline const bool operator<(const creature& other) const
@@ -505,6 +519,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 			|| lowerc == "all hp"
 			|| lowerc == "health all"
 			|| lowerc == "all health"
+			|| lowerc == "ac"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -559,6 +574,8 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			{
 				line += " flags:" + i->get_flag_list();
 			}
+			if (i->get_ac() != -1)
+				line += " ac:" + std::to_string(i->get_ac());
 			line += "\n";
 
 			out << line;
@@ -959,6 +976,33 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
+
+				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int new_ac = get_number_arg(dummy_line, is_signed);
+						i->set_ac(new_ac);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+				else if (comp_substring(lowercase_name + " ac ", dummy_line, (lowercase_name + " ac ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int new_ac = get_number_arg(dummy_line, is_signed);
+						i->set_ac(new_ac);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
 				else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
 				{
 					try {
@@ -2161,6 +2205,32 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 		}
+		int ac_value = -1;
+		index_t ac_index = lowercase.find("ac:");
+		if (ac_index != std::string::npos)
+		{
+			size_t space_after_ac_index = lowercase.find(' ', ac_index);
+			size_t length = space_after_ac_index - ac_index;
+			std::string ac_text = lowercase.substr(ac_index+3, length-3);
+
+			if (space_after_ac_index == std::string::npos)
+			{
+				space_after_ac_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, hp_index) + lowercase.substr(space_after_ac_index + 1, lowercase.length() - space_after_ac_index - 1);
+			trim(lowercase);
+
+			try
+			{
+				ac_value = std::stoi(ac_text);
+			}
+			catch (const std::exception& E)
+			{
+				std::cout << "Could not parse AC - not adding creature" << std::endl;
+				return false;
+			}
+		}
+
 		trim(lowercase);
 		if (
 			takes_commands 
@@ -2290,13 +2360,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
 						added_creature = true;
 					}
 				}
@@ -2340,7 +2410,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
 						added_creature = true;
 
 					}
@@ -2364,7 +2434,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 					return false;
 				}
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
 				added_creature = true;
 			}
 			else
@@ -2525,6 +2595,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 
 			std::cout << i->get_display_names() << " [" << i->get_initiative() << "]";
+			if (i->get_ac() != -1)
+			{
+				std::cout << " <AC " << i->get_ac() << ">";
+			}
+			
 			if (i->get_max_hp() != -1) {
 				if(i->get_temp_hp() == 0)
 					std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
@@ -2658,6 +2733,32 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 					catch (const std::exception& E) {
 						//std::cout << E.what() << std::endl;
+					}
+				}
+
+				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int new_ac = get_number_arg(dummy_line, is_signed);
+						i->set_ac(new_ac);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+				else if (comp_substring(lowercase_name + " ac ", dummy_line, (lowercase_name + " ac ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int new_ac = get_number_arg(dummy_line, is_signed);
+						i->set_ac(new_ac);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
 					}
 				}
 
