@@ -672,6 +672,11 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 					out << "disable " << i->get_name() << std::endl;
 			}
 
+			if (i->get_reminder().size() != 0)
+			{
+				out << "reminder " << i->get_name() << " " << i->get_reminder() << std::endl;
+			}
+
 		}
 
 		if(!temp_file)
@@ -1252,6 +1257,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
+				else if (((lowercase_name + " reminder") == dummy_line) || (dummy_line == ("reminder " + lowercase_name)))
+				{
+					i->set_reminder("");
+					used_command = true;
+				}
 				else if (comp_substring(lowercase_name + " reminder ", dummy_line, (lowercase_name + " reminder ").length()))
 				{
 					std::string reminder = original_dummy_line.substr((lowercase_name + " reminder ").length());
@@ -3080,6 +3090,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 
+				else if (   ((lowercase_name + " reminder") == dummy_line) || (dummy_line == ("reminder " + lowercase_name))   )
+				{
+					i->set_reminder("");
+					used_command = true;
+				}
 				else if (comp_substring(lowercase_name + " reminder ", dummy_line, (lowercase_name + " reminder ").length()))
 				{
 					std::string reminder = original_dummy_line.substr((lowercase_name + " reminder ").length());
