@@ -693,7 +693,6 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			out << "turn " << turn << std::endl;
 
 		out.close();
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	catch (const std::exception& E)
 	{
@@ -3047,6 +3046,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					++cleaner;
 				}
 			}
+			used_command = true;
 		}
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
