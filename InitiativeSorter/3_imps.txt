@@ -1,3 +1,0 @@
-imp1 hp:10 +3
-imp2 hp:10 +3
-imp3 hp:10 +3
