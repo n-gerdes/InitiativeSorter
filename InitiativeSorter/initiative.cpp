@@ -1027,6 +1027,9 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 
 inline void clone_character(const std::string& name, int count, std::list<creature>& creatures, creature* base)
 {
+	if (base->touched)
+		return;
+	base->touched = true;
 	for (int i = 0; i < count; ++i)
 	{
 		creature copy(*base);
@@ -1052,7 +1055,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 					}
 					else
 					{
-						copy_name = base->get_name() + std::to_string(++base_copy_id);
+						copy_name = base_name + std::to_string(++base_copy_id);
 					}
 				}
 				return copy_name;
@@ -1066,6 +1069,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 				(*j) = get_new_name(*j);
 		}
 		copy.set_initiative((rand() % 20) + 1 + copy.get_initiative_modifier());
+		copy.touched = true;
 		creatures.push_back(copy);
 	}
 	creatures.sort();
@@ -1111,76 +1115,84 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 
 	std::string& original_dummy_line = line;
+	std::string dummy_line = line;
+	make_lowercase(dummy_line);
+	trim(dummy_line);
+
+	if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
+		exit(0);
+
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
-	{
 		i->touched = false;
-		//if (used_command) //Added for optimization, may need to remove
-			//break;
-		auto names = i->get_all_names();
-		for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
+
+		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			if (i->touched)
-				break;
-			//if (used_command)
-				//break;
-			std::string lowercase_name = *alias_iterator;
-			std::string dummy_line = line;
-			make_lowercase(dummy_line);
-			make_lowercase(lowercase_name);
-
-
-			if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
-				exit(0);
-
-			if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos && dummy_line.find("load ") == std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
-			{
 				continue;
-			}
-
-			else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+			auto names = i->get_all_names();
+			for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
 			{
-				try {
-					bool is_signed = false;
-					int clones = get_number_arg(dummy_line, is_signed);
-					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+
+				std::string lowercase_name = *alias_iterator;
+
+				make_lowercase(lowercase_name);
+
+				if (dummy_line.find(lowercase_name) == std::string::npos)
+				{
+					continue;
+				}
+
+				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+						i->touched = true;
+						i = creatures.begin();
+						//return false;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+						i->touched = true;
+						//return false;
+						i = creatures.begin();
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
 					i->touched = true;
+					i = creatures.begin();
 					//return false;
 				}
-				catch (const std::exception& E) {
-
-				}
-			}
-			else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
-			{
-				try {
-					bool is_signed = false;
-					int clones = get_number_arg(dummy_line, is_signed);
-					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
 					i->touched = true;
+					i = creatures.begin();
 					//return false;
 				}
-				catch (const std::exception& E) {
-
-				}
-			}
-			else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
-			{
-				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
-				used_command = true;
-				i->touched = true;
-				//return false;
-			}
-			else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
-			{
-				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
-				used_command = true;
-				i->touched = true;
-				//return false;
 			}
 		}
-	}
+	
+
+	
 
 	if (takes_commands && !used_command) //In hindsight this is an awful way to parse commands.
 	{
@@ -1230,9 +1242,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					continue;
 				}
 
-				if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
-					exit(0);
-				else if (
+				if (
 					comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
 					comp_substring("mv " + lowercase_name + " ", dummy_line, ("mv " + lowercase_name + " ").length()) ||
 					comp_substring("mod " + lowercase_name + " ", dummy_line, ("mod " + lowercase_name + " ").length()) ||
