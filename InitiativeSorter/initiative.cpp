@@ -4390,7 +4390,7 @@ int main(int argc, char** args)
 	std::string filename = "";
 	if (argc == 2) //First arg is the directory the program is executed at.
 	{
-		std::string filename = args[1];
+		filename = args[1];
 		file.open(filename);
 
 		if (!file.is_open())
