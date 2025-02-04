@@ -4387,6 +4387,7 @@ int main(int argc, char** args)
 	std::string line; //A place to store input from the keyboard
 	bool taking_intiatives = true; //Boolean to track whether or not user is done entering initiatives yet or not
 	std::ifstream file;
+	std::string filename = "";
 	if (argc == 2) //First arg is the directory the program is executed at.
 	{
 		std::string filename = args[1];
@@ -4414,7 +4415,8 @@ int main(int argc, char** args)
 			{
 				std::cout << "Enter file:" << std::endl;
 				std::getline(std::cin, line);
-				file.open(line);
+				filename = line;
+				file.open(filename);
 				while (!file.is_open())
 				{
 					std::cout << "Error: Could not open " << line << std::endl;
@@ -4427,7 +4429,7 @@ int main(int argc, char** args)
 	}
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file, true, false, true, "");
+		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename);
 	}
 
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
