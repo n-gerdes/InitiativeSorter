@@ -1,4 +1,0 @@
-Zrird +2 hp:75
-Ash +1 hp:121
-Manus +5 hp:102
-Gabriel +2 hp:60
