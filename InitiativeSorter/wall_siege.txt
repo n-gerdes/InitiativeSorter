@@ -1,3 +1,0 @@
-Allied_Mercenaries 0
-Siege_Tower +0 hp:200
-Ladders_&_Rams +0
