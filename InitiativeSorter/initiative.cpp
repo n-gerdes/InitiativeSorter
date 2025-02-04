@@ -55,6 +55,10 @@ public:
 	inline void remove_alias(const std::string& al)
 	{
 		aliases.remove(al);
+		if (!has_alias("@all"))
+		{
+			add_alias("@all");
+		}
 	}
 
 	std::list<std::string> get_all_names() const
@@ -76,7 +80,7 @@ public:
 			ac = -1;
 	}
 
-	std::string get_display_names() const
+	inline std::string get_display_names() const
 	{
 		std::string disp = name;
 		int count = 0;
@@ -257,14 +261,19 @@ public:
 				alias = "";
 			}
 		}
+		aliases.push_back("@all");
 	}
 
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
 		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1)
-	{}
+	{
+		aliases.push_back("@all");
+	}
 
 	creature(const std::string& name, int initiative) : name(name), initiative(initiative), modifier(0), hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1)
-	{}
+	{
+		aliases.push_back("@all");
+	}
 
 	inline const bool operator<(const creature& other) const
 	{
@@ -1181,6 +1190,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				std::string lowercase_name = *alias_iterator;
 				make_lowercase(lowercase_name);
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos)
+				{
+					continue;
+				}
 
 				if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 					exit(0);
@@ -2964,24 +2977,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			//++peek;
 
 			auto kill_creature = [&](const std::string& lowercase_name) {
-				//if (current_creature->has_alias(lowercase_name)) {
-				//++next;
-				//}
-
-				/*
-				creatures.erase(i);
-				i = next;
-				next = i;
-				//++next;
-				used_command = true;
-				did_erase = true;
-
-				i = creatures.begin();
-				next = creatures.begin();
-				++next;
-				//++peek;
-				*/
-
 				i = creatures.begin();
 				while ((creatures.size()!=0) && (i != creatures.end()))
 				{
@@ -3005,6 +3000,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
 			{
 				const std::string& lowercase_name = get_lowercase(*alias_iterator);
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos)
+				{
+					continue;
+				}
 				if (comp_substring("hurt " + lowercase_name + " ", dummy_line, ("hurt " + lowercase_name + " ").length()) ||
 					comp_substring("dmg " + lowercase_name + " ", dummy_line, ("dmg " + lowercase_name + " ").length()) ||
 					comp_substring("harm " + lowercase_name + " ", dummy_line, ("harm " + lowercase_name + " ").length()) ||
