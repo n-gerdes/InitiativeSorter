@@ -13,7 +13,7 @@
 typedef size_t index_t;
 static int initial_round = 1; //Global variables are a bad practice but this was supposed to be a tiny program
 static std::string initial_turn = ""; //Stores name of character whose turn will start
-
+void trim(std::string& str);
 //Makes an existing string lowercase in-place
 inline void make_lowercase(std::string& str)
 {
@@ -27,7 +27,8 @@ inline std::string get_lowercase(std::string str) //Pass by value creates a copy
 	make_lowercase(str);
 	return str;
 }
-
+class creature;
+bool name_is_unique(const std::string& name, const std::list<creature>& creatures);
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -198,8 +199,7 @@ public:
 	inline int get_temp_hp() const {
 		return temp_hp;
 	}
-
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class, const std::list<creature> const* creatures_list) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
 		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class)
 	{
 		if (hp > max_hp)
@@ -239,7 +239,7 @@ public:
 				flag = "";
 			}
 		}
-
+		trim(this->name);
 		if (alias_list != "")
 		{
 			std::string alias = "";
@@ -250,14 +250,18 @@ public:
 				{
 					if (alias != "")
 					{
-						aliases.push_back(alias);
+						trim(alias);
+						if(name_is_unique(alias, *creatures_list) && alias!=name)
+							aliases.push_back(alias);
 						alias = "";
 					}
 					break;
 				}
 				if (c == ',' || c == '&')
 				{
-					aliases.push_back(alias);
+					trim(alias);
+					if (name_is_unique(alias, *creatures_list) && alias != name)
+						aliases.push_back(alias);
 					alias = "";
 				}
 				else
@@ -267,7 +271,9 @@ public:
 			}
 			if (alias != "")
 			{
-				aliases.push_back(alias);
+				trim(alias);
+				if (name_is_unique(alias, *creatures_list) && alias != name)
+					aliases.push_back(alias);
 				alias = "";
 			}
 		}
@@ -469,7 +475,7 @@ inline void clear()
 		std::cout << std::endl;
 }
 
-inline bool name_is_unique(const std::string& name, const std::list<creature>& creatures)
+bool name_is_unique(const std::string& name, const std::list<creature>& creatures)
 {
 	std::string lowerc = get_lowercase(name); //TODO: Finish adding comprehensive list of commands to this function for filtering.
 	if (lowerc == "all" || lowerc == "reset" || lowerc == "round" || lowerc == "quit" || lowerc == "hp"
@@ -1023,6 +1029,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 {
 	for (int i = 0; i < count; ++i)
 	{
+		creature copy(*base);
 		auto get_new_name = [&](const std::string & base_name) -> std::string
 		{
 				int base_copy_id = i;
@@ -1037,7 +1044,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 
 				std::string copy_name = "clone";
 
-				while (!name_is_unique(copy_name, creatures))
+				while (!name_is_unique(copy_name, creatures) || copy.has_alias(copy_name))
 				{
 					if (base0)
 					{
@@ -1051,7 +1058,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 				return copy_name;
 		};
 		
-		creature copy(*base);
+		
 		copy.set_name(get_new_name(copy.get_name()));
 		for (auto j = copy.aliases.begin(); j != copy.aliases.end(); ++j)
 		{
@@ -1112,6 +1119,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		auto names = i->get_all_names();
 		for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
 		{
+			if (i->touched)
+				break;
 			//if (used_command)
 				//break;
 			std::string lowercase_name = *alias_iterator;
@@ -1135,7 +1144,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					int clones = get_number_arg(dummy_line, is_signed);
 					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 					used_command = true;
-					return false;
+					i->touched = true;
+					//return false;
 				}
 				catch (const std::exception& E) {
 
@@ -1148,7 +1158,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					int clones = get_number_arg(dummy_line, is_signed);
 					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 					used_command = true;
-					return false;
+					i->touched = true;
+					//return false;
 				}
 				catch (const std::exception& E) {
 
@@ -1158,13 +1169,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 				used_command = true;
-				return false;
+				i->touched = true;
+				//return false;
 			}
 			else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
 			{
 				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 				used_command = true;
-				return false;
+				i->touched = true;
+				//return false;
 			}
 		}
 	}
@@ -2658,13 +2671,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
 						added_creature = true;
 					}
 				}
@@ -2708,7 +2721,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
 						added_creature = true;
 
 					}
@@ -2732,7 +2745,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 					return false;
 				}
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
 				added_creature = true;
 			}
 			else
