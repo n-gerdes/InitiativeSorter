@@ -32,7 +32,7 @@ class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
 	bool temp_disable_regen = false;
-	std::string name;
+	std::string name, reminder;
 	std::list<std::string> flags;
 public:
 	std::list<std::string> aliases;
@@ -45,6 +45,16 @@ public:
 	creature* get_raw_ptr()
 	{
 		return this;
+	}
+
+	inline void set_reminder(const std::string& new_reminder)
+	{
+		reminder = new_reminder;
+	}
+
+	inline const std::string& get_reminder() const
+	{
+		return reminder;
 	}
 	
 	inline void add_alias(const std::string& new_alias)
@@ -477,6 +487,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "al"
 		|| lowerc == "full"
 		|| lowerc == "rf"
+		|| lowerc == "reminder"
 			|| lowerc == "quit"
 			|| lowerc == "end"
 			|| lowerc == "stop"
@@ -659,6 +670,11 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 				out << "regen " << i->get_name() << " " << regen_amnt << std::endl;
 				if (is_regen_disabled)
 					out << "disable " << i->get_name() << std::endl;
+			}
+
+			if (i->get_reminder().size() != 0)
+			{
+				out << "reminder " << i->get_name() << " " << i->get_reminder() << std::endl;
 			}
 
 		}
@@ -1239,6 +1255,26 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E) {
 
 					}
+				}
+
+				else if (((lowercase_name + " reminder") == dummy_line) || (dummy_line == ("reminder " + lowercase_name)))
+				{
+					i->set_reminder("");
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " reminder ", dummy_line, (lowercase_name + " reminder ").length()))
+				{
+					std::string reminder = original_dummy_line.substr((lowercase_name + " reminder ").length());
+					trim(reminder);
+					i->set_reminder(reminder);
+					used_command = true;
+				}
+				else if (comp_substring("reminder " + lowercase_name + " ", dummy_line, ("reminder " + lowercase_name + " ").length()))
+				{
+					std::string reminder = original_dummy_line.substr(("reminder " + lowercase_name + " ").length());
+					trim(reminder);
+					i->set_reminder(reminder);
+					used_command = true;
 				}
 
 				else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
@@ -2917,6 +2953,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		previous_turn_creature_name = current_creature->get_name();
 		if (new_turn)
 		{
+			if (current_creature->get_reminder().size() != 0)
+			{
+				std::cout << current_creature->get_reminder() << std::endl;
+			}
 			if (regenerated_hp != 0)
 				std::cout << current_creature->get_name() << " regenerated " << regenerated_hp << " hit points." << std::endl;
 			else
@@ -3048,6 +3088,26 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 						//std::cout << E.what() << std::endl;
 					}
+				}
+
+				else if (   ((lowercase_name + " reminder") == dummy_line) || (dummy_line == ("reminder " + lowercase_name))   )
+				{
+					i->set_reminder("");
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " reminder ", dummy_line, (lowercase_name + " reminder ").length()))
+				{
+					std::string reminder = original_dummy_line.substr((lowercase_name + " reminder ").length());
+					trim(reminder);
+					i->set_reminder(reminder);
+					used_command = true;
+				}
+				else if (comp_substring("reminder " + lowercase_name + " ", dummy_line, ("reminder " + lowercase_name + " ").length()))
+				{
+					std::string reminder = original_dummy_line.substr(("reminder " + lowercase_name + " ").length());
+					trim(reminder);
+					i->set_reminder(reminder);
+					used_command = true;
 				}
 
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))

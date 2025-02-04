@@ -1,2 +1,0 @@
-Narz hp:112 flags:AC_20___,1/day
-Nightm hp:68 +2 flags:AC_13

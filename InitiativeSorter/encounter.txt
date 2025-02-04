@@ -1,6 +1,0 @@
-reset
-Manus 23 +5 hp:82/102
-Ash 21 +1 hp:17/17
-Gabriel 5 +0 hp:60/60
-round 1
-turn Manus

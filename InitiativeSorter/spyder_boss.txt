@@ -1,5 +1,0 @@
-Goblin_1 +2 hp:7/7
-Goblin_2 +2 hp:7/7
-Goblin_Boss_1 +2 hp:21/21
-Goblin_Boss_2 +2 hp:21/21
-The_Spyder_4 +4 hp:32/32

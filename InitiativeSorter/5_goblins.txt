@@ -1,5 +1,0 @@
-Goblin_1 +2 hp:7/7
-Goblin_2 +2 hp:7/7
-Goblin_3 +2 hp:7/7
-Goblin_4 +2 hp:7/7
-Goblin_5 +2 hp:7/7
