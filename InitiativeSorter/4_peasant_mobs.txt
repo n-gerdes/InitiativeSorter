@@ -1,4 +1,0 @@
-Peasant_Mob_1 +1 hp:39/39
-Peasant_Mob_2 +1 hp:39/39
-Peasant_Mob_3 +1 hp:39/39
-Peasant_Mob_4 +1 hp:39/39
