@@ -2553,10 +2553,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			taking_intiatives = false;
 			return false;
 		}
-		else if (takes_commands && (lowercase == "back" || lowercase == "undo" || lowercase == "reverse" || lowercase == "cancel"))
-		{
-			creatures.pop_back();
-		}
 		else if (takes_commands && (lowercase == "reset" || lowercase == "clear"))
 		{
 			creatures.clear();
