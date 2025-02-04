@@ -6,6 +6,8 @@
 #include <random>
 #include <fstream>
 #include <climits>
+#include <thread>
+#include <chrono>
 #include <time.h>
 
 typedef size_t index_t;
@@ -39,10 +41,20 @@ public:
 	{
 		return flags;
 	}
+
+	creature* get_raw_ptr()
+	{
+		return this;
+	}
 	
-	void add_alias(const std::string& new_alias)
+	inline void add_alias(const std::string& new_alias)
 	{
 		aliases.push_back(new_alias);
+	}
+
+	inline void remove_alias(const std::string& al)
+	{
+		aliases.remove(al);
 	}
 
 	std::list<std::string> get_all_names() const
@@ -69,12 +81,22 @@ public:
 		std::string disp = name;
 		int count = 0;
 		int MAX_ALIASES = 2;
-		for (auto i = aliases.begin(); i != aliases.end() && count<MAX_ALIASES; ++i)
+		int visible_aliases = 0;
+		for (auto i = aliases.begin(); i != aliases.end(); ++i)
 		{
-			disp += "/" + (*i);
-			++count;
+			//disp += "[" + (*i) + "]";
+			if (!((*i)[0] == '@'))
+			{
+				if (count < MAX_ALIASES)
+				{
+					disp += "/" + (*i);
+					++count;
+				}
+				++visible_aliases;
+			}
 		}
-		if (aliases.size() > MAX_ALIASES)
+		
+		if (visible_aliases > MAX_ALIASES)
 		{
 			disp += ".../";
 		}
@@ -117,12 +139,14 @@ public:
 		if (new_flag.length() != 0 && std::find(flags.begin(), flags.end(), new_flag)==flags.end())
 		{
 			flags.push_back(new_flag);
+			add_alias("@" + get_lowercase(new_flag));
 		}
 	}
 
 	inline void remove_flag(const std::string& flag)
 	{
 		std::string lowerc = get_lowercase(flag);
+		remove_alias("@" + flag);
 		for (auto i = flags.begin(); i != flags.end(); ++i)
 		{
 			if (get_lowercase(*i) == lowerc)
@@ -176,6 +200,15 @@ public:
 			for (size_t i = 0; i < flags_list.size(); ++i)
 			{
 				char c = flags_list[i];
+				if (c == ' ')
+				{
+					if (flag != "")
+					{
+						add_flag(flag);
+						flag = "";
+					}
+					break;
+				}
 				if (c==',' || c=='&')
 				{
 					add_flag(flag);
@@ -186,8 +219,11 @@ public:
 					flag += c;
 				}
 			}
-			if(flag != "")
+			if (flag != "")
+			{
 				add_flag(flag);
+				flag = "";
+			}
 		}
 
 		if (alias_list != "")
@@ -196,6 +232,15 @@ public:
 			for (size_t i = 0; i < alias_list.size(); ++i)
 			{
 				char c = alias_list[i];
+				if (c == ' ')
+				{
+					if (alias != "")
+					{
+						aliases.push_back(alias);
+						alias = "";
+					}
+					break;
+				}
 				if (c == ',' || c == '&')
 				{
 					aliases.push_back(alias);
@@ -206,8 +251,11 @@ public:
 					alias += c;
 				}
 			}
-			if(alias != "")
+			if (alias != "")
+			{
 				aliases.push_back(alias);
+				alias = "";
+			}
 		}
 	}
 
@@ -418,6 +466,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 		|| lowerc == "alias"
 		|| lowerc == "as"
 		|| lowerc == "al"
+		|| lowerc == "full"
 		|| lowerc == "rf"
 			|| lowerc == "quit"
 			|| lowerc == "end"
@@ -460,6 +509,7 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 			|| lowerc == "damage all"
 			|| lowerc == "harm all"
 			|| lowerc == "save"
+			|| lowerc == "savet"
 			|| lowerc == "load"
 			|| lowerc == "hurtr"
 			|| lowerc == "dmgr"
@@ -520,6 +570,8 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 			|| lowerc == "health all"
 			|| lowerc == "all health"
 			|| lowerc == "ac"
+			|| lowerc == "clone"
+			|| lowerc == "savec"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -532,6 +584,8 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 			|| c == ' '
 			|| c == '/'
 			|| c == '.'
+			|| c == '*'
+			|| c == '@'
 		)
 			return false;
 	}
@@ -543,14 +597,17 @@ inline bool name_is_unique(const std::string& name, const std::list<creature>& c
 	return true;
 }
 
-inline void save_state(const std::string& filename, std::list<creature>& creatures, const std::string& turn, int round_num)
+inline void save_state(const std::string& filename, std::list<creature>& creatures, const std::string& turn, int round_num, bool temp_file)
 {
 	try {
 		std::ofstream out;
 		out.open(filename);
 		if (!out.is_open())
 			throw;
-		out << "reset\n";
+
+		if(!temp_file)
+			out << "reset\n";
+
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			std::string name = i->get_name();
@@ -597,11 +654,13 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 
 		}
 
-		out << "round " << std::to_string(round_num) << std::endl;
+		if(!temp_file)
+			out << "round " << std::to_string(round_num) << std::endl;
 		if (turn != "")
 			out << "turn " << turn << std::endl;
 
 		out.close();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	catch (const std::exception& E)
 	{
@@ -882,7 +941,7 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 		sub = dummy_line.substr(second_space, dummy_line.length() - second_space);
 	}
 
-	if (sub == " max" || sub == " all")
+	if (sub == " max" || sub == " all" || sub == " full")
 	{
 		return INT_MAX;
 	}
@@ -935,9 +994,56 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 	return value;
 };
 
-//Process command/add a creature, and return whether or not a creature was added.
-inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword)
+inline void clone_character(const std::string& name, int count, std::list<creature>& creatures, creature* base)
 {
+	for (int i = 0; i < count; ++i)
+	{
+		auto get_new_name = [&](const std::string & base_name) -> std::string
+		{
+				int base_copy_id = i;
+				std::string base0_name;
+				bool base0 = false;
+				if (base_name[base_name.size() - 1] == '0'|| base_name[base_name.size() - 1] == '1')
+				{
+					base0_name = base_name;
+					base0_name.resize(base0_name.size() - 1);
+					base0 = true;
+				}
+
+				std::string copy_name = "clone";
+
+				while (!name_is_unique(copy_name, creatures))
+				{
+					if (base0)
+					{
+						copy_name = base0_name + std::to_string(++base_copy_id);
+					}
+					else
+					{
+						copy_name = base->get_name() + std::to_string(++base_copy_id);
+					}
+				}
+				return copy_name;
+		};
+		
+		creature copy(*base);
+		copy.set_name(get_new_name(copy.get_name()));
+		for (auto j = copy.aliases.begin(); j != copy.aliases.end(); ++j)
+		{
+			if((*j)[0] != '@')
+				(*j) = get_new_name(*j);
+		}
+		copy.set_initiative((rand() % 20) + 1 + copy.get_initiative_modifier());
+		creatures.push_back(copy);
+	}
+	creatures.sort();
+}
+
+
+//Process command/add a creature, and return whether or not a creature was added.
+inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename)
+{
+	//takes_commands = true;
 	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
 	std::cout << std::endl << "________________________________________________" << std::endl;
@@ -962,7 +1068,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else
 		{
 			std::getline(file, line);
-			std::cout << line << std::endl;
+			std::cout << filename << ": \'" << line << "\'" << std::endl;
 		}
 	}
 	else if (!info_already_in_line)
@@ -971,21 +1077,109 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	}
 	bool used_command = false;
 
-	if (takes_commands) //In hindsight this is an awful way to parse commands.
+
+	std::string& original_dummy_line = line;
+	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 	{
+		i->touched = false;
+		//if (used_command) //Added for optimization, may need to remove
+			//break;
+		auto names = i->get_all_names();
+		for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
+		{
+			//if (used_command)
+				//break;
+			std::string lowercase_name = *alias_iterator;
+			std::string dummy_line = line;
+			make_lowercase(dummy_line);
+			make_lowercase(lowercase_name);
+
+			if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
+				exit(0);
+
+			else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+			{
+				try {
+					bool is_signed = false;
+					int clones = get_number_arg(dummy_line, is_signed);
+					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+					used_command = true;
+					return false;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
+			{
+				try {
+					bool is_signed = false;
+					int clones = get_number_arg(dummy_line, is_signed);
+					clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+					used_command = true;
+					return false;
+				}
+				catch (const std::exception& E) {
+
+				}
+			}
+			else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+			{
+				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+				used_command = true;
+				return false;
+			}
+			else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
+			{
+				clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+				used_command = true;
+				return false;
+			}
+		}
+	}
+
+	if (takes_commands && !used_command) //In hindsight this is an awful way to parse commands.
+	{
+		std::string dummy_line = line;
+		make_lowercase(dummy_line);
+		std::string removal_name = "";
+		if (comp_substring(dummy_line, "rm ", 3))
+		{
+			removal_name = line.substr(2);
+			trim(removal_name);
+			make_lowercase(removal_name);
+		}
+		else if (comp_substring(dummy_line, "remove ", 6))
+		{
+			removal_name = line.substr(7);
+			trim(removal_name);
+			make_lowercase(removal_name);
+		}
+		if (removal_name != "")
+		{
+			auto rmc = creatures.begin();
+			while (creatures.size() != 0 && rmc != creatures.end())
+			{
+				if (rmc->has_alias(removal_name))
+				{
+					creatures.erase(rmc);
+					rmc = creatures.begin();
+				}
+				else
+				{
+					++rmc;
+				}
+			}
+			return false;
+		}
 		std::string& original_dummy_line = line;
+		bool did_erase = false;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
-			if (used_command) //Added for optimization, may need to remove
-				break;
 			auto names = i->get_all_names();
 			for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
 			{
-				if (used_command)
-					break;
 				std::string lowercase_name = *alias_iterator;
-				std::string dummy_line = line;
-				make_lowercase(dummy_line);
 				make_lowercase(lowercase_name);
 
 				if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
@@ -1002,7 +1196,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						i->set_initiative(val);
 						creatures.sort();
 						used_command = true;
-						break;
 					}
 					catch (const std::exception& E) {
 
@@ -1032,6 +1225,34 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 					catch (const std::exception& E) {
 
+					}
+				}
+
+				else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
+						i->adjust_hp(val);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+						//std::cout << E.what() << std::endl;
+					}
+				}
+
+				else if (comp_substring("hurt " + lowercase_name + " ", dummy_line, ("hurt " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " hurt ", dummy_line, (lowercase_name + " hurt ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
+						i->adjust_hp(-val);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+						//std::cout << E.what() << std::endl;
 					}
 				}
 
@@ -1637,6 +1858,26 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
+				else if (comp_substring("heal all ", dummy_line, 9) || dummy_line == "heal all max" || dummy_line == "heal all all" || dummy_line == "heal all full")
+				{
+					try {
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed);
+						unsigned char* tval = reinterpret_cast<unsigned char*>(&(i->touched));
+						if (!i->touched)
+						{
+							i->adjust_hp(val);
+							i->touched = true;
+						}
+
+						if (i == (--creatures.end()))
+							return false;
+
+					}
+					catch (const std::exception& E) {
+						//std::cout << E.what() << std::endl;
+					}
+				}
 
 				else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()))
 				{
@@ -1822,6 +2063,30 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				}
 
+
+				else if (comp_substring("max_hp all ", dummy_line, 7) ||
+					comp_substring("all max_hp ", dummy_line, 7) ||
+					comp_substring("max_health all ", dummy_line, 11) ||
+					comp_substring("all max_health ", dummy_line, 11))
+					{
+						try {
+							if (i->touched == false)
+							{
+								bool is_signed = false;
+								int val = get_number_arg(dummy_line, is_signed);
+								i->set_max_hp(val, is_signed);
+								i->touched = true;
+							}
+
+							if (i == (--creatures.end()))
+								used_command = true;
+
+						}
+						catch (const std::exception& E) {
+							//std::cout << E.what() << std::endl;
+						}
+						}
+
 				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
@@ -1859,7 +2124,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
-					//std::cout << "PARSED HP: " << val << std::endl;
 					try {
 						size_t slash_index = dummy_line.find("/");
 						if (slash_index != std::string::npos)
@@ -1867,7 +2131,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							try {
 								int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
 								i->set_max_hp(max_hp, false);
-								//std::cout << "PARSED MAX HP " << max_hp << std::endl;
 							}
 							catch (const std::exception& e)
 							{
@@ -1882,41 +2145,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 						i->set_hp(val, is_signed);
 						used_command = true;
-						break;
+						//break;
 					}
 					catch (const std::exception& E) {
 
-					}
-				}
-				else if (
-					dummy_line == "remove " + lowercase_name ||
-					dummy_line == "rm " + lowercase_name)
-				{
-					bool removed_all = false;
-					if (get_lowercase(initial_turn) == lowercase_name)
-						initial_turn = "";
-					for (auto rmi = creatures.begin(); rmi != creatures.end(); ++rmi)
-					{
-						creature& c = *rmi;
-						if (get_lowercase(c.get_name()) == lowercase_name)
-						{
-							bool erased_first = false;
-							if (i == creatures.begin())
-								erased_first = true;
-							if (!erased_first)
-								--i;
-							creatures.erase(rmi);
-							if (erased_first)
-								i = creatures.begin();
-							if (creatures.size() == 0)
-								removed_all = true;
-							break;
-						}
-					}
-					used_command = true;
-					if (removed_all)
-					{
-						break;
 					}
 				}
 			}
@@ -2039,7 +2271,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
 			trim(lowercase);
 		}
-		std::cout << aliases;
 
 		index_t& temp_hp_index = flags_index;
 		temp_hp_index = lowercase.find("temp:");
@@ -2050,7 +2281,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			std::string sub = line.substr(temp_hp_index + 5, length - 5);
 			try
 			{
-				//std::cout << "////" << sub << "/////\n";
 				temp_hp = std::stoi(sub);
 				if (temp_hp < 0)
 				{
@@ -2271,12 +2501,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			if (!new_file.is_open())
 			{
 				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
 				return false;
 			}
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false, true);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename);
 				}
 				new_file.close();
 				return false;
@@ -2285,7 +2516,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("save ", lowercase, 5)))
 		{
 			std::string filename = lowercase.substr(5);
-			save_state(filename, creatures, initial_turn, initial_round);
+			save_state(filename, creatures, initial_turn, initial_round, false);
+			return false;
+		}
+		else if (takes_commands && (comp_substring("savet ", lowercase, 6) || comp_substring("savec ", lowercase, 6)))
+		{
+			std::string filename = lowercase.substr(6);
+			save_state(filename, creatures, initial_turn, initial_round, true);
 			return false;
 		}
 		else if (takes_commands && comp_substring("rename ", lowercase, 7))
@@ -2332,7 +2569,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			bool found_character = false;
 			for (auto i = creatures.begin(); i != creatures.end(); ++i)
 			{
-				if (get_lowercase(i->get_name()) == args_lower)
+				if (i->has_alias(args_lower))
 				{
 					found_character = true;
 					break;
@@ -2454,6 +2691,26 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	return added_creature;
 }
 
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
 const static int MAX_UNDO_STEPS = 20;
 std::list<std::list<creature>> creatures_buffer;
 std::list<bool> new_round_buffer;
@@ -2461,26 +2718,27 @@ std::list<std::string> turn_msg_buffer;
 std::list<index_t> current_turn_buffer;
 std::list<size_t> current_round_buffer;
 
-std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp)
+std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg)
 {
-	std::string str = name;
+	std::string str = cur_msg + name;
 	int diff = old_hp - new_hp;
 	if (diff < 0)
 		diff = -diff;
 	if (new_hp > old_hp)
 	{
-		str += " recovered " + std::to_string(diff) + " hp.";
+		str += " recovered " + std::to_string(diff) + " hp.\n";
 	}
 	else if (new_hp < old_hp)
 	{
-		str += " took " + std::to_string(diff) + " damage.";
+		str += " took " + std::to_string(diff) + " damage.\n";
 	}
 	else
 	{
-		return "";
+		return cur_msg;
 	}
 	return str;
 }
+
 
 //int buffer_index = 0; //0 refers to the head, 1 is previous state, 2 is state before, etc.
 
@@ -2499,8 +2757,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		int init_turn_setter = 0;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
-			std::string lowerc = get_lowercase(i->get_name()); //TODO: Implement aliases here
-			if (lowerc == initial_turn)
+			//std::string lowerc = get_lowercase(i->get_name()); //TODO: Implement aliases here
+			if (i->has_alias(initial_turn)) //(lowerc == initial_turn || i->has_a)
 			{
 				break;
 			}
@@ -2702,18 +2960,45 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		for (auto i = creatures.begin(); i != creatures.end(); ++i) {
 			
 			auto next = i;
-			auto peek = i;
-			++peek;
+			//auto peek = i;
+			//++peek;
 
 			auto kill_creature = [&](const std::string& lowercase_name) {
-				if (current_creature->has_alias(lowercase_name)) {
-					++next;
-				}
+				//if (current_creature->has_alias(lowercase_name)) {
+				//++next;
+				//}
 
+				/*
 				creatures.erase(i);
 				i = next;
+				next = i;
+				//++next;
 				used_command = true;
 				did_erase = true;
+
+				i = creatures.begin();
+				next = creatures.begin();
+				++next;
+				//++peek;
+				*/
+
+				i = creatures.begin();
+				while ((creatures.size()!=0) && (i != creatures.end()))
+				{
+					if (i->has_alias(lowercase_name))
+					{
+						creatures.erase(i);
+						i = creatures.begin();
+					}
+					else
+						++i;
+				}
+				i = creatures.begin();
+				next = i;
+				++next;
+				used_command = true;
+				did_erase = true;
+
 			};
 			auto all_names = i->get_all_names();
 
@@ -2737,7 +3022,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						{
 							knocked_out_creature = &(*i);
 						}
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -2764,6 +3049,41 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 						//std::cout << E.what() << std::endl;
 					}
+				}
+
+				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+					used_command = true;
 				}
 
 				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
@@ -2800,7 +3120,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						val = 0;
 					i->set_regen(val);
 					used_command = true;
-					break;
+					//break;
 				}
 
 				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
@@ -2811,27 +3131,33 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						val = 0;
 					i->set_regen(val);
 					used_command = true;
-					break;
+					//break;
 				}
 
 				else if (comp_substring(lowercase_name + " disable", dummy_line, (lowercase_name + " disable").length()))
 				{
 					i->disable_regen_temp();
 					used_command = true;
-					break;
+					//break;
 				}
 
 				else if (comp_substring("disable " + lowercase_name, dummy_line, ("disable " + lowercase_name).length()))
 				{
 					i->disable_regen_temp();
 					used_command = true;
-					break;
+					//break;
 				}
 
 				else if (comp_substring("save ", dummy_line, 5))
 				{
 					std::string filename = dummy_line.substr(5);
-					save_state(filename, creatures, current_creature->get_name(), current_round);
+					save_state(filename, creatures, current_creature->get_name(), current_round, false);
+					used_command = true;
+				}
+				else if (comp_substring("savet ", dummy_line, 6) || comp_substring("savec ", dummy_line, 6))
+				{
+					std::string filename = dummy_line.substr(6);
+					save_state(filename, creatures, current_creature->get_name(), current_round, true);
 					used_command = true;
 				}
 				else if (comp_substring("hurtr " + lowercase_name + " ", dummy_line, ("hurtr " + lowercase_name + " ").length()) ||
@@ -2856,7 +3182,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
 					}
 					catch (const std::exception& E) {
 
@@ -2879,7 +3205,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
 					}
 					catch (const std::exception& E) {
 
@@ -2894,12 +3220,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					if (!new_file.is_open())
 					{
 						std::cout << "Error: Could not open " << filename << std::endl;
+						//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
 					}
 					else {
 						bool taking_initiatives = false;
 						while (new_file.good() && !new_file.eof())
 						{
-							get_creature(creatures, taking_initiatives, line, new_file, true, false, true);
+							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
 						}
 						new_file.close();
 						creatures.sort();
@@ -2925,14 +3252,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int old_hp = i->get_hp();
 						i->adjust_hp(val);
 						int new_hp = i->get_hp();
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
 						//std::cout << E.what() << std::endl;
 					}
 				}
-				else if (comp_substring("heal all ", dummy_line, 9))
+				else if (comp_substring("heal all ", dummy_line, 9) || dummy_line=="heal all max" || dummy_line == "heal all all" || dummy_line == "heal all full")
 				{
 					try {
 						bool is_signed = false;
@@ -2951,6 +3278,43 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						//std::cout << E.what() << std::endl;
 					}
 				}
+
+				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed);
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
+				{
+					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
+					used_command = true;
+				}
+
+
 				else if (comp_substring("flag " + lowercase_name + " ", dummy_line, ("flag " + lowercase_name + " ").length()))
 				{
 					try {
@@ -3582,6 +3946,29 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						}
 					}
 
+				else if (comp_substring("max_hp all ", dummy_line, 7) ||
+					comp_substring("all max_hp ", dummy_line, 7) ||
+					comp_substring("max_health all ", dummy_line, 11) ||
+					comp_substring("all max_health ", dummy_line, 11))
+					{
+						try {
+							if (i->touched == false)
+							{
+								bool is_signed = false;
+								int val = get_number_arg(dummy_line, is_signed);
+								i->set_max_hp(val, is_signed);
+								i->touched = true;
+							}
+
+							if (i == (--creatures.end()))
+								used_command = true;
+
+						}
+						catch (const std::exception& E) {
+							//std::cout << E.what() << std::endl;
+						}
+					}
+
 
 				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
 						 comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
@@ -3614,9 +4001,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							}
 							i->set_hp(val, is_signed);
 							int new_hp = i->get_hp();
-							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp);
+							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
 							used_command = true;
-							break;
+							//break;
 						}
 						catch (const std::exception& E) {
 
@@ -3826,12 +4213,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							}
 						}
 
-				if (did_erase || used_command)
-					break;
+				//if (did_erase || used_command)
+					//break;
 			}
 
-			if (did_erase || used_command)
-				break;
+			//if (did_erase || used_command)
+				//break;
 		}
 		if (!used_command && dummy_line.substr(0,4)=="add " && dummy_line.length()>4)
 		{
@@ -3840,7 +4227,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true);
+			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "");
 			if (success)
 			{
 				creatures.sort();
@@ -3855,7 +4242,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false);
+			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "");
 			if (success)
 			{
 				creatures.sort();
@@ -3907,7 +4294,6 @@ int main(int argc, char** args)
 	std::list<creature> creatures; //Create a vector to hold the creature data in
 
 	//Display help instructions
-	std::cout << "This program sorts creatures by initiative and can track turns and rounds\n" << std::endl;
 	std::cout << "When prompted, add creatures by giving its name, initiative, and modifier. The name must be one word." << std::endl;
 	std::cout << "The initiative and modifier must be separated by a space (i.e., \"Rogue 17 +6\")" << std::endl;
 	std::cout << "When you're done entering creatures, type \'done\' to finish (not case sensitive)" << std::endl;
@@ -3930,7 +4316,13 @@ int main(int argc, char** args)
 	std::cout << std::endl << "Use \'roll [dice pattern]\' to tell the program to roll dice and tell you the output." << std::endl;
 	std::cout << "A die pattern (with no spaces) can also be used in most numerical inputs to roll dice instead." << std::endl;
 	std::cout << "\tIf the command applies to multiple creatures, it typically rolls each one separately." << std::endl;
-
+	std::cout << std::endl << std::endl;
+	std::cout << "Save the state of the encounter with \'save [filename]\', and load it again later with \'load [filename]\'" << std::endl;
+	std::cout << "\t\'savec\' or \'savet\' saves the creatures, but does not remove existing characters or set the round number when loaded." << std::endl;
+	std::cout << std::endl;
+	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
+	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
+	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.";
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
@@ -3976,7 +4368,7 @@ int main(int argc, char** args)
 	}
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file, true, false, true);
+		get_creature(creatures, taking_intiatives, line, file, true, false, true, "");
 	}
 
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
