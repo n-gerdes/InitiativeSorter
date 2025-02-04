@@ -598,6 +598,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "ac"
 			|| lowerc == "clone"
 			|| lowerc == "savec"
+			|| lowerc == "clean"
+			|| lowerc == "cleanup"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -3030,6 +3032,55 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			continue;
 		}
+		else if (dummy_line == "clean" || dummy_line == "cleanup")
+		{
+			auto cleaner = creatures.begin();
+			while (creatures.size() != 0 && cleaner != creatures.end())
+			{
+				if (cleaner->get_hp() == 0)
+				{
+					creatures.erase(cleaner);
+					cleaner = creatures.begin();
+				}
+				else
+				{
+					++cleaner;
+				}
+			}
+		}
+		else if ((comp_substring("load ", dummy_line, 5)))
+		{
+			std::string filename = line.substr(5, line.length() - 5);
+			std::ifstream new_file;
+			new_file.open(filename);
+			used_command = true;
+			if (!new_file.is_open())
+			{
+				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+			}
+			else {
+				bool taking_initiatives = false;
+				while (new_file.good() && !new_file.eof())
+				{
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
+				}
+				new_file.close();
+				creatures.sort();
+				turn_count = current_creature->get_turn_count();
+				current_turn = 0;
+				for (auto i = creatures.begin(); i != creatures.end(); ++i)
+				{
+					if (i->get_name() == current_creature->get_name())
+					{
+
+						break;
+					}
+					++current_turn;
+				}
+				continue;
+			}
+		}
 		buffer_manipulation_state = STATE_NODO;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i) {
 			
@@ -3061,7 +3112,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
 			{
 				const std::string& lowercase_name = get_lowercase(*alias_iterator);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("load ")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
 				{
 					continue;
 				}
@@ -3291,38 +3342,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if ((comp_substring("load ", dummy_line, 5)))
-				{
-					std::string filename = line.substr(5, line.length() - 5);
-					std::ifstream new_file;
-					new_file.open(filename);
-					used_command = true;
-					if (!new_file.is_open())
-					{
-						std::cout << "Error: Could not open " << filename << std::endl;
-						//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-					}
-					else {
-						bool taking_initiatives = false;
-						while (new_file.good() && !new_file.eof())
-						{
-							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
-						}
-						new_file.close();
-						creatures.sort();
-						turn_count = current_creature->get_turn_count();
-						current_turn = 0;
-						for (auto i = creatures.begin(); i != creatures.end(); ++i)
-						{
-							if (i->get_name() == current_creature->get_name())
-							{
-
-								break;
-							}
-							++current_turn;
-						}
-					}
-				}
+				
 				else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
 						 comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
 				{
@@ -4402,7 +4422,9 @@ int main(int argc, char** args)
 	std::cout << std::endl;
 	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
 	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
-	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.";
+	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag. @all references all characters.";
+	std::cout << std::endl << std::endl;
+	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
