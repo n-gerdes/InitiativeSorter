@@ -1206,7 +1206,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				std::string lowercase_name = *alias_iterator;
 				make_lowercase(lowercase_name);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos && dummy_line.find("load ") == std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
 				{
 					continue;
 				}
