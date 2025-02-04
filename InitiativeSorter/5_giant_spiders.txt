@@ -1,5 +1,0 @@
-gs1 hp:26 +3 flags:web
-gs2 hp:26 +3 flags:web
-gs3 hp:26 +3 flags:web
-gs4 hp:26 +3 flags:web
-gs5 hp:26 +3 flags:web
