@@ -1119,8 +1119,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			make_lowercase(dummy_line);
 			make_lowercase(lowercase_name);
 
+
 			if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 				exit(0);
+
+			if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos && dummy_line.find("load ") == std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
+			{
+				continue;
+			}
 
 			else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 			{
@@ -2747,11 +2753,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 
