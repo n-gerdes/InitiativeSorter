@@ -1,4 +1,0 @@
-Averill +1 hp:8
-Vott +3 hp:15
-Lander +2 hp:13
-Shiv +2 hp:10
