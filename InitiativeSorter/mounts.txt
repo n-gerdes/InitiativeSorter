@@ -1,6 +1,0 @@
-Draft_Horse_1 -1 hp:19
-Draft_Horse_2 -1 hp:19
-Warhorse +1 hp:19
-Shivs_Horse +0 hp:13
-Manus_Horse +0 hp:13
-Zrird_Horse +0 hp:13
