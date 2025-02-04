@@ -600,6 +600,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "savec"
 			|| lowerc == "clean"
 			|| lowerc == "cleanup"
+			|| lowerc == "keep"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -614,6 +615,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| c == '.'
 			|| c == '*'
 			|| c == '@'
+			|| c == '?'
 		)
 			return false;
 	}
@@ -687,10 +689,10 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 
 		}
 
-		if(!temp_file)
-			out << "round " << std::to_string(round_num) << std::endl;
+		if (!temp_file)
+			out << "round " << std::to_string(round_num);
 		if (turn != "")
-			out << "turn " << turn << std::endl;
+			out << "turn " << turn;
 
 		out.close();
 	}
@@ -1200,18 +1202,31 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		std::string dummy_line = line;
 		make_lowercase(dummy_line);
 		std::string removal_name = "";
+		std::string keep_name = "";
 		bool start_over = false;
+		size_t len = dummy_line.length();
+		size_t l = len - 1;
 		if (comp_substring(dummy_line, "rm ", 3))
 		{
 			removal_name = line.substr(2);
 			trim(removal_name);
 			make_lowercase(removal_name);
 		}
-		else if (comp_substring(dummy_line, "remove ", 6))
+		else if (comp_substring(dummy_line, "remove ", 7))
 		{
-			removal_name = line.substr(7);
+			removal_name = line.substr(6);
 			trim(removal_name);
 			make_lowercase(removal_name);
+		}
+		else if (len>3 && dummy_line[l] == 'm' && dummy_line[l - 1] == 'r' && dummy_line[l-2] == ' ')
+		{
+			removal_name = dummy_line;
+			removal_name.resize(len - 3);
+		}
+		else if (len > 7 && dummy_line[l] == 'e' && dummy_line[l - 1] == 'v' && dummy_line[l - 2] == 'o' && dummy_line[l - 3] == 'm' && dummy_line[l - 4] == 'e' && dummy_line[l - 5] == 'r' && dummy_line[l - 6] == ' ')
+		{
+			removal_name = dummy_line;
+			removal_name.resize(len - 7);
 		}
 		if (removal_name != "")
 		{
@@ -1230,6 +1245,31 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			}
 			return false;
 		}
+
+		if (comp_substring(dummy_line, "keep ", 5))
+		{
+			keep_name = line.substr(5);
+			trim(keep_name);
+			make_lowercase(keep_name);
+		}
+		if (keep_name != "")
+		{
+			auto rmc = creatures.begin();
+			while (creatures.size() != 0 && rmc != creatures.end())
+			{
+				if (!(rmc->has_alias(keep_name)))
+				{
+					creatures.erase(rmc);
+					rmc = creatures.begin();
+				}
+				else
+				{
+					++rmc;
+				}
+			}
+			return false;
+		}
+
 		std::string& original_dummy_line = line;
 		bool did_erase = false;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
@@ -2866,6 +2906,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	bool new_turn = true;
 	auto save_buffer = [&]() -> void
 		{
+			//std::cout << "SAVING BUFFER\n";
 			if (buffer_manipulation_state == STATE_NODO)
 			{
 				creatures_buffer.push_front(creatures);
@@ -3010,8 +3051,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		bool used_command = false;
 		bool did_erase = false;
 		int move_turn = -1;
+		size_t l = dummy_line.length() - 1;
 		//std::string lowercase_current_creature_name = get_lowercase(current_creature->get_name());
-
+		std::string keep_name = "";
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 			return;
 		else if (dummy_line == "undo" || dummy_line == "u")
@@ -3043,7 +3085,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			continue;
 		}
-		else if (dummy_line == "clean" || dummy_line == "cleanup")
+		else
+		{
+			while (creatures_buffer_iterator != creatures_buffer.begin())
+			{
+				creatures_buffer.pop_front();
+				new_round_buffer.pop_front();
+				turn_msg_buffer.pop_front();
+				current_turn_buffer.pop_front();
+				current_round_buffer.pop_front();
+			}
+		}
+		
+		if (dummy_line == "clean" || dummy_line == "cleanup")
 		{
 			auto cleaner = creatures.begin();
 			while (creatures.size() != 0 && cleaner != creatures.end())
@@ -3093,9 +3147,53 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				continue;
 			}
 		}
+		else if ((comp_substring("keep ", dummy_line, 5)))
+		{
+			keep_name = dummy_line.substr(5);
+			trim(keep_name);
+		}
+		else if (dummy_line[l] == 'p' && dummy_line[l - 1] == 'e' && dummy_line[l - 2] == 'e' && dummy_line[l - 3] == 'k' && dummy_line[l - 4] == ' ')
+		{
+			keep_name = dummy_line;
+			keep_name.resize(dummy_line.size() - 5);
+		}
+		bool skip_command_checks = false;
+		if (keep_name != "")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			auto i = creatures.begin();
+			while (creatures.size() > 0 && i != creatures.end())
+			{
+				if (!i->has_alias(keep_name))
+				{
+					creatures.erase(i);
+					i = creatures.begin();
+					did_erase = true;
+				}
+				else
+				{
+					++i;
+				}
+			}
+			//break;
+
+			//buffer_manipulation_state = STATE_NODO;
+
+			/*
+			if (current_turn >= creatures.size())
+			{
+				current_turn = 0;
+				++current_round;
+				new_round = true;
+			}
+			save_buffer();
+			continue;
+			*/
+		}
 		buffer_manipulation_state = STATE_NODO;
 		bool start_over = false;
-		for (auto i = creatures.begin(); i != creatures.end(); ++i) {
+		for (auto i = creatures.begin(); i != creatures.end() && !skip_command_checks; ++i) {
 			if (start_over)
 			{
 				start_over = false;
@@ -3105,24 +3203,41 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			//auto peek = i;
 			//++peek;
 
-			auto kill_creature = [&](const std::string& lowercase_name) {
+			auto kill_creature = [&](const std::string& lowercase_name, bool invert) {
 				i = creatures.begin();
 				while ((creatures.size()!=0) && (i != creatures.end()))
 				{
-					if (i->has_alias(lowercase_name))
+					if (invert)
 					{
-						creatures.erase(i);
-						i = creatures.begin();
+						if (  !(i->has_alias(lowercase_name)) )
+						{
+							creatures.erase(i);
+							i = creatures.begin();
+						}
+						else
+						{
+							i->touched = true;
+							++i;
+						}
 					}
 					else
-						++i;
+					{
+						if (i->has_alias(lowercase_name))
+						{
+							creatures.erase(i);
+							i = creatures.begin();
+						}
+						else
+						{
+							++i;
+						}
+					}
 				}
 				i = creatures.begin();
 				next = i;
 				++next;
 				used_command = true;
 				did_erase = true;
-
 			};
 			auto all_names = i->get_all_names();
 
@@ -4196,9 +4311,16 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else if (dummy_line == "kill " + lowercase_name || 
 					dummy_line == "die " + lowercase_name || 
 					dummy_line == "remove " + lowercase_name || 
-					dummy_line == "rm " + lowercase_name)
+					dummy_line == "rm " + lowercase_name
+					||
+
+					dummy_line == lowercase_name + "kill" ||
+					dummy_line == lowercase_name + "die" ||
+					dummy_line == lowercase_name + "remove" ||
+					dummy_line == lowercase_name + "rm"
+					)
 				{
-					kill_creature(lowercase_name);
+					kill_creature(lowercase_name, false);
 					if (creatures.size() == 0)
 						return;
 				}
@@ -4450,6 +4572,8 @@ int main(int argc, char** args)
 	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag. @all references all characters.";
 	std::cout << std::endl << std::endl;
 	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
+	std::cout << std::endl << std::endl;
+	std::cout << "\'rm\' can be used to remove addressed creature(s). \'keep\' removes all except the addressed creature(s)." << std::endl;
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
