@@ -1193,13 +1193,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 	
 
-	
+		
 
 	if (takes_commands && !used_command) //In hindsight this is an awful way to parse commands.
 	{
 		std::string dummy_line = line;
 		make_lowercase(dummy_line);
 		std::string removal_name = "";
+		bool start_over = false;
 		if (comp_substring(dummy_line, "rm ", 3))
 		{
 			removal_name = line.substr(2);
@@ -1233,6 +1234,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		bool did_erase = false;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
+			if (start_over)
+			{
+				start_over = false;
+				i = creatures.begin();
+			}
 			auto names = i->get_all_names();
 			for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
 			{
@@ -1252,8 +1258,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					try {
 						bool is_signed;
 						int val = get_number_arg(dummy_line, is_signed);
-						i->set_initiative(val);
-						creatures.sort();
+						if (!i->touched)
+						{
+							i->set_initiative(val);
+							i->touched = true;
+							creatures.sort();
+							i = creatures.begin();
+							start_over = true;
+							break;
+						}
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -2828,8 +2841,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		int init_turn_setter = 0;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
-			//std::string lowerc = get_lowercase(i->get_name()); //TODO: Implement aliases here
-			if (i->has_alias(initial_turn)) //(lowerc == initial_turn || i->has_a)
+			if (i->has_alias(initial_turn))
 			{
 				break;
 			}
@@ -3082,8 +3094,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 		}
 		buffer_manipulation_state = STATE_NODO;
+		bool start_over = false;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i) {
-			
+			if (start_over)
+			{
+				start_over = false;
+				i = creatures.begin();
+			}
 			auto next = i;
 			//auto peek = i;
 			//++peek;
@@ -4244,9 +4261,17 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						try {
 							bool is_signed;
-							int val = get_number_arg(dummy_line, is_signed);
-							i->set_initiative(val);
-							creatures.sort();
+							if (!i->touched)
+							{
+								int val = get_number_arg(dummy_line, is_signed);
+								i->set_initiative(val);
+								i->touched = true;
+								creatures.sort();
+								i = creatures.begin();
+								start_over = true;
+								break;
+							}
+							
 							used_command = true;
 						}
 						catch (const std::exception& E) {
