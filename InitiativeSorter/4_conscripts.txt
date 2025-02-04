@@ -1,4 +1,0 @@
-Conscript_1 +1 hp:16/16
-Conscript_2 +1 hp:16/16
-Conscript_3 +1 hp:16/16
-Conscript_4 +1 hp:16/16
