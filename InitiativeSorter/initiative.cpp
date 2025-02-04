@@ -3040,7 +3040,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
 			{
 				const std::string& lowercase_name = get_lowercase(*alias_iterator);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("load ")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
 				{
 					continue;
 				}
