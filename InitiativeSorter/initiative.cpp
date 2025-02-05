@@ -10,6 +10,7 @@
 #include <chrono>
 #include <time.h>
 
+const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
 static int initial_round = 1; //Global variables are a bad practice but this was supposed to be a tiny program
 static std::string initial_turn = ""; //Stores name of character whose turn will start
@@ -2577,15 +2578,17 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		index_t ac_index = lowercase.find("ac:");
 		if (ac_index != std::string::npos)
 		{
+			//std::cout << "FOUND AC INDEX AT " << ac_index << std::endl;
 			size_t space_after_ac_index = lowercase.find(' ', ac_index);
 			size_t length = space_after_ac_index - ac_index;
 			std::string ac_text = lowercase.substr(ac_index+3, length-3);
-
+			//std::cout << "PARSED AC TEXT: " << ac_text << std::endl;
 			if (space_after_ac_index == std::string::npos)
 			{
 				space_after_ac_index = lowercase.length() - 1;
 			}
-			lowercase = lowercase.substr(0, hp_index) + lowercase.substr(space_after_ac_index + 1, lowercase.length() - space_after_ac_index - 1);
+			//std::cout << "SPACE AFTER INDEX: " << space_after_ac_index << std::endl;
+			lowercase = lowercase.substr(0, ac_index) + lowercase.substr(space_after_ac_index + 1, lowercase.length() - space_after_ac_index - 1);
 			trim(lowercase);
 
 			try
@@ -2714,6 +2717,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 		else
 		{
+			trim(lowercase);
 			size_t number_of_spaces = std::count(lowercase.begin(), lowercase.end(), ' ');
 			if (number_of_spaces == 1)
 			{
@@ -2744,6 +2748,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				catch (const std::exception& E)
 				{
 					std::cout << "Error: Could not parse input (or ran out of memory - unlikely)" << std::endl;
+					if(PRINT_DEBUG)
+						std::cout << "\tParsed text: \'" << lowercase << "\'" << std::endl;
 					//std::cout << E.what() << std::endl;
 				}
 
@@ -2788,6 +2794,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E)
 					{
 						std::cout << "Error: Could not parse input (or ran out of memory - unlikely)" << std::endl;
+						if(PRINT_DEBUG)
+							std::cout << "\tParsed text: \'" << lowercase << "\'" << std::endl;
 						//std::cout << E.what() << std::endl;
 					}
 				}
