@@ -3055,7 +3055,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
-
 		bool used_command = false;
 		bool did_erase = false;
 		int move_turn = -1;
@@ -3160,7 +3159,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			keep_name = dummy_line.substr(5);
 			trim(keep_name);
 		}
-		else if (dummy_line[l] == 'p' && dummy_line[l - 1] == 'e' && dummy_line[l - 2] == 'e' && dummy_line[l - 3] == 'k' && dummy_line[l - 4] == ' ')
+		else if (dummy_line.length() > 5 && dummy_line[l] == 'p' && dummy_line[l - 1] == 'e' && dummy_line[l - 2] == 'e' && dummy_line[l - 3] == 'k' && dummy_line[l - 4] == ' ')
 		{
 			keep_name = dummy_line;
 			keep_name.resize(dummy_line.size() - 5);
@@ -3184,20 +3183,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					++i;
 				}
 			}
-			//break;
-
-			//buffer_manipulation_state = STATE_NODO;
-
-			/*
-			if (current_turn >= creatures.size())
-			{
-				current_turn = 0;
-				++current_round;
-				new_round = true;
-			}
-			save_buffer();
-			continue;
-			*/
 		}
 		buffer_manipulation_state = STATE_NODO;
 		bool start_over = false;
@@ -3252,7 +3237,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
 			{
 				const std::string& lowercase_name = get_lowercase(*alias_iterator);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos && dummy_line.find("round ") == std::string::npos)
 				{
 					continue;
 				}
@@ -4535,7 +4520,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			turn_msg = knocked_out_creature->get_name() + " WAS KNOCKED OUT!\n\n" + turn_msg;
 			knocked_out_creature = nullptr;
 		}
-
 		save_buffer(); //For undoing/redoing purposes
 	}
 }
