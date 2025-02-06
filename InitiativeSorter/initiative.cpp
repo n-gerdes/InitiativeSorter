@@ -9,6 +9,7 @@
 #include <thread>
 #include <chrono>
 #include <time.h>
+#include <map>
 
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
@@ -3059,6 +3060,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else
 				{
 					++flag_marker;
+				}
+			}
+			auto alias_marker = current_creature->aliases.begin();
+			while (current_creature->aliases.size() != 0 && alias_marker != current_creature->aliases.end())
+			{
+				if ((*alias_marker).size()>1 && (*alias_marker)[0]=='@' && (*alias_marker)[1]=='_')
+				{
+					current_creature->aliases.erase(alias_marker);
+					alias_marker = current_creature->aliases.begin();
+				}
+				else
+				{
+					++alias_marker;
 				}
 			}
 			if (regenerated_hp != 0)
