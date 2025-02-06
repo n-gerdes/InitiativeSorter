@@ -4569,7 +4569,7 @@ int main(int argc, char** args)
 	std::cout << std::endl;
 	std::cout << "You must manually kill creatures with 0 HP via the \'kill\' command." << std::endl;
 	std::cout << std::endl << std::endl;
-	std::cout << "Flags can be specified when adding creatures with the 'flags:' modifier. Flags are comma-separated and do not permit spaces." << std::endl;
+	std::cout << "Flags can be specified when adding creatures with the 'flags:' modifier. Flags are comma-separated and do not permit\nspaces." << std::endl;
 	std::cout << "Flags can also be added or removed with 'flag', 'rmflag', and other variations." << std::endl;
 	std::cout << "Can also track temp hp, as well as automatic regeneration with \'temp\' and \'regen\'" << std::endl;
 	std::cout << "The \'disable\' command temporarily disables a creature\'s regeneration for one round" << std::endl;
@@ -4578,12 +4578,12 @@ int main(int argc, char** args)
 	std::cout << "\tIf the command applies to multiple creatures, it typically rolls each one separately." << std::endl;
 	std::cout << std::endl << std::endl;
 	std::cout << "Save the state of the encounter with \'save [filename]\', and load it again later with \'load [filename]\'" << std::endl;
-	std::cout << "\t\'savec\' or \'savet\' saves the creatures, but does not remove existing characters or set the round number when loaded." << std::endl;
+	std::cout << "\t\'savec\' or \'savet\' saves the creatures, but does not remove existing characters or set the round number when\n\tloaded." << std::endl;
 	std::cout << std::endl;
 	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
 	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
-	std::cout << "Starting a flag with an underscore (\'_\') makes it a temporary flag that gets deleted at the start of the character's next turn.\n";
-	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag. @all references all characters.";
+	std::cout << "Starting a flag with an underscore (\'_\') makes it a temporary flag that gets deleted at the start of the character's\nnext turn.\n";
+	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.\n@all references all characters.";
 	std::cout << std::endl << std::endl;
 	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
 	std::cout << std::endl << std::endl;
