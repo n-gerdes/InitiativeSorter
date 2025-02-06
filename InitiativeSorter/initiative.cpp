@@ -35,8 +35,8 @@ class creature
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
 	bool temp_disable_regen = false;
 	std::string name, reminder;
-	std::list<std::string> flags;
 public:
+	std::list<std::string> flags;
 	std::list<std::string> aliases;
 	bool touched = false;
 	inline const std::list<std::string>& get_flags() const
@@ -119,13 +119,21 @@ public:
 		return disp;
 	}
 
-	inline std::string get_flag_list() const
+	inline std::string get_flag_list(bool is_my_turn) const
 	{
 		std::string list;
 		for (auto i = flags.begin(); i != flags.end(); ++i)
 		{
-			list += (*i);
-			list += ",";
+			if (!is_my_turn)
+			{
+				list += (*i);
+				list += ",";
+			}
+			else if ((*i)[0] != '_')
+			{
+				list += (*i);
+				list += ",";
+			}
 		}
 		if (list.length() != 0)
 		{
@@ -660,7 +668,7 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			}
 			if (i->get_flags().size() != 0)
 			{
-				line += " flags:" + i->get_flag_list();
+				line += " flags:" + i->get_flag_list(false);
 			}
 			if (i->get_ac() != -1)
 				line += " ac:" + std::to_string(i->get_ac());
@@ -1094,7 +1102,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (i->get_max_hp() != -1)
 			std::cout << " (" << i->get_hp() << "/" << i->get_max_hp() << " hp)";
 		if (i->get_flags().size() != 0)
-			std::cout << "; [" << i->get_flag_list() << "]";
+			std::cout << "; [" << i->get_flag_list(false) << "]";
 		
 		std::cout << std::endl;
 	}
@@ -3025,7 +3033,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			if (i->get_flags().size() != 0)
 			{
-				std::cout << " | FLAGS: " << i->get_flag_list();
+				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count));
 			}
 			std::cout << std::endl;
 			i->set_turn_count(turn_count);
@@ -3039,6 +3047,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (current_creature->get_reminder().size() != 0)
 			{
 				std::cout << current_creature->get_reminder() << std::endl;
+			}
+			auto flag_marker = current_creature->get_flags().begin();
+			while (current_creature->get_flags().size() != 0 && flag_marker != current_creature->get_flags().end())
+			{
+				if ((*flag_marker)[0] == '_')
+				{
+					current_creature->flags.erase(flag_marker);
+					flag_marker = current_creature->flags.begin();
+				}
+				else
+				{
+					++flag_marker;
+				}
 			}
 			if (regenerated_hp != 0)
 				std::cout << current_creature->get_name() << " regenerated " << regenerated_hp << " hit points." << std::endl;
@@ -4561,6 +4582,7 @@ int main(int argc, char** args)
 	std::cout << std::endl;
 	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
 	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
+	std::cout << "Starting a flag with an underscore (\'_\') makes it a temporary flag that gets deleted at the start of the character's next turn.\n";
 	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag. @all references all characters.";
 	std::cout << std::endl << std::endl;
 	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
