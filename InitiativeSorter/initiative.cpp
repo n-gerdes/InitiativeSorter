@@ -17,6 +17,134 @@ static int initial_round = 1; //Global variables are a bad practice but this was
 static std::string initial_turn = ""; //Stores name of character whose turn will start
 void trim(std::string& str);
 //Makes an existing string lowercase in-place
+
+std::string get_lowercase(std::string str);
+
+std::string replace_first(const std::string& original, const std::string& original_substring, const std::string& new_substring)
+{
+	size_t index = original.find(original_substring);
+	if (index != std::string::npos)
+	{
+		std::string pre = original.substr(0, index);
+		std::string post = "";
+		if (index + original_substring.length() < original.length())
+			post = original.substr(index + original_substring.length());
+
+		return pre + new_substring + post;
+	}
+	else
+	{
+		return original;
+	}
+}
+
+std::string replace_first(const std::string& original, const std::string& original_substring, const std::string& new_substring, bool case_sensitive)
+{
+	if (case_sensitive)
+	{
+		return replace_first(original, original_substring, new_substring);
+	}
+	else
+	{
+		std::string lowercase_original = get_lowercase(original);
+		std::string lowercase_original_substring = get_lowercase(original_substring);
+		size_t index = lowercase_original.find(lowercase_original_substring);
+
+		if (index != std::string::npos)
+		{
+			std::string prestring = original.substr(0, index);
+			std::string post = "";
+			if (index + original_substring.length() < original.length())
+				post = original.substr(index + original_substring.length());
+
+			return prestring + new_substring + post;
+		}
+		else
+		{
+			return original;
+		}
+	}
+}
+
+
+std::string replace_all(const std::string& original, const std::string& original_substring, const std::string& new_substring, bool whole_word_only)
+{
+	if (whole_word_only)
+	{
+		std::string returned = " " + original + " ";
+		std::string substring = " " + original_substring + " ";
+		size_t index = returned.find(substring);
+		while (index != std::string::npos)
+		{
+			std::string pre = returned.substr(0, index);
+			std::string post = "";
+			if (index + substring.length() < returned.length())
+				post = returned.substr(index + substring.length());
+
+			returned = pre + " " + new_substring + " " + post;
+
+			index = returned.find(substring);
+		}
+		returned.resize(returned.size() - 1);
+		returned = returned.substr(1);
+		return returned;
+	}
+	else
+	{
+		std::string returned = original;
+		size_t index = returned.find(original_substring);
+		while (index != std::string::npos)
+		{
+			std::string pre = returned.substr(0, index);
+			std::string post = "";
+			if (index + original_substring.length() < returned.length())
+				post = returned.substr(index + original_substring.length());
+
+			returned = pre + new_substring + post;
+
+			index = returned.find(original_substring);
+		}
+		return returned;
+	}
+}
+
+std::string replace_all(const std::string& original, const std::string& original_substring, const std::string& new_substring, bool whole_word_only, bool case_sensitive)
+{
+	if (case_sensitive)
+	{
+		return replace_all(original, original_substring, new_substring, whole_word_only);
+	}
+	else
+	{
+		std::string cur = original;
+		if (whole_word_only)
+			cur = " " + cur + " ";
+		std::string lowercase_original_substring = get_lowercase(original_substring);
+		if (whole_word_only)
+			lowercase_original_substring = " " + lowercase_original_substring + " ";
+
+		if (whole_word_only)
+		{
+			while (get_lowercase(cur).find(lowercase_original_substring) != std::string::npos)
+			{
+				cur = replace_first(cur, " " + original_substring + " ", " " + new_substring + " ", false);
+			}
+
+
+			cur = cur.substr(1);
+			cur.resize(cur.size() - 1);
+		}
+		else
+		{
+			while (get_lowercase(cur).find(lowercase_original_substring) != std::string::npos)
+				cur = replace_first(cur, original_substring, new_substring, false);
+		}
+
+		return cur;
+	}
+}
+
+
 inline void make_lowercase(std::string& str)
 {
 	for (index_t i = 0; i < str.length(); ++i)
@@ -24,7 +152,7 @@ inline void make_lowercase(std::string& str)
 }
 
 //Returns a copy of a string that's made to be lowercase, while preserving the original
-inline std::string get_lowercase(std::string str) //Pass by value creates a copy that I can make lowercase before returning
+std::string get_lowercase(std::string str) //Pass by value creates a copy that I can make lowercase before returning
 {
 	make_lowercase(str);
 	return str;
@@ -664,6 +792,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| c == '*'
 			|| c == '@'
 			|| c == '?'
+			|| c == '.'
 		)
 			return false;
 	}
@@ -1179,7 +1308,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	std::string dummy_line = line;
 	make_lowercase(dummy_line);
 	trim(dummy_line);
-
+	dummy_line = replace_all(dummy_line, " .", ".", false);
+	dummy_line = replace_all(dummy_line, ". ", ".", false);
 	if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 		exit(0);
 
@@ -3554,6 +3684,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
+		dummy_line = replace_all(dummy_line, " .", ".", false);
+		dummy_line = replace_all(dummy_line, ". ", ".", false);
 		bool used_command = false;
 		bool did_erase = false;
 		int move_turn = -1;
