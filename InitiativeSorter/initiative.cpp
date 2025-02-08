@@ -85,8 +85,10 @@ std::string replace_all(const std::string& original, const std::string& original
 
 			index = returned.find(substring);
 		}
-		returned.resize(returned.size() - 1);
-		returned = returned.substr(1);
+		if(returned[returned.size()-1]==' ')
+			returned.resize(returned.size() - 1);
+		if(returned[0]==' ')
+			returned = returned.substr(1);
 		return returned;
 	}
 	else
@@ -777,6 +779,10 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "keep"
 			|| lowerc == "dv"
 			|| lowerc == "rv"
+			|| lowerc == "tflag"
+			|| lowerc == "tfalg"
+			|| lowerc == "talfg"
+			|| lowerc == "tf"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -1261,6 +1267,18 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 }
 
 
+void command_replacement(std::string& dummy_line)
+{
+	dummy_line = replace_all(dummy_line, " .", ".", false);
+	dummy_line = replace_all(dummy_line, ". ", ".", false);
+	dummy_line = replace_all(dummy_line, "talfg", "tf", true);
+	dummy_line = replace_all(dummy_line, "tflag", "tf", true);
+	dummy_line = replace_all(dummy_line, "tfalg", "tf", true);
+	dummy_line = replace_all(dummy_line, "tlafg", "tf", true);
+	dummy_line = replace_all(dummy_line, "talfg", "tf", true);
+	dummy_line = replace_all(dummy_line, "ftalg", "tf", true);
+}
+
 //Process command/add a creature, and return whether or not a creature was added.
 inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename)
 {
@@ -1308,8 +1326,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	std::string dummy_line = line;
 	make_lowercase(dummy_line);
 	trim(dummy_line);
-	dummy_line = replace_all(dummy_line, " .", ".", false);
-	dummy_line = replace_all(dummy_line, ". ", ".", false);
+	command_replacement(dummy_line);
 	if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 		exit(0);
 
@@ -1378,6 +1395,33 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					i->touched = true;
 					i = creatures.begin();
 					//return false;
+				}
+
+				else if (comp_substring(lowercase_name + " tf ", dummy_line, (lowercase_name + " tf ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " tf ").length();
+						std::string arg = dummy_line.substr(start_length);
+
+						i->add_flag("_" + arg);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("tf " + lowercase_name + " ", dummy_line, ("tf " + lowercase_name + " ").length()))
+				{
+					try {
+						size_t start_length = ("tf " + lowercase_name + " ").length();
+						std::string arg = dummy_line.substr(start_length);
+
+						i->add_flag("_" + arg);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
 				}
 
 				else if (comp_substring("rv " + lowercase_name + " ", dummy_line, ("rv " + lowercase_name + " ").length()))
@@ -3620,9 +3664,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else
 					std::cout << "; " << i->get_hp() << "[+" << i->get_temp_hp() << " temp]" << " / " << i->get_max_hp() << " HP";
 			}
-			if (i->get_flags().size() != 0)
+			if (i->get_flag_list((current_turn == turn_count && new_turn))!="")
 			{
-				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count));
+				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn));
 			}
 			std::cout << std::endl;
 
@@ -3684,8 +3728,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
-		dummy_line = replace_all(dummy_line, " .", ".", false);
-		dummy_line = replace_all(dummy_line, ". ", ".", false);
+		command_replacement(dummy_line);
+		//std::cout << "FULLY REPLACED: " << dummy_line << std::endl;
 		bool used_command = false;
 		bool did_erase = false;
 		int move_turn = -1;
@@ -4462,7 +4506,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						size_t start_length = (lowercase_name + " adf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						std::string arg = dummy_line.substr(start_length);
 
 						i->add_flag(arg);
 						used_command = true;
@@ -4471,6 +4515,33 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 					}
+
+				else if (comp_substring(lowercase_name + " tf ", dummy_line, (lowercase_name + " tf ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " tf ").length();
+						std::string arg = dummy_line.substr(start_length);
+
+						i->add_flag("_" + arg);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("tf " + lowercase_name + " ", dummy_line, ("tf " + lowercase_name + " ").length()))
+				{
+					try {
+						size_t start_length = ("tf " + lowercase_name + " ").length();
+						std::string arg = dummy_line.substr(start_length);
+
+						i->add_flag("_" + arg);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
 
 
 				else if (comp_substring("rmfl " + lowercase_name + " ", dummy_line, ("rmfl " + lowercase_name + " ").length()))
