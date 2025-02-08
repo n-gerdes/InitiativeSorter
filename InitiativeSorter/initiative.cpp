@@ -1271,12 +1271,11 @@ void command_replacement(std::string& dummy_line)
 {
 	dummy_line = replace_all(dummy_line, " .", ".", false);
 	dummy_line = replace_all(dummy_line, ". ", ".", false);
-	dummy_line = replace_all(dummy_line, "talfg", "tf", true);
-	dummy_line = replace_all(dummy_line, "tflag", "tf", true);
-	dummy_line = replace_all(dummy_line, "tfalg", "tf", true);
-	dummy_line = replace_all(dummy_line, "tlafg", "tf", true);
-	dummy_line = replace_all(dummy_line, "talfg", "tf", true);
-	dummy_line = replace_all(dummy_line, "ftalg", "tf", true);
+	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
+	dummy_line = replace_all(dummy_line, "tflag", "tf", true,false);
+	dummy_line = replace_all(dummy_line, "tfalg", "tf", true,false);
+	dummy_line = replace_all(dummy_line, "tlafg", "tf", true,false);
+	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
 }
 
 //Process command/add a creature, and return whether or not a creature was added.
@@ -1923,7 +1922,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				std::string lowercase_name = *alias_iterator;
 				make_lowercase(lowercase_name);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all") == std::string::npos && dummy_line.find("load ") == std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("sv ") && dummy_line.find("roll ") == std::string::npos)
 				{
 					continue;
 				}
@@ -3282,9 +3281,35 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				return false;
 			}
 		}
+		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
+		{
+			std::string filename = line.substr(3, line.length() - 3);
+			std::ifstream new_file;
+			new_file.open(filename);
+			if (!new_file.is_open())
+			{
+				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+				return false;
+			}
+			else {
+				while (new_file.good() && !new_file.eof())
+				{
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename);
+				}
+				new_file.close();
+				return false;
+			}
+		}
 		else if (takes_commands && (comp_substring("save ", lowercase, 5)))
 		{
 			std::string filename = lowercase.substr(5);
+			save_state(filename, creatures, initial_turn, initial_round, false);
+			return false;
+		}
+		else if (takes_commands && (comp_substring("sv ", lowercase, 5)))
+		{
+			std::string filename = lowercase.substr(3);
 			save_state(filename, creatures, initial_turn, initial_round, false);
 			return false;
 		}
@@ -3826,6 +3851,41 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 					++current_turn;
 				}
+				buffer_manipulation_state = STATE_NODO;
+				continue;
+			}
+		}
+		else if ((comp_substring("ld ", dummy_line, 3)))
+		{
+			std::string filename = line.substr(3, line.length() - 3);
+			std::ifstream new_file;
+			new_file.open(filename);
+			used_command = true;
+			if (!new_file.is_open())
+			{
+				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+			}
+			else {
+				bool taking_initiatives = false;
+				while (new_file.good() && !new_file.eof())
+				{
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
+				}
+				new_file.close();
+				creatures.sort();
+				turn_count = current_creature->get_turn_count();
+				current_turn = 0;
+				for (auto i = creatures.begin(); i != creatures.end(); ++i)
+				{
+					if (i->get_name() == current_creature->get_name())
+					{
+
+						break;
+					}
+					++current_turn;
+				}
+				buffer_manipulation_state = STATE_NODO;
 				continue;
 			}
 		}
@@ -3912,7 +3972,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
 			{
 				const std::string& lowercase_name = get_lowercase(*alias_iterator);
-				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos && dummy_line.find("round ") == std::string::npos)
+				if (dummy_line.find(lowercase_name) == std::string::npos && dummy_line.find(" all")==std::string::npos && dummy_line.find("sv ")==std::string::npos && dummy_line.find("save ") == std::string::npos && dummy_line.find("roll ") == std::string::npos && dummy_line.find("round ") == std::string::npos)
 				{
 					continue;
 				}
@@ -4082,6 +4142,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else if (comp_substring("save ", dummy_line, 5))
 				{
 					std::string filename = dummy_line.substr(5);
+					save_state(filename, creatures, current_creature->get_name(), current_round, false);
+					used_command = true;
+				}
+				else if (comp_substring("sv ", dummy_line, 5))
+				{
+					std::string filename = dummy_line.substr(3);
 					save_state(filename, creatures, current_creature->get_name(), current_round, false);
 					used_command = true;
 				}
