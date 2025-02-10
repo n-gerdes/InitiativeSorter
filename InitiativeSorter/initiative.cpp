@@ -1457,6 +1457,37 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
+
+				else if (comp_substring("swap " + lowercase_name + " ", dummy_line, ("swap " + lowercase_name + " ").length()))
+				{
+					int len = lowercase_name.size() + 5;
+					if (dummy_line.size() > len)
+					{
+						std::string swap_partner_name = dummy_line.substr(len);
+						auto get_creature_from_name = [&](const std::string& sname) -> creature*
+							{
+								for (auto si = creatures.begin(); si != creatures.end(); ++si)
+								{
+									if (si->has_alias(sname))
+										return si->get_raw_ptr();
+								}
+								return nullptr;
+							};
+						trim(swap_partner_name);
+						creature* swap_partner = get_creature_from_name(swap_partner_name);
+						if (swap_partner)
+						{
+							used_command = true;
+							int my_init = i->get_initiative();
+							int their_init = swap_partner->get_initiative();
+							i->set_initiative(their_init);
+							swap_partner->set_initiative(my_init);
+							creatures.sort();
+							break;
+						}
+					}
+				}
+
 				else if (comp_substring(lowercase_name + " dv ", dummy_line, (lowercase_name + " dv ").length()))
 				{
 					try {
