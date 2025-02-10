@@ -783,6 +783,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "tfalg"
 			|| lowerc == "talfg"
 			|| lowerc == "tf"
+			|| lowerc == "swap"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -4112,6 +4113,36 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_regen(val);
 					used_command = true;
 					//break;
+				}
+
+				else if (comp_substring("swap " + lowercase_name + " ", dummy_line, ("swap " + lowercase_name + " ").length()))
+				{
+					int len = lowercase_name.size() + 5;
+					if (dummy_line.size() > len)
+					{
+						std::string swap_partner_name = dummy_line.substr(len);
+						auto get_creature_from_name = [&](const std::string& sname) -> creature*
+							{
+								for (auto si = creatures.begin(); si != creatures.end(); ++si)
+								{
+									if(si->has_alias(sname))
+										return si->get_raw_ptr();
+								}
+								return nullptr;
+							};
+						trim(swap_partner_name);
+						creature* swap_partner = get_creature_from_name(swap_partner_name);
+						if (swap_partner)
+						{
+							used_command = true;
+							int my_init = i->get_initiative();
+							int their_init = swap_partner->get_initiative();
+							i->set_initiative(their_init);
+							swap_partner->set_initiative(my_init);
+							creatures.sort();
+							break;
+						}
+					}
 				}
 
 				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
