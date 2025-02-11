@@ -541,8 +541,8 @@ public:
 
 	inline void set_regen(int regeneration)
 	{
-		if (regeneration < 0)
-			regeneration = 0;
+		//if (regeneration < 0)
+			//regeneration = 0;
 
 		regen = regeneration;
 	}
@@ -880,7 +880,7 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 		}
 
 		if (!temp_file)
-			out << "round " << std::to_string(round_num);
+			out << "round " << std::to_string(round_num) << std::endl;
 		if (turn != "")
 			out << "turn " << turn;
 
@@ -2894,8 +2894,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
-					if (val < 0)
-						val = 0;
+					//if (val < 0)
+						//val = 0;
 					i->set_regen(val);
 					used_command = true;
 				}
@@ -2904,8 +2904,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
-					if (val < 0)
-						val = 0;
+					//if (val < 0)
+						//val = 0;
 					i->set_regen(val);
 					used_command = true;
 				}
@@ -3031,8 +3031,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			try
 			{
 				regen_amnt = std::stoi(regen_string);
-				if (regen_amnt < 0)
-					throw;
+				//if (regen_amnt < 0)
+					//throw;
 				lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_regen_index + 1, lowercase.length() - space_after_regen_index - 1);
 				trim(lowercase);
 			}
@@ -4140,8 +4140,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
-					if (val < 0)
-						val = 0;
+					//if (val < 0)
+						//val = 0;
 					i->set_regen(val);
 					used_command = true;
 					//break;
@@ -4181,8 +4181,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed);
-					if (val < 0)
-						val = 0;
+					//if (val < 0)
+						//val = 0;
 					i->set_regen(val);
 					used_command = true;
 					//break;
