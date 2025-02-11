@@ -4525,6 +4525,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					if (i->get_max_hp() != -1)
 					{
 						turn_msg += "\tHP: " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + "\n";
+						if (i->get_temp_hp() != 0)
+							turn_msg += "\t\tTemp HP: " + std::to_string(i->get_temp_hp()) + "\n";
 					}
 					std::string flags = i->get_flag_list(false, true, true, true);
 					if (flags != "")
@@ -6235,6 +6237,8 @@ int main(int argc, char** args)
 	std::cout << std::endl << std::endl;
 	std::cout << "\'rm\' can be used to remove addressed creature(s). \'keep\' removes all except the addressed creature(s)." << std::endl;
 	std::cout << "Can use \'swap\' to swap two character's initiative values." << std::endl;
+	std::cout << "Can use \'simple display\' or \'full display\' to change how much information is shown about each creature on the display." << std::endl;
+	std::cout << "Call \'info\' on a creature to display all information about it, even in simple display mode." << std::endl;
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
