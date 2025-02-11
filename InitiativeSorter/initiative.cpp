@@ -231,13 +231,27 @@ public:
 		aliases.push_back(new_alias);
 	}
 
-	inline void remove_alias(const std::string& al)
+	inline bool remove_alias(const std::string& al)
 	{
+		bool has_a = false;
+		if (al.size() == 0)
+			return false;
+		for (auto i = aliases.begin(); i != aliases.end(); ++i)
+		{
+			if ((*i) == al)
+			{
+				has_a = true;
+				break;
+			}
+		}
+		if (!has_a)
+			return false;
 		aliases.remove(al);
 		if (!has_alias("@all"))
 		{
 			add_alias("@all");
 		}
+		return true;
 	}
 
 	std::list<std::string> get_all_names() const
@@ -1278,6 +1292,13 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_all(dummy_line, "tfalg", "tf", true,false);
 	dummy_line = replace_all(dummy_line, "tlafg", "tf", true,false);
 	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
+	dummy_line = replace_all(dummy_line, "ralias", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "aliasr", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "ar", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "removealias", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "remove_alias", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "aliasremove", "ra", true, false);
+	dummy_line = replace_all(dummy_line, "alias_remove", "ra", true, false);
 }
 
 //Process command/add a creature, and return whether or not a creature was added.
@@ -1458,6 +1479,34 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
+
+				else if (comp_substring(lowercase_name + " ra ", dummy_line, (lowercase_name + " ra ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " ra ").length();
+						std::string arg = dummy_line.substr(start_length);
+						if (arg.size() > 0 && arg[0] != '@')
+							if (i->remove_alias(arg))
+								used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
+
+				else if (comp_substring("ra " + lowercase_name + " ", dummy_line, (lowercase_name + " ra ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " ra ").length();
+						std::string arg = dummy_line.substr(start_length);
+						if (arg.size() > 0 && arg[0] != '@')
+							if (i->remove_alias(arg))
+								used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
 
 				else if (comp_substring("swap " + lowercase_name + " ", dummy_line, ("swap " + lowercase_name + " ").length()))
 				{
@@ -5360,6 +5409,34 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						i->remove_flag(arg);
 						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+				else if (comp_substring(lowercase_name + " ra ", dummy_line, (lowercase_name + " ra ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " ra ").length();
+						std::string arg = dummy_line.substr(start_length);
+						if (arg.size() > 0 && arg[0] != '@')
+							if (i->remove_alias(arg))
+								used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+				else if (comp_substring("ra " + lowercase_name + " ", dummy_line, (lowercase_name + " ra ").length()))
+				{
+					try {
+						size_t start_length = (lowercase_name + " ra ").length();
+						std::string arg = dummy_line.substr(start_length);
+						if(arg.size()>0 && arg[0]!='@')
+							if (i->remove_alias(arg))
+								used_command = true;
 					}
 					catch (const std::exception& E) {
 
