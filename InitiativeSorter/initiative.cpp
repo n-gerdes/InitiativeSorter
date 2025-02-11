@@ -1381,7 +1381,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+				else if (dummy_line == ("clone " + lowercase_name))
 				{
 					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
@@ -2984,7 +2984,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_flags_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			line =      line.     substr(0, flags_index) + line.substr     (space_after_flags_index + 1, line     .length() - space_after_flags_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		flags_index = lowercase.find("fl:");
@@ -3012,7 +3014,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_flags_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_flags_index + 1, lowercase.length() - space_after_flags_index - 1);
+			line =		line.     substr(0, flags_index) + line.     substr(space_after_flags_index + 1, line     .length() - space_after_flags_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		index_t& regen_index = flags_index;
@@ -3034,7 +3038,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				//if (regen_amnt < 0)
 					//throw;
 				lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_regen_index + 1, lowercase.length() - space_after_regen_index - 1);
+				line =		line.	  substr(0, flags_index) + line.	 substr(space_after_regen_index + 1, line.	   length() - space_after_regen_index - 1);
 				trim(lowercase);
+				trim(line);
 			}
 			catch (const std::exception& E)
 			{
@@ -3045,34 +3051,38 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 
 		std::string aliases = "";
-		index_t& alias_index = flags_index;
-
+		index_t alias_index = std::string::npos;
 		alias_index = lowercase.find("alias:");
-		if ((flags_index != std::string::npos) && (aliases.length() == 0))
+		if ((alias_index != std::string::npos) && (aliases.length() == 0))
 		{
 			size_t space_after_alias_index = lowercase.find(' ', alias_index);
 			size_t length = space_after_alias_index - alias_index;
+			if (space_after_alias_index == std::string::npos)
+			{
+				space_after_alias_index = lowercase.length() - 1;
+			}
 			aliases = line.substr(alias_index + 6, length - 6);
-			if (space_after_alias_index == std::string::npos)
-			{
-				space_after_alias_index = lowercase.length() - 1;
-			}
-			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
+			lowercase = lowercase.substr(0, alias_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
+			line =		line	 .substr(0, alias_index) +		line.substr(space_after_alias_index + 1, line	.  length() - space_after_alias_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
-		
+		alias_index = std::string::npos;
 		alias_index = lowercase.find("aliases:");
-		if ((flags_index != std::string::npos) && (aliases.length() == 0))
+		if ((alias_index != std::string::npos) && (aliases.length() == 0))
 		{
 			size_t space_after_alias_index = lowercase.find(' ', alias_index);
-			size_t length = space_after_alias_index - alias_index;
-			aliases = line.substr(alias_index + 8, length - 8);
 			if (space_after_alias_index == std::string::npos)
 			{
 				space_after_alias_index = lowercase.length() - 1;
 			}
-			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
+			size_t length = space_after_alias_index - alias_index;
+			aliases = line.substr(alias_index + 8, length - 7);
+			
+			lowercase = lowercase.substr(0, alias_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
+			lowercase = line.	  substr(0, alias_index) + line		.substr(space_after_alias_index + 1, line	  .length() - space_after_alias_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		index_t& temp_hp_index = flags_index;
@@ -3101,7 +3111,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line.substr		(0, flags_index) + line.	 substr(space_after_index + 1, line		.length() - space_after_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		temp_hp_index = lowercase.find("temp_hp:");
@@ -3129,7 +3141,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line	 .substr(0, flags_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		temp_hp_index = lowercase.find("thp:");
@@ -3157,7 +3171,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line.	  substr(0, flags_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		temp_hp_index = lowercase.find("buffer:");
@@ -3185,7 +3201,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line	 .substr(0, flags_index) + line		.substr(space_after_index + 1, line		.length() - space_after_index - 1);
 			trim(lowercase);
+			trim(line);
 		}
 
 		index_t hp_index = lowercase.find("hp:");
@@ -3200,7 +3218,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_hp_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, hp_index) + lowercase.substr(space_after_hp_index + 1, lowercase.length() - space_after_hp_index - 1);
+			line =		line.	  substr(0, hp_index) + line	 .substr(space_after_hp_index + 1, line		.length() - space_after_hp_index - 1);
 			trim(lowercase);
+			trim(line);
 			index_t slash_index = hp_text.find('/');
 			index_t colon_index = hp_text.find(":");
 			
@@ -3260,7 +3280,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			//std::cout << "SPACE AFTER INDEX: " << space_after_ac_index << std::endl;
 			lowercase = lowercase.substr(0, ac_index) + lowercase.substr(space_after_ac_index + 1, lowercase.length() - space_after_ac_index - 1);
 			trim(lowercase);
-
+			trim(line);
 			try
 			{
 				ac_value = std::stoi(ac_text);
@@ -3273,6 +3293,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 
 		trim(lowercase);
+		trim(line);
 		if (
 			takes_commands 
 			&& 
@@ -4099,7 +4120,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
+				else if (dummy_line == ("clone " + lowercase_name))
 				{
 					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
