@@ -1599,7 +1599,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		{
 			std::cout << std::endl;
 			for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
-				std::cout << "\t    " << vi->first << " = " << vi->second;
+				if ((vi->first)[0] != '#' || !simple_display)
+					std::cout << "\t    " << vi->first << " = " << vi->second;
 		}
 		std::cout << std::endl;
 	}
@@ -3938,16 +3939,32 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 
 //int buffer_index = 0; //0 refers to the head, 1 is previous state, 2 is state before, etc.
 
-std::string print_variables(creature* i)
+std::string print_variables(creature* i, bool override_display_mode)
 {
 	std::string text = "";
-	if (i->variables.size() != 0)
+	if (override_display_mode)
 	{
-		for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
+		if (i->variables.size() != 0)
 		{
-			//std::cout << " << vi->first << " = " << vi->second << std::endl;
-				text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
+			for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
+			{
+				//std::cout << " << vi->first << " = " << vi->second << std::endl;
+					text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
 
+			}
+		}
+	}
+	else
+	{
+		if (i->variables.size() != 0)
+		{
+			for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
+			{
+				//std::cout << " << vi->first << " = " << vi->second << std::endl;
+				if ((vi->first)[0] != '#' || !simple_display)
+					text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
+
+			}
 		}
 	}
 	return text;
@@ -3995,7 +4012,7 @@ std::string get_info(creature* i, int current_turn, int current_round)
 	if (i->variables.size() != 0)
 	{
 		turn_msg += "\tVariables:\n";
-		turn_msg += print_variables(i->get_raw_ptr());
+		turn_msg += print_variables(i->get_raw_ptr(), true);
 	}
 	turn_msg += "\n";
 	return turn_msg;
@@ -4183,7 +4200,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				std::cout << " <-----------";
 			std::cout << std::endl;
 
-			std::cout << print_variables(i->get_raw_ptr());
+			std::cout << print_variables(i->get_raw_ptr(), false);
 			i->set_turn_count(turn_count);
 			++turn_count;
 		}
