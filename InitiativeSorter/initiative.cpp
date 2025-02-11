@@ -4522,6 +4522,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					turn_msg = "Information for " + i->get_name() + ":\n";
 					turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
 					turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (" + std::to_string(i->get_initiative_modifier()) + ")\n";
+					turn_msg += "\t\t#" + std::to_string(i->get_turn_count()) + " in turn order\n";
+					if (current_turn < i->get_turn_count())
+						turn_msg += "\t\tTurns taken: " + std::to_string(current_round - 1) + "\n";
+					else if (current_turn == i->get_turn_count())
+						turn_msg += "\t\tCurrently taking turn #" + std::to_string(current_round) + "\n";
+					else
+						turn_msg += "\t\tTurns taken: " + std::to_string(current_round) + "\n";
 					if (i->get_ac() != -1)
 						turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
 					if (i->get_max_hp() != -1)
@@ -4534,7 +4541,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					if (flags != "")
 						turn_msg += "\tFlags: " + flags + "\n";
 					if (i->get_regen_raw() != 0)
+					{
 						turn_msg += "\tRegeneration: " + std::to_string(i->get_regen_raw()) + " per round\n";
+						turn_msg += "\t\tRegeneration disabled next turn: ";
+						if (i->regen_is_temporarily_disabled())
+							turn_msg += "true\n";
+						else
+							turn_msg += "false\n";
+					}
 					if (i->get_reminder() != "")
 						turn_msg += "\tReminder: \"" + i->get_reminder() + "\"\n";
 					if (i->variables.size() != 0)
