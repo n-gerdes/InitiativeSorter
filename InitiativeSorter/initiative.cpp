@@ -908,6 +908,12 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "dispt"
 			|| lowerc == "info"
 			|| lowerc == "query"
+			|| lowerc == "simpledisp"
+			|| lowerc == "fulldisp"
+			|| lowerc == "maxdisp"
+			|| lowerc == "mindisp"
+			|| lowerc == "dispmin"
+
 		) 
 			return false;
 
@@ -1485,6 +1491,16 @@ void command_replacement(std::string& dummy_line)
 		dummy_line = "full display";
 		return;
 	}
+	if (dummy_line == "fulldisp")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "maxdisp")
+	{
+		dummy_line = "full display";
+		return;
+	}
 	if (dummy_line == "disp max")
 	{
 		dummy_line = "full display";
@@ -1496,6 +1512,16 @@ void command_replacement(std::string& dummy_line)
 		return;
 	}
 	if (dummy_line == "disp min")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "mindisp")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "dispmin")
 	{
 		dummy_line = "simple display";
 		return;
@@ -1521,6 +1547,11 @@ void command_replacement(std::string& dummy_line)
 		return;
 	}
 	if (dummy_line == "simple disp")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "simpledisp")
 	{
 		dummy_line = "simple display";
 		return;
@@ -3921,7 +3952,10 @@ std::string get_info(creature* i, int current_turn, int current_round)
 		return "";
 	std::string turn_msg = "Information for " + i->get_name() + ":\n";
 	turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
-	turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (" + std::to_string(i->get_initiative_modifier()) + ")\n";
+	if(i->get_initiative()>=0)
+		turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (+" + std::to_string(i->get_initiative_modifier()) + ")\n";
+	else
+		turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (-" + std::to_string(i->get_initiative_modifier()) + ")\n";
 	turn_msg += "\t\t#" + std::to_string(i->get_turn_count() + 1) + " in turn order\n";
 	if (current_turn < i->get_turn_count())
 		turn_msg += "\t\tTurns taken: " + std::to_string(current_round - 1) + "\n";
