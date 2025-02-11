@@ -16,6 +16,7 @@ typedef size_t index_t;
 static int initial_round = 1; //Global variables are a bad practice but this was supposed to be a tiny program
 static std::string initial_turn = ""; //Stores name of character whose turn will start
 void trim(std::string& str);
+bool simple_display = false; //Controls whether or not simple display mode is enabled.
 //Makes an existing string lowercase in-place
 
 std::string get_lowercase(std::string str);
@@ -161,6 +162,10 @@ std::string get_lowercase(std::string str) //Pass by value creates a copy that I
 }
 class creature;
 bool name_is_unique(const std::string& name, const std::list<creature>& creatures);
+
+const static int SHOW_ONE_NAME = 0;
+const static int SHOW_SOME_NAMES = 1;
+const static int SHOW_ALL_NAMES = 2;
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -168,6 +173,7 @@ class creature
 	std::string name, reminder;
 public:
 	std::list<std::string> flags;
+	std::map<std::string, bool> flags_hidden;
 	std::list<std::string> aliases;
 	std::map<std::string, int> variables;
 	bool touched = false;
@@ -179,6 +185,18 @@ public:
 	creature* get_raw_ptr()
 	{
 		return this;
+	}
+
+	bool flag_is_hidden(const std::string& flag_name) const
+	{
+		if (flags_hidden.count(flag_name) == 0)
+		{
+			return false;
+		}
+		else
+		{
+			return flags_hidden.at(flag_name);
+		}
 	}
 
 	int get_var(std::string var_name)
@@ -273,11 +291,15 @@ public:
 			ac = -1;
 	}
 
-	inline std::string get_display_names() const
+	inline std::string get_display_names(int display_level) const
 	{
+		if (display_level == SHOW_ONE_NAME)
+			return name;
 		std::string disp = name;
 		int count = 0;
 		int MAX_ALIASES = 2;
+		if (display_level == SHOW_ALL_NAMES)
+			MAX_ALIASES = 100;
 		int visible_aliases = 0;
 		for (auto i = aliases.begin(); i != aliases.end(); ++i)
 		{
@@ -300,20 +322,43 @@ public:
 		return disp;
 	}
 
-	inline std::string get_flag_list(bool is_my_turn) const
+	inline std::string get_display_names() const
+	{
+		if (simple_display)
+			return get_display_names(SHOW_ONE_NAME);
+		else
+			return get_display_names(SHOW_SOME_NAMES);
+	}
+
+	inline std::string get_flag_list(bool is_my_turn, bool say_if_hidden, bool show_hidden_flags, bool show_hidden_flags_as_parenthises) const
 	{
 		std::string list;
 		for (auto i = flags.begin(); i != flags.end(); ++i)
 		{
+			std::string base_flag_name = *i;
+			std::string flag_name = *i;
+			if (say_if_hidden && flag_is_hidden(flag_name))
+			{
+				if (show_hidden_flags_as_parenthises)
+					flag_name = "(" + flag_name + ")";
+				else
+					flag_name = "#" + flag_name;
+			}
 			if (!is_my_turn)
 			{
-				list += (*i);
-				list += ",";
+				if (!(flag_is_hidden(base_flag_name) && !show_hidden_flags))
+				{
+					list += flag_name;
+					list += ",";
+				}
 			}
 			else if ((*i)[0] != '_')
 			{
-				list += (*i);
-				list += ",";
+				if (!(flag_is_hidden(base_flag_name) && !show_hidden_flags))
+				{
+					list += flag_name;
+					list += ",";
+				}
 			}
 		}
 		if (list.length() != 0)
@@ -339,11 +384,48 @@ public:
 		return false;
 	}
 
-	inline void add_flag(const std::string& new_flag)
+	inline void add_flag(const std::string& flag_name)
 	{
+		std::string new_flag = flag_name;
+		bool hidden = false;
+		if (new_flag.size() >= 1 && new_flag[0] == '#')
+		{
+			hidden = true;
+			new_flag = new_flag.substr(1);
+		}
+		else if (new_flag.size() >= 2 && (new_flag[0] == '#' && new_flag[1] == '_') || (new_flag[0] == '_' && new_flag[1] == '#'))
+		{
+			new_flag[0] = ' ';
+			new_flag[1] = ' ';
+			trim(new_flag);
+			new_flag = "_" + new_flag;
+			hidden = true;
+		}
 		if (new_flag.length() != 0 && std::find(flags.begin(), flags.end(), new_flag)==flags.end())
 		{
 			flags.push_back(new_flag);
+			if (hidden)
+			{
+				if (flags_hidden.count(new_flag) != 0)
+				{
+					flags_hidden[new_flag] = true;
+				}
+				else
+				{
+					flags_hidden.emplace(new_flag, true);
+				}
+			}
+			else
+			{
+				if (flags_hidden.count(new_flag) != 0)
+				{
+					flags_hidden[new_flag] = false;
+				}
+				else
+				{
+					flags_hidden.emplace(new_flag, false);
+				}
+			}
 			add_alias("@" + get_lowercase(new_flag));
 		}
 	}
@@ -357,6 +439,7 @@ public:
 			if (get_lowercase(*i) == lowerc)
 			{
 				flags.erase(i);
+				flags_hidden.erase(flag);
 				return;
 			}
 		}
@@ -798,6 +881,19 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "talfg"
 			|| lowerc == "tf"
 			|| lowerc == "swap"
+			|| lowerc == "sdisplay"
+			|| lowerc == "fdisplay"
+			|| lowerc == "displays"
+			|| lowerc == "displayf"
+			|| lowerc == "disp"
+			|| lowerc == "sdisp"
+			|| lowerc == "dispf"
+			|| lowerc == "fdisp"
+			|| lowerc == "disps"
+			|| lowerc == "tdisp"
+			|| lowerc == "dispt"
+			|| lowerc == "info"
+			|| lowerc == "query"
 		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
 		return false;
 
@@ -814,6 +910,15 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| c == '@'
 			|| c == '?'
 			|| c == '.'
+			|| c == '#'
+			|| c == '%'
+			|| c == '$'
+			|| c == '*'
+			|| c == '+'
+			|| c == '-'
+			|| c == '/'
+			|| c == '|'
+			|| c == '\\'
 		)
 			return false;
 	}
@@ -857,7 +962,7 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			}
 			if (i->get_flags().size() != 0)
 			{
-				line += " flags:" + i->get_flag_list(false);
+				line += " flags:" + i->get_flag_list(false, true,true,false);
 			}
 			if (i->get_ac() != -1)
 				line += " ac:" + std::to_string(i->get_ac());
@@ -897,6 +1002,19 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			out << "round " << std::to_string(round_num) << std::endl;
 		if (turn != "")
 			out << "turn " << turn;
+
+		if (!temp_file)
+		{
+			out << std::endl;
+			if (simple_display)
+			{
+				out << "simple display";
+			}
+			else
+			{
+				out << "full display";
+			}
+		}
 
 		out.close();
 	}
@@ -1285,6 +1403,115 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 
 void command_replacement(std::string& dummy_line)
 {
+	if (dummy_line == "complex display")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "max display")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "display full")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "display max")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "min display")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "display min")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "sdisplay")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "displays")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "fdisplay")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "displayf")
+	{
+		dummy_line = "full display";
+		return;
+	}
+
+
+
+	if (dummy_line == "complex disp")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "max disp")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "disp full")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "disp max")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "min disp")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "disp min")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "sdisp")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "disps")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "fdisp")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "dispf")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "simple disp")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+
 	dummy_line = replace_all(dummy_line, " .", ".", false);
 	dummy_line = replace_all(dummy_line, ". ", ".", false);
 	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
@@ -1315,7 +1542,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (i->get_max_hp() != -1)
 			std::cout << " (" << i->get_hp() << "/" << i->get_max_hp() << " hp)";
 		if (i->get_flags().size() != 0)
-			std::cout << "; [" << i->get_flag_list(false) << "]";
+			std::cout << "; [" << i->get_flag_list(false, false,!simple_display,true) << "]";
 		if (i->variables.size() != 0)
 		{
 			std::cout << std::endl;
@@ -1926,7 +2153,22 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		bool start_over = false;
 		size_t len = dummy_line.length();
 		size_t l = len - 1;
-		if (comp_substring(dummy_line, "rm ", 3))
+		if (dummy_line == "simple display")
+		{
+			simple_display = true;
+			used_command = true;
+		}
+		else if (dummy_line == "full display")
+		{
+			simple_display = false;
+			used_command = true;
+		}
+		else if (dummy_line == "dispt" || dummy_line == "tdisp" || dummy_line == "disp" || dummy_line == "toggle display" || dummy_line == "toggle disp" || dummy_line == "display toggle" || dummy_line == "disp toggle")
+		{
+			simple_display = !simple_display;
+			used_command = true;
+		}
+		else if (comp_substring(dummy_line, "rm ", 3))
 		{
 			removal_name = line.substr(2);
 			trim(removal_name);
@@ -3618,6 +3860,7 @@ std::list<bool> new_round_buffer;
 std::list<std::string> turn_msg_buffer;
 std::list<index_t> current_turn_buffer;
 std::list<size_t> current_round_buffer;
+std::list<bool> display_mode_buffer;
 
 std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg)
 {
@@ -3642,6 +3885,21 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 
 
 //int buffer_index = 0; //0 refers to the head, 1 is previous state, 2 is state before, etc.
+
+std::string print_variables(creature* i)
+{
+	std::string text = "";
+	if (i->variables.size() != 0)
+	{
+		for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
+		{
+			//std::cout << " << vi->first << " = " << vi->second << std::endl;
+				text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
+
+		}
+	}
+	return text;
+}
 
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line)
 {
@@ -3680,6 +3938,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	std::list<std::string>::iterator turn_msg_buffer_iterator;
 	std::list<index_t>::iterator current_turn_buffer_iterator;
 	std::list<size_t>::iterator current_round_buffer_iterator;
+	std::list<bool>::iterator display_mode_buffer_iterator;
 	bool new_turn = true;
 	auto save_buffer = [&]() -> void
 		{
@@ -3691,12 +3950,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				turn_msg_buffer.push_front(turn_msg);
 				current_turn_buffer.push_front(current_turn);
 				current_round_buffer.push_front(current_round);
+				display_mode_buffer.push_front(simple_display);
 
 				creatures_buffer_iterator = creatures_buffer.begin();
 				new_round_buffer_iterator = new_round_buffer.begin();
 				turn_msg_buffer_iterator = turn_msg_buffer.begin();
 				current_turn_buffer_iterator = current_turn_buffer.begin();
 				current_round_buffer_iterator = current_round_buffer.begin();
+				display_mode_buffer_iterator = display_mode_buffer.begin();
 				if (creatures_buffer.size() > MAX_UNDO_STEPS)
 				{
 					creatures_buffer.pop_back();
@@ -3704,6 +3965,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					turn_msg_buffer.pop_back();
 					current_turn_buffer.pop_back();
 					current_round_buffer.pop_back();
+					display_mode_buffer.pop_back();
 				}
 			}
 		};
@@ -3725,6 +3987,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				turn_msg_buffer.pop_front();
 				current_turn_buffer.pop_front();
 				current_round_buffer.pop_front();
+				display_mode_buffer.pop_front();
 			}
 		}
 		else
@@ -3734,6 +3997,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			turn_msg = *turn_msg_buffer_iterator;
 			current_turn = *current_turn_buffer_iterator;
 			current_round = *current_round_buffer_iterator;
+			simple_display = *display_mode_buffer_iterator;
 		}
 
 		//Then check if it should switch to a previous buffer-state
@@ -3779,8 +4043,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 			}
-
-			std::cout << i->get_display_names() << " [" << i->get_initiative() << "]";
+			std::cout << i->get_display_names();
+			if(!simple_display)
+				std::cout << " [" << i->get_initiative() << "]";
 			if (i->get_ac() != -1)
 			{
 				std::cout << " <AC " << i->get_ac() << ">";
@@ -3792,17 +4057,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else
 					std::cout << "; " << i->get_hp() << "[+" << i->get_temp_hp() << " temp]" << " / " << i->get_max_hp() << " HP";
 			}
-			if (i->get_flag_list((current_turn == turn_count && new_turn))!="")
+			if (i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true)!="")
 			{
-				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn));
+				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
 			}
 			std::cout << std::endl;
 
-			if (i->variables.size() != 0)
-			{
-				for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
-					std::cout << "\t    " << vi->first << " = " << vi->second << std::endl;
-			}
+			std::cout << print_variables(i->get_raw_ptr());
 			i->set_turn_count(turn_count);
 			++turn_count;
 		}
@@ -3820,6 +4081,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			{
 				if ((*flag_marker)[0] == '_')
 				{
+					current_creature->flags_hidden.erase(*flag_marker);
 					current_creature->flags.erase(flag_marker);
 					flag_marker = current_creature->flags.begin();
 				}
@@ -3864,6 +4126,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		size_t l = dummy_line.length() - 1;
 		//std::string lowercase_current_creature_name = get_lowercase(current_creature->get_name());
 		std::string keep_name = "";
+		bool skip_command_checks = false;
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 			return;
 		else if (dummy_line == "undo" || dummy_line == "u")
@@ -3877,6 +4140,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				++turn_msg_buffer_iterator;
 				++current_turn_buffer_iterator;
 				++current_round_buffer_iterator;
+				++display_mode_buffer_iterator;
 			}
 			continue;
 		}
@@ -3891,9 +4155,28 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				--turn_msg_buffer_iterator;
 				--current_turn_buffer_iterator;
 				--current_round_buffer_iterator;
+				--display_mode_buffer_iterator;
 				
 			}
 			continue;
+		}
+		else if (dummy_line == "simple display")
+		{
+			simple_display = true;
+			used_command = true;
+			skip_command_checks = true;
+		}
+		else if (dummy_line == "full display")
+		{
+			simple_display = false;
+			used_command = true;
+			skip_command_checks = true;
+		}
+		else if (dummy_line == "dispt" || dummy_line == "tdisp" || dummy_line == "disp" || dummy_line == "toggle display" || dummy_line == "toggle disp" || dummy_line == "display toggle" || dummy_line == "disp toggle")
+		{
+			simple_display = !simple_display;
+			used_command = true;
+			skip_command_checks = true;
 		}
 		else
 		{
@@ -3904,6 +4187,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				turn_msg_buffer.pop_front();
 				current_turn_buffer.pop_front();
 				current_round_buffer.pop_front();
+				display_mode_buffer.pop_front();
 			}
 		}
 		
@@ -4002,7 +4286,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			keep_name = dummy_line;
 			keep_name.resize(dummy_line.size() - 5);
 		}
-		bool skip_command_checks = false;
+		
 		if (keep_name != "")
 		{
 			used_command = true;
@@ -4213,6 +4497,27 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					//if (val < 0)
 						//val = 0;
 					i->set_regen(val);
+					used_command = true;
+					//break;
+				}
+
+				else if (   (dummy_line == ("info " + lowercase_name)) || (dummy_line == (lowercase_name + " info"))
+					|| (dummy_line == ("query " + lowercase_name)) || (dummy_line == (lowercase_name + " query"))
+					)
+				{
+					turn_msg = "Information for " + i->get_name() + ":\n";
+					turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
+					std::string flags = i->get_flag_list(false, true, true, true);
+					if (flags != "")
+						turn_msg += "\tFlags: " + flags + "\n";
+					if (i->get_regen_raw() != 0)
+						turn_msg += "\tRegeneration: " + std::to_string(i->get_regen_raw()) + " per round\n";
+					if (i->variables.size() != 0)
+					{
+						turn_msg += "\tVariables:\n";
+						turn_msg += print_variables(i->get_raw_ptr());
+					}
+					turn_msg += "\n";
 					used_command = true;
 					//break;
 				}
@@ -5871,7 +6176,7 @@ int main(int argc, char** args)
 		std::cout << "Invalid console arguments. Continuing as normal." << std::endl;
 	
 	srand(time(NULL)); //Ready the RNG
-	std::list<creature> creatures; //Create a vector to hold the creature data in
+	std::list<creature> creatures; //Create a list to hold the creature data in
 
 	//Display help instructions
 	std::cout << "When prompted, add creatures by giving its name, initiative, and modifier. The name must be one word." << std::endl;
