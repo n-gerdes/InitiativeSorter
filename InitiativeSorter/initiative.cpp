@@ -909,10 +909,12 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "info"
 			|| lowerc == "query"
 			|| lowerc == "simpledisp"
+			|| lowerc == "simpdisp"
 			|| lowerc == "fulldisp"
 			|| lowerc == "maxdisp"
 			|| lowerc == "mindisp"
 			|| lowerc == "dispmin"
+			|| lowerc == "pause"
 
 		) 
 			return false;
@@ -1532,6 +1534,11 @@ void command_replacement(std::string& dummy_line)
 		return;
 	}
 	if (dummy_line == "disps")
+	{
+		dummy_line = "simple display";
+		return;
+	}
+	if (dummy_line == "simpdisp")
 	{
 		dummy_line = "simple display";
 		return;
@@ -4321,6 +4328,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			used_command = true;
 		}
+		else if (dummy_line == "pause")
+		{
+			skip_command_checks = true;
+			used_command = true;
+		}
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
@@ -4622,7 +4634,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					used_command = true;
 					//break;
 				}
-
 				else if (comp_substring("swap " + lowercase_name + " ", dummy_line, ("swap " + lowercase_name + " ").length()))
 				{
 					int len = lowercase_name.size() + 5;
