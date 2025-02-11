@@ -4,6 +4,8 @@
 //						Maximum number of steps you can undo
 const static int		MAX_UNDO_STEPS = 20; 
 
+//						The number of aliases typically shown on the line a character's turn is shown on.
+const static int		ALIASES_SHOWN = 2;
 
 //						Determines whether or not it show's a character's info when no other info is dispayed.
 const static bool		SHOW_INFO_EACH_TURN = true;
@@ -327,7 +329,7 @@ public:
 			return name;
 		std::string disp = name;
 		int count = 0;
-		int MAX_ALIASES = 2;
+		int MAX_ALIASES = ALIASES_SHOWN;
 		if (display_level == SHOW_ALL_NAMES)
 			MAX_ALIASES = 100;
 		int visible_aliases = 0;
