@@ -3915,6 +3915,51 @@ std::string print_variables(creature* i)
 	return text;
 }
 
+std::string get_info(creature* i, int current_turn, int current_round)
+{
+	if (i == nullptr)
+		return "";
+	std::string turn_msg = "Information for " + i->get_name() + ":\n";
+	turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
+	turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (" + std::to_string(i->get_initiative_modifier()) + ")\n";
+	turn_msg += "\t\t#" + std::to_string(i->get_turn_count() + 1) + " in turn order\n";
+	if (current_turn < i->get_turn_count())
+		turn_msg += "\t\tTurns taken: " + std::to_string(current_round - 1) + "\n";
+	else if (current_turn == i->get_turn_count())
+		turn_msg += "\t\tCurrently taking turn #" + std::to_string(current_round) + "\n";
+	else
+		turn_msg += "\t\tTurns taken: " + std::to_string(current_round) + "\n";
+	if (i->get_ac() != -1)
+		turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
+	if (i->get_max_hp() != -1)
+	{
+		turn_msg += "\tHP: " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + "\n";
+		if (i->get_temp_hp() != 0)
+			turn_msg += "\t\tTemp HP: " + std::to_string(i->get_temp_hp()) + "\n";
+	}
+	std::string flags = i->get_flag_list(false, true, true, true);
+	if (flags != "")
+		turn_msg += "\tFlags: " + flags + "\n";
+	if (i->get_regen_raw() != 0)
+	{
+		turn_msg += "\tRegeneration: " + std::to_string(i->get_regen_raw()) + " per round\n";
+		turn_msg += "\t\tRegeneration disabled next turn: ";
+		if (i->regen_is_temporarily_disabled())
+			turn_msg += "true\n";
+		else
+			turn_msg += "false\n";
+	}
+	if (i->get_reminder() != "")
+		turn_msg += "\tReminder: \"" + i->get_reminder() + "\"\n";
+	if (i->variables.size() != 0)
+	{
+		turn_msg += "\tVariables:\n";
+		turn_msg += print_variables(i->get_raw_ptr());
+	}
+	turn_msg += "\n";
+	return turn_msg;
+}
+
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line)
 {
 	//std::sort(creatures.begin(), creatures.end());
@@ -4018,11 +4063,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		
 
 		//END UNDO/REDO BUFFER STUFF
-		if (turn_msg != "")
-		{
-			std::cout << turn_msg << std::endl;
-		}
-		turn_msg = "";
 		if (new_round)
 		{
 			std::cout << "Start of a new round." << std::endl;
@@ -4032,7 +4072,30 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		int turn_count = 0; //Used to track the turn counts of each creature
 		creature* current_creature = nullptr;
 		int regenerated_hp = 0;
-		
+
+		creature* current_creature_2 = nullptr;
+		for (auto i = creatures.begin(); i != creatures.end(); ++i)
+		{
+			if (current_turn == turn_count)
+			{
+				current_creature_2 = &(*i);
+				current_creature_2->set_turn_count(turn_count);
+				break;
+			}
+			++turn_count;
+		}
+		turn_count = 0;
+		std::cout << std::endl;
+		if (turn_msg != "")
+		{
+			std::cout << turn_msg;
+			turn_msg = "";
+		}
+		else
+		{
+			std::cout << get_info(current_creature_2, current_turn, current_round) << std::endl;
+		}
+		std::cout << "-------------------------INITIATIVE DISPLAY-------------------------\n" << std::endl;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			i->touched = false;
@@ -4075,20 +4138,22 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			{
 				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
 			}
+			if(current_turn==turn_count)
+				std::cout << " <-----------";
 			std::cout << std::endl;
 
 			std::cout << print_variables(i->get_raw_ptr());
 			i->set_turn_count(turn_count);
 			++turn_count;
 		}
-		std::cout << std::endl;
-		std::cout << "It's " << current_creature->get_name() << "\'s turn." << std::endl;
+		turn_msg = "";
+		std::cout << std::endl << "It's " << current_creature->get_name() << "\'s turn." << std::endl;
 		previous_turn_creature_name = current_creature->get_name();
 		if (new_turn)
 		{
 			if (current_creature->get_reminder().size() != 0)
 			{
-				std::cout << current_creature->get_reminder() << std::endl;
+				std::cout << "\t" << current_creature->get_reminder() << std::endl;
 			}
 			auto flag_marker = current_creature->get_flags().begin();
 			while (current_creature->get_flags().size() != 0 && flag_marker != current_creature->get_flags().end())
@@ -4519,44 +4584,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					|| (dummy_line == ("query " + lowercase_name)) || (dummy_line == (lowercase_name + " query"))
 					)
 				{
-					turn_msg = "Information for " + i->get_name() + ":\n";
-					turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
-					turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (" + std::to_string(i->get_initiative_modifier()) + ")\n";
-					turn_msg += "\t\t#" + std::to_string(i->get_turn_count()+1) + " in turn order\n";
-					if (current_turn < i->get_turn_count())
-						turn_msg += "\t\tTurns taken: " + std::to_string(current_round - 1) + "\n";
-					else if (current_turn == i->get_turn_count())
-						turn_msg += "\t\tCurrently taking turn #" + std::to_string(current_round) + "\n";
-					else
-						turn_msg += "\t\tTurns taken: " + std::to_string(current_round) + "\n";
-					if (i->get_ac() != -1)
-						turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
-					if (i->get_max_hp() != -1)
-					{
-						turn_msg += "\tHP: " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + "\n";
-						if (i->get_temp_hp() != 0)
-							turn_msg += "\t\tTemp HP: " + std::to_string(i->get_temp_hp()) + "\n";
-					}
-					std::string flags = i->get_flag_list(false, true, true, true);
-					if (flags != "")
-						turn_msg += "\tFlags: " + flags + "\n";
-					if (i->get_regen_raw() != 0)
-					{
-						turn_msg += "\tRegeneration: " + std::to_string(i->get_regen_raw()) + " per round\n";
-						turn_msg += "\t\tRegeneration disabled next turn: ";
-						if (i->regen_is_temporarily_disabled())
-							turn_msg += "true\n";
-						else
-							turn_msg += "false\n";
-					}
-					if (i->get_reminder() != "")
-						turn_msg += "\tReminder: \"" + i->get_reminder() + "\"\n";
-					if (i->variables.size() != 0)
-					{
-						turn_msg += "\tVariables:\n";
-						turn_msg += print_variables(i->get_raw_ptr());
-					}
-					turn_msg += "\n";
+					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round);
 					used_command = true;
 					//break;
 				}
