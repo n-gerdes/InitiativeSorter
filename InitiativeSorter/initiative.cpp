@@ -1594,7 +1594,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (i->get_max_hp() != -1)
 			std::cout << " (" << i->get_hp() << "/" << i->get_max_hp() << " hp)";
 		if (i->get_flags().size() != 0)
-			std::cout << "; [" << i->get_flag_list(false, false,!simple_display,true) << "]";
+			std::cout << "; [" << i->get_flag_list(false, true,true,true) << "]";
 		bool printed_vars = false;
 		if (i->variables.size() != 0)
 		{
