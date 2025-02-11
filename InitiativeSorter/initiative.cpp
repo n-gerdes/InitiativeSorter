@@ -853,7 +853,8 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 
 			for (auto alias_iterator = i->aliases.begin(); alias_iterator != i->aliases.end(); ++alias_iterator)
 			{
-				out << "alias " << i->get_name() << " " << (*alias_iterator) << std::endl;
+				if ((*alias_iterator)[0]!='@')
+					out << "alias " << i->get_name() << " " << (*alias_iterator) << std::endl;
 			}
 
 			for (auto vars_iterator = i->variables.begin(); vars_iterator != i->variables.end(); ++vars_iterator)
@@ -5804,6 +5805,7 @@ int main(int argc, char** args)
 	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
 	std::cout << std::endl << std::endl;
 	std::cout << "\'rm\' can be used to remove addressed creature(s). \'keep\' removes all except the addressed creature(s)." << std::endl;
+	std::cout << "Can use \'swap\' to swap two character's initiative values." << std::endl;
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
