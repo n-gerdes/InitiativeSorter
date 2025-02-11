@@ -3985,7 +3985,7 @@ std::string print_variables(creature* i, bool override_display_mode)
 	return text;
 }
 
-std::string get_info(creature* i, int current_turn, int current_round)
+std::string get_info(creature* i, int current_turn, int current_round, bool my_turn)
 {
 	if (i == nullptr)
 		return "";
@@ -4010,7 +4010,7 @@ std::string get_info(creature* i, int current_turn, int current_round)
 		if (i->get_temp_hp() != 0)
 			turn_msg += "\t\tTemp HP: " + std::to_string(i->get_temp_hp()) + "\n";
 	}
-	std::string flags = i->get_flag_list(false, true, true, true);
+	std::string flags = i->get_flag_list(my_turn, true, true, true);
 	if (flags != "")
 		turn_msg += "\tFlags: " + flags + "\n";
 	if (i->get_regen_raw() != 0)
@@ -4166,7 +4166,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		else
 		{
-			std::cout << get_info(current_creature_2, current_turn, current_round) << std::endl;
+			std::cout << get_info(current_creature_2, current_turn, current_round, true) << std::endl;
 		}
 		std::cout << "-------------------------INITIATIVE DISPLAY-------------------------\n" << std::endl;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
@@ -4662,7 +4662,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					|| (dummy_line == ("query " + lowercase_name)) || (dummy_line == (lowercase_name + " query"))
 					)
 				{
-					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round);
+					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round,false);
 					used_command = true;
 					//break;
 				}
