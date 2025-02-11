@@ -3942,6 +3942,7 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 std::string print_variables(creature* i, bool override_display_mode)
 {
 	std::string text = "";
+	bool displayed_any = false;
 	if (override_display_mode)
 	{
 		if (i->variables.size() != 0)
@@ -3949,8 +3950,10 @@ std::string print_variables(creature* i, bool override_display_mode)
 			for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
 			{
 				//std::cout << " << vi->first << " = " << vi->second << std::endl;
-					text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
-
+				if (displayed_any)
+					text += "\n";
+				text += "\t    " + vi->first + " = " + std::to_string(vi->second);
+				displayed_any = true;
 			}
 		}
 	}
@@ -3962,11 +3965,19 @@ std::string print_variables(creature* i, bool override_display_mode)
 			{
 				//std::cout << " << vi->first << " = " << vi->second << std::endl;
 				if ((vi->first)[0] != '#' || !simple_display)
-					text += "\t    " + vi->first + " = " + std::to_string(vi->second) + "\n";
+				{
+					if (displayed_any)
+						text += "\n";
+					text += "\t    " + vi->first + " = " + std::to_string(vi->second);
+					displayed_any = true;
+				}
 
 			}
 		}
 	}
+	if(displayed_any)
+		text += "\n";
+
 	return text;
 }
 
