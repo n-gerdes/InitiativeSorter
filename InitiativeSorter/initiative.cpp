@@ -1,3 +1,19 @@
+//////////////////////////////////////////////////////////////////// CONFIG VARIABLES ////////////////////////////////////////////////////////
+
+
+//						Maximum number of steps you can undo
+const static int		MAX_UNDO_STEPS = 20; 
+
+
+//						Determines whether or not it show's a character's info when no other info is dispayed.
+const static bool		SHOW_INFO_EACH_TURN = true;
+
+
+
+
+
+
+
 /*
 This may just be some of the worst code I've ever written. 
 Originally it was intended to track initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
@@ -3911,7 +3927,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 
 
-const static int MAX_UNDO_STEPS = 20;
+
 std::list<std::list<creature>> creatures_buffer;
 std::list<bool> new_round_buffer;
 std::list<std::string> turn_msg_buffer;
@@ -4164,11 +4180,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::cout << turn_msg;
 			turn_msg = "";
 		}
-		else
+		else if (SHOW_INFO_EACH_TURN)
 		{
 			std::cout << get_info(current_creature_2, current_turn, current_round, true) << std::endl;
 		}
-		std::cout << "-------------------------INITIATIVE DISPLAY-------------------------\n" << std::endl;
+
+		if(SHOW_INFO_EACH_TURN)
+			std::cout << "-------------------------INITIATIVE DISPLAY-------------------------\n" << std::endl;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			i->touched = false;
