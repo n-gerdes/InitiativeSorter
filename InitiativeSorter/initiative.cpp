@@ -1,3 +1,17 @@
+/*
+This may just be some of the worst code I've ever written. 
+Originally it was intended to track initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
+it was intended to do.
+At first it started small - just hit point tracking. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? Just
+a quick'n'dirty hack to add one small feature.
+But after one week I realized I needed just a few more features to make it more useful, so I added just a few more commands to rearrange initiatives and that's it.
+That was probably the point at which I should have started overhauling the code, but I figured it was just a one-time thing and then I'd be done.
+But time and time again, I kept adding "just a little more", adding hack after little hack, growing like a tumor.
+Now it's spiraled out of control, and to rewrite it is more work than just adding a little bit to the festering pile. So this is how it remains.
+
+Anyhow: SPAGHETTI WARNING
+
+*/
 #include <iostream>
 #include <algorithm>
 #include <string>
@@ -13,7 +27,7 @@
 
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
-static int initial_round = 1; //Global variables are a bad practice but this was supposed to be a tiny program
+static int initial_round = 1; //Global variables are a bad practice
 static std::string initial_turn = ""; //Stores name of character whose turn will start
 void trim(std::string& str);
 bool simple_display = false; //Controls whether or not simple display mode is enabled.
@@ -894,8 +908,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "dispt"
 			|| lowerc == "info"
 			|| lowerc == "query"
-		) //In my defense, the program was never meant to have this many commands when I first started. In fact it wasn't really supposed to have commands at all, and rewriting completely it would take longer than just adding more spaghetti to the pile each time I add something.
-		return false;
+		) 
+			return false;
 
 	for (int i = 0; i < lowerc.size(); ++i)
 	{
@@ -4507,11 +4521,18 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					turn_msg = "Information for " + i->get_name() + ":\n";
 					turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
+					turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (" + std::to_string(i->get_initiative_modifier()) + ")\n";
+					if (i->get_max_hp() != -1)
+					{
+						turn_msg += "\tHP: " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + "\n";
+					}
 					std::string flags = i->get_flag_list(false, true, true, true);
 					if (flags != "")
 						turn_msg += "\tFlags: " + flags + "\n";
 					if (i->get_regen_raw() != 0)
 						turn_msg += "\tRegeneration: " + std::to_string(i->get_regen_raw()) + " per round\n";
+					if (i->get_reminder() != "")
+						turn_msg += "\tReminder: \"" + i->get_reminder() + "\"\n";
 					if (i->variables.size() != 0)
 					{
 						turn_msg += "\tVariables:\n";
