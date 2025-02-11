@@ -1595,14 +1595,18 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			std::cout << " (" << i->get_hp() << "/" << i->get_max_hp() << " hp)";
 		if (i->get_flags().size() != 0)
 			std::cout << "; [" << i->get_flag_list(false, false,!simple_display,true) << "]";
+		bool printed_vars = false;
 		if (i->variables.size() != 0)
 		{
 			std::cout << std::endl;
 			for (auto vi = i->variables.begin(); vi != i->variables.end(); ++vi)
-				if ((vi->first)[0] != '#' || !simple_display)
-					std::cout << "\t    " << vi->first << " = " << vi->second;
+			{
+				std::cout << "\t    " << vi->first << " = " << vi->second << std::endl;
+				printed_vars = true;
+			}
 		}
-		std::cout << std::endl;
+		if(!printed_vars)
+			std::cout << std::endl;
 	}
 	std::cout << "\nEnter creature name + initiative:" << std::endl;
 	if (using_file && !info_already_in_line)
