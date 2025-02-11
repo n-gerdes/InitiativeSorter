@@ -5581,6 +5581,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_hp(0, false);
 					used_command = true;
 				}
+				else if (dummy_line == lowercase_name + " ko")
+				{
+					i->set_hp(0, false);
+					used_command = true;
+				}
 				else if (
 					(dummy_line == "reset " + lowercase_name || dummy_line == lowercase_name + " reset")
 					)
