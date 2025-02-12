@@ -17,7 +17,7 @@ const static bool		SHOW_INFO_EACH_TURN = true;
 
 
 /*
-This may just be some of the worst code I've ever written. 
+This may be some of the worst code I've ever written. 
 Originally it was intended to track initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
 it was intended to do.
 At first it started small - just hit point tracking. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? Just
@@ -25,9 +25,9 @@ a quick'n'dirty hack to add one small feature.
 But after one week I realized I needed just a few more features to make it more useful, so I added just a few more commands to rearrange initiatives and that's it.
 That was probably the point at which I should have started overhauling the code, but I figured it was just a one-time thing and then I'd be done.
 But time and time again, I kept adding "just a little more", adding hack after little hack, growing like a tumor.
-Now it's spiraled out of control, and to rewrite it is more work than just adding a little bit to the festering pile. So this is how it remains.
+Now it's spiraled out of control, and to rewrite it is more work than just adding a little bit to the festering pile each time. So this is how it remains.
 
-Anyhow: SPAGHETTI WARNING
+In any case, only suffering lies ahead. Continue if you dare...
 
 */
 #include <iostream>
@@ -724,6 +724,8 @@ public:
 			max_hp = new_max_hp;
 			if (hp > new_max_hp)
 				hp = new_max_hp;
+			if (hp == -1)
+				hp = max_hp;
 		}	
 	}
 
