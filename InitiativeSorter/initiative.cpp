@@ -4418,6 +4418,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					++current_turn;
 				}
 				buffer_manipulation_state = STATE_NODO;
+				save_buffer();
 				continue;
 			}
 		}
