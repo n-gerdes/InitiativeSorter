@@ -6,8 +6,9 @@ const static int		MAX_UNDO_STEPS = 20;
 
 //						The number of aliases typically shown on the line a character's turn is shown on.
 const static int		ALIASES_SHOWN = 2;
+//						The 'info' command will still show all of a character's aliases, and simple display mode will only show their first name (outside of 'info')
 
-//						Determines whether or not it show's a character's info when no other info is dispayed.
+//						Determines whether or not it shows a character's info when no other info is displayed.
 const static bool		SHOW_INFO_EACH_TURN = true;
 
 
@@ -21,15 +22,21 @@ This may be some of the worst code I've ever written.
 Originally it was intended to track initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
 it was intended to do.
 At first it started small - just hit point tracking. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? Just
-a quick'n'dirty hack to add one small feature.
-But after one week I realized I needed just a few more features to make it more useful, so I added just a few more commands to rearrange initiatives and that's it.
-That was probably the point at which I should have started overhauling the code, but I figured it was just a one-time thing and then I'd be done.
-But time and time again, I kept adding "just a little more", adding hack after little hack, growing like a tumor.
-Now it's spiraled out of control, and to rewrite it is more work than just adding a little bit to the festering pile each time. So this is how it remains.
+a quick'n'dirty hack to add one small feature. And for a short term micro-project, comments would just be a waste of time.
+But after one more week I realized I needed just a few more features to make it more useful, so I added a just few commands to rearrange initiatives.
+It was then that I should have overhauled the code...but surely THIS would be the last change, right?
 
-In any case, only suffering lies ahead. Continue if you dare...
+That was almost two years ago. Time and time again, I kept adding "just a little more", hack after hack, week by week, slowly growing it like a tumor.
+Now it's far too late.
+To rewrite it now is more work than just adding slightly to the festering heap every time, forever dooming the code to its existence as a museum of lazy and
+ill-advised practices.
+
+So beware reader - only suffering lies ahead. Continue if you dare...
 
 */
+
+
+
 #include <iostream>
 #include <algorithm>
 #include <string>
@@ -6168,6 +6175,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 					
 					}
+				}
+				else if (dummy_line == "i " + lowercase_name)
+				{
+					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round, false);
+					used_command = true;
 				}
 				else if (
 					comp_substring("move " + lowercase_name + " ", dummy_line, ("move " + lowercase_name + " ").length()) ||
