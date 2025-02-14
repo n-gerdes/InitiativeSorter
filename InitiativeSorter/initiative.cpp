@@ -6323,7 +6323,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			++current_turn;
 			new_turn = true;
 			if (dummy_line != "")
-				turn_msg = "Error: Could not parse command (did you make a typo?)";
+				turn_msg = "Error: Could not parse command (did you make a typo?)\n";
 		}
 		else
 		{
