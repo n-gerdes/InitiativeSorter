@@ -31,7 +31,7 @@ Now it's far too late.
 To rewrite it now is more work than just adding slightly to the festering heap every time, forever dooming the code to its existence as a museum of lazy and
 ill-advised practices.
 
-So beware reader - only suffering lies ahead. Continue if you dare...
+So beware, reader - only suffering lies ahead. Continue if you dare...
 
 */
 
@@ -6176,7 +6176,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 					}
 				}
-				else if (dummy_line == "i " + lowercase_name)
+				else if (dummy_line == "i " + lowercase_name || dummy_line == lowercase_name+" i")
 				{
 					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round, false);
 					used_command = true;
@@ -6322,6 +6322,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			++current_turn;
 			new_turn = true;
+			if (dummy_line != "")
+				turn_msg = "Error: Could not parse command (did you make a typo?)";
 		}
 		else
 		{
