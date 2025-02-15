@@ -6320,10 +6320,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (!used_command)
 		{
-			++current_turn;
-			new_turn = true;
-			if (dummy_line != "")
+			if (dummy_line == "")
+			{
+				++current_turn;
+				new_turn = true;
+			}
+			else
+			{
 				turn_msg = "Error: Could not parse command (did you make a typo?)\n\n";
+			}	
 		}
 		else
 		{
