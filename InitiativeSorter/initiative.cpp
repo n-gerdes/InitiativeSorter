@@ -3940,7 +3940,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				space_after_index = lowercase.length() - 1;
 			}
 			lowercase = lowercase.substr(0, temp_hp_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
-			line =		line.	  substr(0, temp_hp_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
+			line =		line.	  substr(0, temp_hp_index) + line.	   substr(space_after_index + 1, line. 	 length() - space_after_index - 1);
 			trim(lowercase);
 			trim(line);
 		}
@@ -7060,6 +7060,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					turn_msg = "Rolled " + dice_pattern + ", got ";
 					int val = get_number_arg("roll " + dice_pattern, is_signed);
 					turn_msg += std::to_string(val);
+					turn_msg += "\n\n";
 					used_command = true;
 					break;
 				}
@@ -7255,7 +7256,8 @@ int main(int argc, char** args)
 	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
 	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
 	std::cout << "Starting a flag with an underscore (\'_\') makes it a temporary flag that gets deleted at the start of the character's\nnext turn.\n";
-	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.\n@all references all characters.";
+	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.\n@all references all characters.\n";
+	std::cout << "@current refers to the character currently taking their turn.";
 	std::cout << std::endl << std::endl;
 	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
 	std::cout << std::endl << std::endl;
