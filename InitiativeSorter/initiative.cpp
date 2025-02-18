@@ -446,6 +446,8 @@ public:
 
 	inline void add_flag(const std::string& flag_name)
 	{
+		if (get_lowercase(flag_name) == "current")
+			return;
 		std::string new_flag = flag_name;
 		bool hidden = false;
 		if (new_flag.size() >= 1 && new_flag[0] == '#')
