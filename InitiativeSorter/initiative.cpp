@@ -212,6 +212,8 @@ class creature
 	bool temp_disable_regen = false;
 	std::string name, reminder;
 public:
+	std::string turn_start_file = "";
+	std::string turn_end_file = "";
 	std::list<std::string> flags;
 	std::map<std::string, bool> flags_hidden;
 	std::list<std::string> aliases;
@@ -530,8 +532,8 @@ public:
 	inline int get_temp_hp() const {
 		return temp_hp;
 	}
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class, const std::list<creature> const* creatures_list) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
-		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class)
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class, const std::list<creature> const* creatures_list, const std::string& start_turn_filename, const std::string& end_turn_filename) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class), turn_start_file(start_turn_filename), turn_end_file(end_turn_filename)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
@@ -966,6 +968,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "cls"
 			|| lowerc == "hide"
 			|| lowerc == "hideall"
+			|| lowerc == "start"
+			|| lowerc == "end"
 
 		) 
 			return false;
@@ -2746,6 +2750,46 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					used_command = true;
 				}
 
+
+				else if (((lowercase_name + " start") == dummy_line) || (dummy_line == ("start " + lowercase_name)))
+				{
+					i->turn_start_file = "";
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " start ", dummy_line, (lowercase_name + " start ").length()))
+				{
+					std::string filename = original_dummy_line.substr((lowercase_name + " start ").length());
+					trim(filename);
+					i->turn_start_file = filename;
+					used_command = true;
+				}
+				else if (comp_substring("start " + lowercase_name + " ", dummy_line, ("start " + lowercase_name + " ").length()))
+				{
+					std::string filename = original_dummy_line.substr(("start " + lowercase_name + " ").length());
+					trim(filename);
+					i->turn_start_file = filename;
+					used_command = true;
+				}
+				else if (((lowercase_name + " end") == dummy_line) || (dummy_line == ("end " + lowercase_name)))
+				{
+					i->turn_end_file = "";
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " end ", dummy_line, (lowercase_name + " end ").length()))
+				{
+					std::string filename = original_dummy_line.substr((lowercase_name + " end ").length());
+					trim(filename);
+					i->turn_end_file = filename;
+					used_command = true;
+				}
+				else if (comp_substring("end " + lowercase_name + " ", dummy_line, ("end " + lowercase_name + " ").length()))
+				{
+					std::string filename = original_dummy_line.substr(("end " + lowercase_name + " ").length());
+					trim(filename);
+					i->turn_end_file = filename;
+					used_command = true;
+				}
+
 				else if (comp_substring("heal " + lowercase_name + " ", dummy_line, ("heal " + lowercase_name + " ").length()) ||
 					comp_substring(lowercase_name + " heal ", dummy_line, (lowercase_name + " heal ").length()))
 				{
@@ -3805,7 +3849,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (temp_hp_index != std::string::npos && temp_hp==0)
 		{
 			size_t space_after_index = lowercase.find(' ', temp_hp_index);
-			size_t length = space_after_index - flags_index;
+			size_t length = space_after_index - temp_hp_index;
 			std::string sub = line.substr(temp_hp_index + 5, length - 5);
 			try
 			{
@@ -3835,7 +3879,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (temp_hp_index != std::string::npos && temp_hp == 0)
 		{
 			size_t space_after_index = lowercase.find(' ', temp_hp_index);
-			size_t length = space_after_index - flags_index;
+			size_t length = space_after_index - temp_hp_index;
 			std::string sub = line.substr(temp_hp_index + 8, length - 8);
 			try
 			{
@@ -3855,8 +3899,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				space_after_index = lowercase.length() - 1;
 			}
-			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
-			line =		line	 .substr(0, flags_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
+			lowercase = lowercase.substr(0, temp_hp_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line	 .substr(0, temp_hp_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
 			trim(lowercase);
 			trim(line);
 		}
@@ -3865,7 +3909,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (temp_hp_index != std::string::npos && temp_hp == 0)
 		{
 			size_t space_after_index = lowercase.find(' ', temp_hp_index);
-			size_t length = space_after_index - flags_index;
+			size_t length = space_after_index -  temp_hp_index;
 			std::string sub = line.substr(temp_hp_index + 4, length - 4);
 			try
 			{
@@ -3885,8 +3929,47 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				space_after_index = lowercase.length() - 1;
 			}
-			lowercase = lowercase.substr(0, flags_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
-			line =		line.	  substr(0, flags_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
+			lowercase = lowercase.substr(0, temp_hp_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line =		line.	  substr(0, temp_hp_index) + line.	 substr(space_after_index + 1, line.	 length() - space_after_index - 1);
+			trim(lowercase);
+			trim(line);
+		}
+		std::string start_file_name = "";
+		size_t start_file_index = lowercase.find("start:");
+		if (start_file_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', start_file_index);
+			size_t length = space_after_index - start_file_index;
+			std::string sub = line.substr(start_file_index + 6, length - 6);
+			
+			start_file_name = sub;
+
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, start_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line = line.substr(0,			start_file_index) + line.substr(	 space_after_index + 1, line.length() - space_after_index - 1);
+			trim(lowercase);
+			trim(line);
+		}
+
+		std::string end_file_name = "";
+		size_t end_file_index = lowercase.find("end:");
+		if (end_file_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', end_file_index);
+			size_t length = space_after_index - end_file_index;
+			std::string sub = line.substr(end_file_index + 4, length - 4);
+
+			end_file_name = sub;
+
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length() - 1;
+			}
+			lowercase = lowercase.substr(0, end_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+			line = line.substr(0, end_file_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
 			trim(lowercase);
 			trim(line);
 		}
@@ -4170,13 +4253,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
 						added_creature = true;
 					}
 				}
@@ -4222,7 +4305,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
 						added_creature = true;
 
 					}
@@ -4248,7 +4331,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 					return false;
 				}
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
 				added_creature = true;
 			}
 			else
@@ -4391,6 +4474,12 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 	}
 	if (i->get_reminder() != "")
 		turn_msg += "\tReminder: \"" + i->get_reminder() + "\"\n";
+
+	if(i->turn_start_file != "")
+		turn_msg += "\tTurn Start File: \"" + i->turn_start_file + "\"\n";
+	if (i->turn_end_file != "")
+		turn_msg += "\tTurn End File: \"" + i->turn_end_file + "\"\n";
+
 	if (i->variables.size() != 0)
 	{
 		turn_msg += "\tVariables:\n";
@@ -4562,6 +4651,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 			}
+			
 			std::cout << i->get_display_names();
 			if(!simple_display)
 				std::cout << " [" << i->get_initiative() << "]";
@@ -4634,14 +4724,61 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::cout << "\t" << current_creature->get_name() << " HAS 0 HP!" << std::endl;
 		}
+		
+		//std::cout << "FULLY REPLACED: " << dummy_line << std::endl;
+		bool used_command = false;
+
+		if (new_turn)
+		{
+			std::string filename = current_creature->turn_start_file;
+			if (filename != "")
+			{
+				std::ifstream new_file;
+				new_file.open(filename);
+				std::string line;
+				if (!new_file.is_open())
+				{
+					std::cout << "Error: Could not open " << filename << std::endl;
+					//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+				}
+				else
+				{
+					bool taking_initiatives = false;
+					while (new_file.good() && !new_file.eof())
+					{
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
+					}
+					new_file.close();
+					creatures.sort();
+					turn_count = current_creature->get_turn_count();
+					current_turn = 0;
+					for (auto i = creatures.begin(); i != creatures.end(); ++i)
+					{
+						if (i->get_name() == current_creature->get_name())
+						{
+
+							break;
+						}
+						++current_turn;
+					}
+				}
+
+				used_command = true;
+				new_turn = false;
+				buffer_manipulation_state = STATE_NODO;
+				save_buffer();
+				continue;
+			}
+
+		}
+
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
 		command_replacement(dummy_line);
-		//std::cout << "FULLY REPLACED: " << dummy_line << std::endl;
-		bool used_command = false;
+
 		bool did_erase = false;
 		int move_turn = -1;
 		size_t l = dummy_line.length() - 1;
@@ -4956,6 +5093,46 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					used_command = true;
 				}
 
+
+				else if (((lowercase_name + " start") == dummy_line) || (dummy_line == ("start " + lowercase_name)))
+				{
+					i->turn_start_file = "";
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " start ", dummy_line, (lowercase_name + " start ").length()))
+				{
+					std::string filename = original_dummy_line.substr((lowercase_name + " start ").length());
+					trim(filename);
+					i->turn_start_file = filename;
+					used_command = true;
+				}
+				else if (comp_substring("start " + lowercase_name + " ", dummy_line, ("start " + lowercase_name + " ").length()))
+				{
+					std::string filename = original_dummy_line.substr(("start " + lowercase_name + " ").length());
+					trim(filename);
+					i->turn_start_file = filename;
+					used_command = true;
+				}
+				else if (((lowercase_name + " end") == dummy_line) || (dummy_line == ("end " + lowercase_name)))
+				{
+					i->turn_end_file = "";
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " end ", dummy_line, (lowercase_name + " end ").length()))
+				{
+					std::string filename = original_dummy_line.substr((lowercase_name + " end ").length());
+					trim(filename);
+					i->turn_end_file = filename;
+					used_command = true;
+				}
+				else if (comp_substring("end " + lowercase_name + " ", dummy_line, ("end " + lowercase_name + " ").length()))
+				{
+					std::string filename = original_dummy_line.substr(("end " + lowercase_name + " ").length());
+					trim(filename);
+					i->turn_end_file = filename;
+					used_command = true;
+				}
+
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
@@ -5197,7 +5374,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 
-				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+				if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
 						bool is_signed = false;
@@ -6884,9 +7061,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						}
 					}
 					else if
-						(comp_substring("al " + lowercase_name + " ", dummy_line, ("al " + lowercase_name + " ").length())
-						)
-						{
+						(comp_substring("al " + lowercase_name + " ", dummy_line, ("al " + lowercase_name + " ").length()))
+					{
 							std::string new_alias = dummy_line.substr(("al " + lowercase_name + " ").length());
 							trim(new_alias);
 							if (name_is_unique(new_alias, creatures))
@@ -6954,8 +7130,43 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			if (dummy_line == "")
 			{
+				std::string filename = current_creature->turn_end_file;
+				if (filename != "")
+				{
+					std::ifstream new_file;
+					new_file.open(filename);
+					std::string line;
+					if (!new_file.is_open())
+					{
+						std::cout << "Error: Could not open " << filename << std::endl;
+						//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+					}
+					else
+					{
+						bool taking_initiatives = false;
+						while (new_file.good() && !new_file.eof())
+						{
+							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename);
+						}
+						new_file.close();
+						creatures.sort();
+						turn_count = current_creature->get_turn_count();
+						current_turn = 0;
+						for (auto i = creatures.begin(); i != creatures.end(); ++i)
+						{
+							if (i->get_name() == current_creature->get_name())
+							{
+
+								break;
+							}
+							++current_turn;
+						}
+					}
+				}
+
 				++current_turn;
 				new_turn = true;
+
 			}
 			else
 			{
