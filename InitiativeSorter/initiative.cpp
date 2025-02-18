@@ -1043,6 +1043,13 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			}
 			if (i->get_ac() != -1)
 				line += " ac:" + std::to_string(i->get_ac());
+
+			if (i->turn_start_file != "")
+				line += " start:" + i->turn_start_file;
+
+			if (i->turn_end_file != "")
+				line += " end:" + i->turn_end_file;
+
 			line += "\n";
 
 			out << line;
