@@ -6692,7 +6692,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			else
 			{
-				turn_msg = "Error: Could not parse command (did you make a typo?)\n\n";
+				turn_msg = "Error: Could not execute command (did you make a typo?)\n\n";
 			}	
 		}
 		else
