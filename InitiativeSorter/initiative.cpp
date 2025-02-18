@@ -2181,6 +2181,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -2193,12 +2195,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
 					}
 
-				
+
 				else if (comp_substring(lowercase_name + ".", dummy_line, (lowercase_name + ".").length()))
 				{
 					try {
@@ -2346,7 +2350,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E) {
 
 					}
-				}
+					}
 				else if (comp_substring("--" + lowercase_name + ".", dummy_line, ("--" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2355,10 +2359,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
+					}
 				else if (comp_substring("++" + lowercase_name + ".", dummy_line, ("++" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2367,11 +2373,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
-				
+					}
 				else if (comp_substring(lowercase_name + ":", dummy_line, (lowercase_name + ":").length()))
 				{
 					try {
@@ -2519,7 +2526,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E) {
 
 					}
-				}
+					}
 				else if (comp_substring("--" + lowercase_name + ":", dummy_line, ("--" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2528,10 +2535,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
+					}
 				else if (comp_substring("++" + lowercase_name + ":", dummy_line, ("++" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2540,10 +2549,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
+					}
 
 			}
 		}
@@ -5729,6 +5740,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -5741,6 +5754,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -5903,6 +5918,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -5915,6 +5932,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var)+1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -6075,6 +6094,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -6087,6 +6108,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
+						else if (i->variables.count("#" + var) != 0)
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
