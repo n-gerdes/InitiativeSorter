@@ -4018,10 +4018,10 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 		return "";
 	std::string turn_msg = "Information for " + i->get_name() + ":\n";
 	turn_msg += "\tNames & Aliases: " + i->get_display_names(SHOW_ALL_NAMES) + "\n";
-	if(i->get_initiative()>=0)
+	if(i->get_initiative_modifier()>=0)
 		turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (+" + std::to_string(i->get_initiative_modifier()) + ")\n";
 	else
-		turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " (-" + std::to_string(i->get_initiative_modifier()) + ")\n";
+		turn_msg += "\tInitiative: " + std::to_string(i->get_initiative()) + " ("+ std::to_string(i->get_initiative_modifier()) + ")\n";
 	turn_msg += "\t\t#" + std::to_string(i->get_turn_count() + 1) + " in turn order\n";
 	if (current_turn < i->get_turn_count())
 		turn_msg += "\t\tTurns taken: " + std::to_string(current_round - 1) + "\n";
@@ -4197,13 +4197,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 
 		if(SHOW_INFO_EACH_TURN)
-			std::cout << "-------------------------INITIATIVE DISPLAY-------------------------\n" << std::endl;
+			std::cout << "__________________________________INITIATIVE DISPLAY__________________________________\n" << std::endl;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			i->touched = false;
 			if (current_turn == turn_count)
 			{
-				std::cout << "  ---> ";
+				std::cout << "  ----> ";
 				current_creature = &(*i);
 				if (current_creature->get_name() != previous_turn_creature_name)
 				{
@@ -4241,7 +4241,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
 			}
 			if(current_turn==turn_count)
-				std::cout << " <-----------";
+				std::cout << " <---------------------------";
 			std::cout << std::endl;
 
 			std::cout << print_variables(i->get_raw_ptr(), false);
