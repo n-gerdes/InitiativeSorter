@@ -4690,6 +4690,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		previous_turn_creature_name = current_creature->get_name();
 		if (new_turn)
 		{
+			current_creature->add_alias("@current");
 			if (current_creature->get_reminder().size() != 0)
 			{
 				std::cout << "\t" << current_creature->get_reminder() << std::endl;
@@ -7170,7 +7171,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						}
 					}
 				}
-
+				current_creature->remove_alias("@current");
 				++current_turn;
 				new_turn = true;
 
