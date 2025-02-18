@@ -945,6 +945,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "showall"
 			|| lowerc == "clear"
 			|| lowerc == "cls"
+			|| lowerc == "hide"
 
 		) 
 			return false;
@@ -1473,6 +1474,11 @@ void command_replacement(std::string& dummy_line)
 	if (dummy_line == "display max")
 	{
 		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "hide")
+	{
+		dummy_line = "simple display";
 		return;
 	}
 	if (dummy_line == "min display")
