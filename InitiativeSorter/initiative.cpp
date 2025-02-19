@@ -1419,8 +1419,6 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed)
 	{
 		sub.resize(trunc);
 	}
-
-	//std::cout << "PARSED SUBSTRING: " << sub << std::endl;
 	
 	trim(sub);
 	if(is_digits(sub))
@@ -1444,6 +1442,8 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 	base->touched = true;
 	for (int i = 0; i < count; ++i)
 	{
+		std::cout << "ITERATOR=" << i << std::endl;
+		std::cout << "COUNT=" << count << std::endl;
 		creature copy(*base);
 		auto get_new_name = [&](const std::string & base_name) -> std::string
 		{
@@ -1483,6 +1483,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		copy.set_initiative((rand() % 20) + 1 + copy.get_initiative_modifier());
 		copy.touched = true;
 		creatures.push_back(copy);
+		std::cout << "PUSHING BACK " << copy.get_name() << std::endl;
 	}
 	creatures.sort();
 }
@@ -5149,12 +5150,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->turn_end_file = filename;
 					used_command = true;
 				}
-
+				/*
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
 						bool is_signed = false;
 						int clones = get_number_arg(dummy_line, is_signed);
+						std::cout << "PARSED CLONES=" << clones << std::endl;
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 					}
@@ -5184,7 +5186,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
 				}
-
+				*/
 				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
 				{
 					try {
@@ -5391,7 +5393,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 
-				if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
+				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
 						bool is_signed = false;
@@ -5415,12 +5417,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if (comp_substring("clone " + lowercase_name, dummy_line, ("clone " + lowercase_name).length()))
-				{
-					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
-					used_command = true;
-				}
-				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
+				else if (dummy_line == ("clone " + lowercase_name) || dummy_line == (lowercase_name + " clone"))
 				{
 					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
 					used_command = true;
@@ -6845,7 +6842,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						bool is_signed = false;
 						int old_hp = i->get_hp();
 						int val = get_number_arg(dummy_line, is_signed);
-						//std::cout << "PARSED HP: " << val << std::endl;
 						try {
 							size_t slash_index = dummy_line.find("/");
 							if (slash_index != std::string::npos)
@@ -6853,7 +6849,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								try {
 									int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
 									i->set_max_hp(max_hp, false);
-									//std::cout << "PARSED MAX HP " << max_hp << std::endl;
 								}
 								catch (const std::exception& e)
 								{
