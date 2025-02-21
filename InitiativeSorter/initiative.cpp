@@ -1439,6 +1439,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 {
 	if (base->touched)
 		return;
+	std::vector<creature> sorter;
 	base->touched = true;
 	for (int i = 0; i < count; ++i)
 	{
@@ -1482,8 +1483,39 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		}
 		copy.set_initiative((rand() % 20) + 1 + copy.get_initiative_modifier());
 		copy.touched = true;
-		creatures.push_back(copy);
-		std::cout << "PUSHING BACK " << copy.get_name() << std::endl;
+		sorter.push_back(copy);
+	}
+
+	auto swap_init = [&](creature& a, creature& b) -> void
+		{
+			int a_init = a.get_initiative();
+			a.set_initiative(b.get_initiative());
+			b.set_initiative(a_init);
+		};
+
+	if (sorter.size() > 1)
+	{
+		bool swapped = true;
+		while (swapped) //bubblesort lmao
+		{
+			swapped = false;
+			for (size_t i = 0; i < sorter.size() - 1; ++i)
+			{
+				creature& a = sorter[i];
+				creature& b = sorter[i + 1];
+
+				if (b.get_initiative() > a.get_initiative())
+				{
+					swap_init(a, b);
+					swapped = true;
+				}
+			}
+		}
+	}
+
+	for (size_t i = 0; i < sorter.size(); ++i)
+	{
+		creatures.push_back(sorter[i]);
 	}
 	creatures.sort();
 }
