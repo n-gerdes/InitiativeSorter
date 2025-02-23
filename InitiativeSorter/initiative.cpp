@@ -261,6 +261,72 @@ public:
 		}
 	}
 
+	int get_name_digits()
+	{
+		int val = 0;
+		int index = name.size() - 1;
+		auto is_digit = [](char c) -> bool
+			{
+				if (c == '0')
+					return true;
+				else if (c == '1')
+					return true;
+				else if (c == '2')
+					return true;
+				else if (c == '3')
+					return true;
+				else if (c == '4')
+					return true;
+				else if (c == '5')
+					return true;
+				else if (c == '6')
+					return true;
+				else if (c == '7')
+					return true;
+				else if (c == '8')
+					return true;
+				else if (c == '9')
+					return true;
+				return false;
+			};
+
+		auto char_to_digit = [](char c) -> int
+			{
+				if (c == '0')
+					return 0;
+				else if (c == '1')
+					return 1;
+				else if (c == '2')
+					return 2;
+				else if (c == '3')
+					return 3;
+				else if (c == '4')
+					return 4;
+				else if (c == '5')
+					return 5;
+				else if (c == '6')
+					return 6;
+				else if (c == '7')
+					return 7;
+				else if (c == '8')
+					return 8;
+				else if (c == '9')
+					return 9;
+				return 0;
+			};
+		while (index >= 0)
+		{
+			char c = name[index];
+			if (is_digit(c))
+			{
+				val *= 10;
+				val += char_to_digit(c);
+			}
+			--index;
+		}
+		return val;
+	}
+
 	void set_var(std::string var_name, int value)
 	{
 		make_lowercase(var_name);
@@ -630,7 +696,10 @@ public:
 	inline const bool operator<(const creature& other) const
 	{
 		if (initiative == other.initiative)
-			return modifier > other.modifier;
+			if (modifier == other.modifier)
+				return name < other.name;
+			else
+				return modifier > other.modifier;
 		return initiative > other.initiative;
 	}
 
@@ -1784,6 +1853,58 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_all(dummy_line, "alias_remove", "ra", true, false);
 }
 
+
+//Sorts the initiatives of the given creatures after sorting them by name
+void sort(std::list<creature>& creatures, const std::string& name)
+{
+	if (creatures.size() < 2)
+		return;
+	std::vector<creature*> c;
+	c.reserve(creatures.size());
+	for (auto i = creatures.begin(); i != creatures.end(); ++i)
+	{
+		if (i->has_alias(name))
+			c.push_back(i->get_raw_ptr());
+	}
+
+	bool swapped = true;
+	while (swapped)
+	{
+		swapped = false;
+		for (int i = 0; i < c.size()-1; ++i)
+		{
+			creature* left = c[i];
+			creature* right = c[i + 1];
+			if (left->get_name() > right->get_name())
+			{
+				c[i] = right;
+				c[i + 1] = left;
+				swapped = true;
+			}
+		}
+	}
+
+	swapped = true;
+	while (swapped)
+	{
+		swapped = false;
+		for (int i = 0; i < c.size()-1; ++i)
+		{
+			creature* left = c[i];
+			creature* right = c[i + 1];
+			if (left->get_initiative() < right->get_initiative())
+			{
+				int right_initiative = right->get_initiative();
+				right->set_initiative(left->get_initiative());
+				left->set_initiative(right_initiative);
+				swapped = true;
+			}
+		}
+	}
+
+	creatures.sort();
+}
+
 //Process command/add a creature, and return whether or not a creature was added.
 inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory)
 {
@@ -2732,7 +2853,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 	
 
-		
+	if(dummy_line.size() > 5 && dummy_line[0]=='s' && dummy_line[1]=='o' && dummy_line[2] == 'r' && dummy_line[3] == 't' && dummy_line[4] == ' ')
+	{
+		std::string arg = dummy_line.substr(4);
+		trim(arg);
+		sort(creatures, arg);
+		used_command = true;
+	}
 
 	if (takes_commands && !used_command) //In hindsight this is an awful way to parse commands.
 	{
@@ -5079,6 +5206,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (wd[0] == '/')
 				wd = wd.substr(1);
 			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
+		}
+		else if (dummy_line.size() > 5 && dummy_line[0] == 's' && dummy_line[1] == 'o' && dummy_line[2] == 'r' && dummy_line[3] == 't' && dummy_line[4] == ' ')
+		{
+			std::string arg = dummy_line.substr(4);
+			trim(arg);
+			sort(creatures, arg);
+			used_command = true;
+			skip_command_checks = true;
 		}
 		else
 		{
