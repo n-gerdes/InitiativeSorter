@@ -15,8 +15,6 @@ const static bool		SHOW_INFO_EACH_TURN = true;
 
 
 
-
-
 /*
 This may be some of the worst code I've ever written. 
 Originally it was intended to track initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
@@ -49,6 +47,8 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 #include <chrono>
 #include <time.h>
 #include <map>
+
+std::string wd = ""; //Working directory to load files from
 
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
@@ -973,7 +973,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "hideall"
 			|| lowerc == "start"
 			|| lowerc == "end"
-
+			|| lowerc == "wd"
+			|| lowerc == "cd"
 		) 
 			return false;
 
@@ -1014,7 +1015,11 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 {
 	try {
 		std::ofstream out;
-		out.open(filename);
+		if (wd == "")
+			out.open(filename);
+		else
+			out.open(wd + "/" + filename);
+
 		if (!out.is_open())
 			throw;
 
@@ -1806,6 +1811,20 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	command_replacement(dummy_line);
 	if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 		exit(0);
+
+	if ((dummy_line.size() > 3) && dummy_line[2] == ' ' && dummy_line[1] == 'd' && (dummy_line[0] == 'c' || dummy_line[0] == 'w'))
+	{
+		used_command = true;
+		wd = original_dummy_line.substr(3);
+		wd = replace_all(wd, "\\", "/", false);
+		if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
+			wd.resize(wd.size() - 1);
+	}
+	else if (dummy_line == "wd" || dummy_line == "cd")
+	{
+		used_command = true;
+		wd = "";
+	}
 
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		i->touched = false;
@@ -4208,6 +4227,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
+			if (wd != "")
+			{
+				filename = wd + "/" + filename;
+			}
 			std::ifstream new_file;
 			new_file.open(filename);
 			if (!new_file.is_open())
@@ -4229,6 +4252,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
+			if(wd != "")
+			{
+				filename = wd + "/" + filename;
+			}
 			std::ifstream new_file;
 			new_file.open(filename);
 			if (!new_file.is_open())
@@ -4932,6 +4959,22 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			used_command = true;
 			skip_command_checks = true;
 		}
+		else if ((dummy_line.size() > 3) && dummy_line[2] == ' ' && dummy_line[1] == 'd' && (dummy_line[0] == 'c' || dummy_line[0] == 'w'))
+		{
+			used_command = true;
+			skip_command_checks = true;
+			wd = original_dummy_line.substr(3);
+			if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
+				wd.resize(wd.size() - 1);
+			wd = replace_all(wd, "\\", "/", false);
+			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
+		}
+		else if (dummy_line == "wd" || dummy_line == "cd")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			wd = "";
+		}
 		else
 		{
 			while (creatures_buffer_iterator != creatures_buffer.begin())
@@ -4970,6 +5013,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
+			if (wd != "")
+			{
+				filename = wd + "/" + filename;
+			}
 			std::ifstream new_file;
 			new_file.open(filename);
 			used_command = true;
@@ -5006,6 +5053,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		else if ((comp_substring("ld ", dummy_line, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
+			if (wd != "")
+			{
+				filename = wd + "/" + filename;
+			}
 			std::ifstream new_file;
 			new_file.open(filename);
 			used_command = true;
