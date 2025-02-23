@@ -1393,11 +1393,16 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::l
 	{
 		std::string whole = sub.substr(1);
 		if (sub[1] == '#')
-			whole[0] = '@';
+		{
+			if (sub[2] == '@')
+				whole = whole.substr(1);
+			else
+				whole[0] = '@';
+		}
 		value = 0;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
-			if (i->has_alias(whole) || i->has_alias(whole))
+			if (i->has_alias(whole))
 			{
 				++value;
 			}
