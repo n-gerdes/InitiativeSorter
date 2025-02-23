@@ -1389,6 +1389,31 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::l
 		return INT_MAX;
 	}
 
+	std::string trimmed = sub.substr(1);
+
+	if (trimmed.find(":") != std::string::npos || trimmed.find(".") != std::string::npos)
+	{
+		std::string creature = "";
+		int i = 0;
+		while (i < trimmed.size() && trimmed[i] != ':' && trimmed[i] != '.')
+		{
+			creature += trimmed[i];
+			++i;
+		}
+		std::string varname = trimmed.substr(creature.size()+1);
+		if (varname[0] == ':')
+			varname = varname.substr(1);
+
+		for (auto ci = creatures.begin(); ci != creatures.end(); ++ci)
+		{
+			if (ci->has_alias(creature))
+			{
+				return ci->get_var(varname);
+			}
+		}
+		return 0;
+	}
+
 	if (sub.size() > 2 && sub[0] == ' ' && (sub[1] == '@') || sub[1]=='#')
 	{
 		std::string whole = sub.substr(1);
