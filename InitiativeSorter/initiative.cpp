@@ -1417,14 +1417,14 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::l
 	if (sub.size() > 2 && sub[0] == ' ' && (sub[1] == '@') || sub[1]=='#')
 	{
 		std::string whole = sub.substr(1);
-		if (sub[1] == '@' && sub[2] == '#')
+		if (whole.size() > 1 && whole[0] == '@' && whole[1] == '#')
 		{
-			sub[1] = '#';
-			sub[2] = '@';
+			whole[0] = '#';
+			whole[1] = '@';
 		}
-		if (sub[1] == '#')
+		if (whole[0] == '#')
 		{
-			if (sub[2] == '@')
+			if (whole[1] == '@')
 				whole = whole.substr(1);
 			else
 				whole[0] = '@';
@@ -1494,8 +1494,6 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 	base->touched = true;
 	for (int i = 0; i < count; ++i)
 	{
-		std::cout << "ITERATOR=" << i << std::endl;
-		std::cout << "COUNT=" << count << std::endl;
 		creature copy(*base);
 		auto get_new_name = [&](const std::string & base_name) -> std::string
 		{
