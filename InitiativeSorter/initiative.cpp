@@ -1417,6 +1417,11 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::l
 	if (sub.size() > 2 && sub[0] == ' ' && (sub[1] == '@') || sub[1]=='#')
 	{
 		std::string whole = sub.substr(1);
+		if (sub[1] == '@' && sub[2] == '#')
+		{
+			sub[1] = '#';
+			sub[2] = '@';
+		}
 		if (sub[1] == '#')
 		{
 			if (sub[2] == '@')
