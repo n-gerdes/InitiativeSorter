@@ -967,6 +967,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "dispmin"
 			|| lowerc == "pause"
 			|| lowerc == "showall"
+			|| lowerc == "show"
 			|| lowerc == "clear"
 			|| lowerc == "cls"
 			|| lowerc == "hide"
@@ -975,6 +976,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "end"
 			|| lowerc == "wd"
 			|| lowerc == "cd"
+			|| lowerc == "cd.."
+			|| lowerc == "wd.."
 		) 
 			return false;
 
@@ -1649,6 +1652,11 @@ void command_replacement(std::string& dummy_line)
 		dummy_line = "full display";
 		return;
 	}
+	if (dummy_line == "show")
+	{
+		dummy_line = "full display";
+		return;
+	}
 	if (dummy_line == "show all")
 	{
 		dummy_line = "full display";
@@ -1757,7 +1765,7 @@ void command_replacement(std::string& dummy_line)
 }
 
 //Process command/add a creature, and return whether or not a creature was added.
-inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load)
+inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory)
 {
 	//takes_commands = true;
 	bool added_creature = false;
@@ -1815,17 +1823,40 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	if ((dummy_line.size() > 3) && dummy_line[2] == ' ' && dummy_line[1] == 'd' && (dummy_line[0] == 'c' || dummy_line[0] == 'w'))
 	{
 		used_command = true;
-		wd = original_dummy_line.substr(3);
+		std::string arg = original_dummy_line.substr(3);
+		wd += "/" + arg;
+		wd = replace_all(wd, "//", "/", false);
 		wd = replace_all(wd, "\\", "/", false);
 		if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
 			wd.resize(wd.size() - 1);
+		if (wd[0] == '/')
+			wd = wd.substr(1);
+		directory = wd;
 	}
-	else if (dummy_line == "wd" || dummy_line == "cd")
+	else if (dummy_line == "cd")
 	{
 		used_command = true;
 		wd = "";
+		directory = "";
 	}
-
+	else if (dummy_line == "wd")
+	{
+		used_command = true;
+		std::cout << "Working Directory: " << wd << std::endl;
+	}
+	else if (dummy_line == "wd.." || dummy_line == "cd..")
+	{
+		used_command = true;
+		std::string arg = "..";
+		wd += "/" + arg;
+		wd = replace_all(wd, "//", "/", false);
+		wd = replace_all(wd, "\\", "/", false);
+		if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
+			wd.resize(wd.size() - 1);
+		if (wd[0] == '/')
+			wd = wd.substr(1);
+		directory = wd;
+	}
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		i->touched = false;
 
@@ -4227,9 +4258,22 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
-			if (wd != "")
+			if (directory != "")
 			{
-				filename = wd + "/" + filename;
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+				}
 			}
 			std::ifstream new_file;
 			new_file.open(filename);
@@ -4242,7 +4286,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory);
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
@@ -4252,9 +4296,22 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
-			if(wd != "")
+			if (directory != "")
 			{
-				filename = wd + "/" + filename;
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+				}
 			}
 			std::ifstream new_file;
 			new_file.open(filename);
@@ -4267,7 +4324,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory);
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
@@ -4868,7 +4925,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					bool taking_initiatives = false;
 					while (new_file.good() && !new_file.eof())
 					{
-						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, wd);
 					}
 					new_file.close();
 					creatures.sort();
@@ -4901,7 +4958,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
 		command_replacement(dummy_line);
-
 		bool did_erase = false;
 		int move_turn = -1;
 		size_t l = dummy_line.length() - 1;
@@ -4963,17 +5019,46 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			used_command = true;
 			skip_command_checks = true;
-			wd = original_dummy_line.substr(3);
+			std::string arg = original_dummy_line.substr(3);
+			wd += "/" + arg;
+			wd = replace_all(wd, "//", "/", false);
 			if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
 				wd.resize(wd.size() - 1);
 			wd = replace_all(wd, "\\", "/", false);
+			if (wd[0] == '/')
+				wd = wd.substr(1);
 			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
 		}
 		else if (dummy_line == "wd" || dummy_line == "cd")
 		{
 			used_command = true;
 			skip_command_checks = true;
-			wd = "";
+			if (dummy_line == "cd")
+			{
+				wd = "";
+				turn_msg = "Reset working directory\n\n";
+			}
+			else
+			{
+				if (wd == "")
+					turn_msg = "Working Directory: Base\n\n";
+				else
+					turn_msg = "Working Directory: " + wd + "\n\n";
+			}
+		}
+		else if (dummy_line == "cd.." || dummy_line == "wd..")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			std::string arg = "..";
+			wd += "/" + arg;
+			wd = replace_all(wd, "//", "/", false);
+			if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
+				wd.resize(wd.size() - 1);
+			wd = replace_all(wd, "\\", "/", false);
+			if (wd[0] == '/')
+				wd = wd.substr(1);
+			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
 		}
 		else
 		{
@@ -5013,9 +5098,23 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
-			if (wd != "")
+			std::string directory = wd;
+			if (directory != "")
 			{
-				filename = wd + "/" + filename;
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+				}
 			}
 			std::ifstream new_file;
 			new_file.open(filename);
@@ -5029,7 +5128,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				bool taking_initiatives = false;
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory);
 				}
 				new_file.close();
 				creatures.sort();
@@ -5053,9 +5152,23 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		else if ((comp_substring("ld ", dummy_line, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
-			if (wd != "")
+			std::string directory = wd;
+			if (directory != "")
 			{
-				filename = wd + "/" + filename;
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+				}
 			}
 			std::ifstream new_file;
 			new_file.open(filename);
@@ -5069,7 +5182,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				bool taking_initiatives = false;
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory);
 				}
 				new_file.close();
 				creatures.sort();
@@ -7245,7 +7358,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "", ignore_initial_file_load);
+			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "", ignore_initial_file_load, wd);
 			if (success)
 			{
 				creatures.sort();
@@ -7260,7 +7373,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "", ignore_initial_file_load);
+			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "", ignore_initial_file_load, wd);
 			if (success)
 			{
 				creatures.sort();
@@ -7291,7 +7404,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						bool taking_initiatives = false;
 						while (new_file.good() && !new_file.eof())
 						{
-							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load);
+							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, wd);
 						}
 						new_file.close();
 						creatures.sort();
@@ -7440,7 +7553,7 @@ int main(int argc, char** args)
 	bool ignore_initial_file_load = false;
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename, ignore_initial_file_load);
+		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename, ignore_initial_file_load, wd);
 	}
 
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
