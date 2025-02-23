@@ -4948,13 +4948,23 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::cout << turn_msg;
 			if (turn_msg[0] != LOG_HEADER_CHAR)
+			{
 				event_log += turn_msg;
+			}
 			turn_msg = "";
 		}
 		else if (SHOW_INFO_EACH_TURN)
 		{
 			std::cout << get_info(current_creature_2, current_turn, current_round, true) << std::endl;
 		}
+
+		std::ofstream log_file;
+		log_file.open("log.txt", std::ofstream::out);
+		if (log_file.is_open() && log_file.good())
+		{
+			log_file << event_log;
+		}
+		log_file.close();
 
 		if(SHOW_INFO_EACH_TURN)
 			std::cout << "__________________________________INITIATIVE DISPLAY__________________________________\n" << std::endl;
@@ -5377,9 +5387,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		else if (dummy_line == "log")
 		{
-			turn_msg = " ";
+			turn_msg = " EVENT LOG\n";
 			turn_msg[0] = LOG_HEADER_CHAR;
-			turn_msg = "EVENT LOG\n";
 			turn_msg += event_log;
 			skip_command_checks = true;
 			used_command = true;
