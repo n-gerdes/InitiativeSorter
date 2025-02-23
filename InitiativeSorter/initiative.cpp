@@ -1517,7 +1517,17 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 
 				std::string copy_name = "clone";
 
-				while (!name_is_unique(copy_name, creatures) || copy.has_alias(copy_name))
+				bool sorter_contains_name = false;
+				for (auto cn = sorter.begin(); cn != sorter.end(); ++cn)
+				{
+					if (cn->has_alias(copy_name))
+					{
+						sorter_contains_name = true;
+						break;
+					}
+				}
+
+				while (!name_is_unique(copy_name, creatures) || copy.has_alias(copy_name) || sorter_contains_name)
 				{
 					if (base0)
 					{
@@ -1526,6 +1536,16 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 					else
 					{
 						copy_name = base_name + std::to_string(++base_copy_id);
+					}
+
+					sorter_contains_name = false;
+					for (auto cn = sorter.begin(); cn != sorter.end(); ++cn)
+					{
+						if (cn->has_alias(copy_name))
+						{
+							sorter_contains_name = true;
+							break;
+						}
 					}
 				}
 				return copy_name;
@@ -5395,43 +5415,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->turn_end_file = filename;
 					used_command = true;
 				}
-				/*
-				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
-				{
-					try {
-						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed);
-						std::cout << "PARSED CLONES=" << clones << std::endl;
-						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " clone ", dummy_line, (lowercase_name + " clone ").length()))
-				{
-					try {
-						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed);
-						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (dummy_line == ("clone " + lowercase_name))
-				{
-					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
-					used_command = true;
-				}
-				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
-				{
-					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
-					used_command = true;
-				}
-				*/
 				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
 				{
 					try {
