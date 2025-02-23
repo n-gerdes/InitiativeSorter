@@ -1048,6 +1048,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "cd.."
 			|| lowerc == "wd.."
 			|| lowerc == "sort"
+			|| lowerc == "log"
 		) 
 			return false;
 
@@ -4685,8 +4686,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 
 
-
-
+std::string event_log = "";
+const static char LOG_HEADER_CHAR = 9;
 
 std::list<std::list<creature>> creatures_buffer;
 std::list<bool> new_round_buffer;
@@ -4821,6 +4822,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	creatures.sort();
 	index_t current_turn = 0;
 	size_t current_round = initial_round;
+	event_log = "Began Round " + std::to_string(current_round) + "\n___________________________________________________________\n";
 	bool new_round = false;
 	std::string previous_turn_creature_name = "";
 	creature* knocked_out_creature = nullptr;
@@ -4921,6 +4923,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		if (new_round)
 		{
 			std::cout << "Start of a new round." << std::endl;
+			event_log += "\n\nRound " + std::to_string(current_round) + "\n\n";
 			new_round = false;
 		}
 		std::cout << "Round " << current_round << std::endl << std::endl << std::endl;
@@ -4944,6 +4947,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		if (turn_msg != "")
 		{
 			std::cout << turn_msg;
+			if (turn_msg[0] != LOG_HEADER_CHAR)
+				event_log += turn_msg;
 			turn_msg = "";
 		}
 		else if (SHOW_INFO_EACH_TURN)
@@ -5102,6 +5107,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
+		event_log += "\nEntered command: " + dummy_line + "\n";
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
@@ -5368,6 +5374,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			keep_name = dummy_line;
 			keep_name.resize(dummy_line.size() - 5);
+		}
+		else if (dummy_line == "log")
+		{
+			turn_msg = " ";
+			turn_msg[0] = LOG_HEADER_CHAR;
+			turn_msg = "EVENT LOG\n";
+			turn_msg += event_log;
+			skip_command_checks = true;
+			used_command = true;
 		}
 		
 		if (keep_name != "")
