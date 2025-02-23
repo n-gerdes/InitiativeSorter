@@ -1047,6 +1047,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "cd"
 			|| lowerc == "cd.."
 			|| lowerc == "wd.."
+			|| lowerc == "sort"
 		) 
 			return false;
 
@@ -7623,6 +7624,7 @@ int main(int argc, char** args)
 	std::cout << "Can use \'swap\' to swap two character's initiative values." << std::endl;
 	std::cout << "Can use \'simple display\' or \'full display\' to change how much information is shown about each creature on the display." << std::endl;
 	std::cout << "Call \'info\' on a creature to display all information about it, even in simple display mode." << std::endl;
+	std::cout << "\n\'sort\' can rearrange initiatives of characters with specific flags to sort them in order by name." << std::endl;
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
