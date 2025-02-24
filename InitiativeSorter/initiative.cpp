@@ -22,7 +22,7 @@ it was intended to do.
 At first it started small - just hit point tracking. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? Just
 a quick'n'dirty hack to add one small feature. And for a short term micro-project, comments would just be a waste of time.
 But after one more week I realized I needed just a few more features to make it more useful, so I added a just few commands to rearrange initiatives.
-It was then that I should have overhauled the code...but surely THIS would be the last change, right?
+It was then that I should have overhauled the code...but surely this time it would be the last change, right?
 
 That was almost two years ago. Time and time again, I kept adding "just a little more", hack after hack, week by week, slowly growing it like a tumor.
 Now it's far too late.
@@ -1857,7 +1857,7 @@ void command_replacement(std::string& dummy_line)
 
 
 //Sorts the initiatives of the given creatures after sorting them by name
-void sort(std::list<creature>& creatures, const std::string& name)
+inline void sort(std::list<creature>& creatures, const std::string& name)
 {
 	if (creatures.size() < 2)
 		return;
@@ -4819,6 +4819,7 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line, bool ignore_initial_file_load)
 {
 	//std::sort(creatures.begin(), creatures.end());
+	std::string logfile_name = "log_" + std::to_string(time(NULL)) + ".txt";
 	creatures.sort();
 	index_t current_turn = 0;
 	size_t current_round = initial_round;
@@ -4971,7 +4972,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 
 		std::ofstream log_file;
-		log_file.open("log.txt", std::ofstream::out);
+		log_file.open(logfile_name, std::ofstream::out);
 		if (log_file.is_open() && log_file.good())
 		{
 			log_file << event_log;
