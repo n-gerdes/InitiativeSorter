@@ -4823,7 +4823,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	index_t current_turn = 0;
 	size_t current_round = initial_round;
 	event_log = "Began Round " + std::to_string(current_round) + "\n___________________________________________________________\n";
-	bool new_round = false;
+	bool new_round = true;
 	std::string previous_turn_creature_name = "";
 	creature* knocked_out_creature = nullptr;
 	std::string turn_msg = "";
@@ -4885,7 +4885,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 			}
 		};
-
+	bool first = true;
+	bool new_round2 = false;
 	save_buffer(); //To initialize the state buffers so they have a place to begin.
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
@@ -4918,13 +4919,24 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		//Then check if it should switch to a previous buffer-state
 		
-
+		
 		//END UNDO/REDO BUFFER STUFF
+		new_round2 = false;
 		if (new_round)
 		{
-			std::cout << "Start of a new round." << std::endl;
+			if (!first)
+			{
+				std::cout << "Start of a new round." << std::endl;
+				first = false;
+			}
+			
 			event_log += "\n\nRound " + std::to_string(current_round) + "\n\n";
+			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			{
+				event_log += get_info(i->get_raw_ptr(), current_turn, current_round, false);
+			}
 			new_round = false;
+			new_round2 = true;
 		}
 		std::cout << "Round " << current_round << std::endl << std::endl << std::endl;
 		int turn_count = 0; //Used to track the turn counts of each creature
@@ -4989,6 +5001,20 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						current_creature->adjust_hp(regen);
 						int new_hp = current_creature->get_hp();
 						regenerated_hp = new_hp - old_hp;
+					}
+
+					if (new_round2)
+					{
+						event_log += "It is now " + current_creature->get_name() + "\'s turn\n";
+					}
+					else
+					{
+						event_log += "It is " + current_creature->get_name() + "\'s turn\n";
+					}
+
+					if (!new_round2)
+					{
+						event_log += get_info(i->get_raw_ptr(), current_turn, current_round, false);
 					}
 				}
 			}
@@ -5117,7 +5143,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		std::getline(std::cin, dummy_line);
 		trim(dummy_line);
-		event_log += "\nEntered command: " + dummy_line + "\n";
+		if (dummy_line != "")
+			event_log += "\nEntered command: " + dummy_line + "\n";
+		else
+			event_log += "\nEntered command: next\n";
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
