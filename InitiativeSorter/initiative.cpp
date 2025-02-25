@@ -7317,28 +7317,33 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_name(new_name);
 					used_command = true;
 				}
+				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all") && !i->touched)
+				{
+					int roll = 1 + (rand() % 20);
+					i->set_initiative(roll + (i->get_initiative_modifier()));
+					i->touched = true;
+					if (i == (--creatures.end()))
+					{
+						used_command = true;
+						creatures.sort();
+					}
+					}
 				else if (
 					comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()) ||
 					comp_substring(lowercase_name + " reroll ", dummy_line, (lowercase_name + " reroll ").length()))
 				{
 					try {
-						int roll = 1 + (rand() % 20);
-						i->set_initiative( roll+(i->get_initiative_modifier()) );
-						creatures.sort();
-						used_command = true;
+						if (!i->touched)
+						{
+							int roll = 1 + (rand() % 20);
+							i->set_initiative(roll + (i->get_initiative_modifier()));
+							creatures.sort();
+							used_command = true;
+							i->touched = true;
+						}
 					}
 					catch (const std::exception& E) {
 
-					}
-				}
-				else if (dummy_line == "reroll all")
-				{
-					int roll = 1 + (rand() % 20);
-					i->set_initiative(roll + (i->get_initiative_modifier()));
-					if (i == (--creatures.end()))
-					{
-						used_command = true;
-						creatures.sort();
 					}
 				}
 				else if (dummy_line == "reset")
