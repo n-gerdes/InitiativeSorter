@@ -11,8 +11,8 @@ const static int		ALIASES_SHOWN = 2;
 //						Determines whether or not it shows a character's info when no other info is displayed.
 const static bool		SHOW_INFO_EACH_TURN = true;
 
-
-
+//						How long the program forces the user to wait on a complex character's turn before it lets the advance.
+const static int		SECONDS_WAITED = 3;
 
 
 /*
@@ -5149,7 +5149,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			
 			long long start_time = time(NULL);
 			long long current_time = time(NULL);
-			int SECONDS_WAITED = 3;
+			
 			while (current_time < (start_time + SECONDS_WAITED))
 			{
 				std::cout << "This character seems complex - take the time (at least " << SECONDS_WAITED << " secs) to resolve this turn carefully." << std::endl;
