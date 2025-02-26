@@ -5209,7 +5209,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 
 		}
-
+		dummy_line = "";
 		bool complex_character_delay = false;
 		if ((current_creature->flags.size() != 0 || current_creature->variables.size() != 0 || current_creature->get_reminder(false).size()!=0) && new_turn && !current_creature->has_flag("simple"))
 		{
@@ -5218,7 +5218,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			long long start_time = time(NULL);
 			long long current_time = time(NULL);
 			
-			while (current_time < (start_time + SECONDS_WAITED))
+			while (current_time < (start_time + SECONDS_WAITED) && dummy_line=="")
 			{
 				std::cout << "This character seems complex - take the time (at least " << SECONDS_WAITED << " secs) to resolve this turn carefully." << std::endl;
 				std::getline(std::cin, dummy_line);
