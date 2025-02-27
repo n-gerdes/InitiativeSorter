@@ -359,6 +359,41 @@ public:
 		}
 	}
 
+	void hide_var(const std::string& var_name)
+	{
+		if (has_var(var_name) && var_name.size() > 0 && (var_name[0] != '#'))
+		{
+			int val = get_var(var_name);
+			remove_var(var_name);
+			set_var("#" + var_name, val);
+		}
+	}
+
+	void show_var(std::string var_name)
+	{
+		if (has_var(var_name))
+		{
+			int val = get_var(var_name);
+			remove_var(var_name);
+			while(var_name[0] == '#' && var_name.size()>1)
+				var_name = var_name.substr(1);
+			set_var(var_name, val);
+		}
+
+	}
+
+	bool has_var(const std::string& var_name)
+	{
+		if (var_name.size() == 0)
+			return false;
+		else if (variables.count(var_name) != 0)
+			return true;
+		else if (variables.count("#" + var_name) != 0)
+			return true;
+		else
+			return false;
+	}
+
 	inline void set_reminder(const std::string& new_reminder)
 	{
 		reminder = new_reminder;
@@ -2383,156 +2418,225 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				
-				
-				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
+
+				else if (
+					comp_substring("hide " + lowercase_name, dummy_line, ("hide " + lowercase_name).length())
+					)
 				{
 					try {
-						std::string var = dummy_line.substr(lowercase_name.length() + 2);
-						if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
+						size_t start_length = lowercase_name.length() + 5;
+						std::string var = dummy_line.substr(start_length);
+						trim(var);
+						if (var.size() > 2 && var[0] == ':')
+							var = var.substr(1);
+						if (var.size() > 2 && var[0] == ':')
+							var = var.substr(1);
 
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
+						if (var.size() > 2 && var[0] == '.')
+							var = var.substr(1);
 
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
+						i->hide_var(var);
 
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
-							}
-
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if (space != std::string::npos)
-								var[space] = ' ';
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_DECREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_INCREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-							space = var.find(" ");
-
-						bool is_signed = false;
-						int val = 1;
-						if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-
-						var.resize(space);
-						switch (SET_TYPE)
-						{
-						case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
-						case VAR_SET: i->set_var(var, val); break;
-						case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-						default: throw;
-						}
 						used_command = true;
 					}
 					catch (const std::exception& E) {
 
 					}
+				}
+
+				else if (
+					comp_substring("show " + lowercase_name, dummy_line, ("show " + lowercase_name).length())
+					)
+					{
+						try {
+							size_t start_length = lowercase_name.length() + 5;
+							std::string var = dummy_line.substr(start_length);
+							trim(var);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+
+							if (var.size() > 2 && var[0] == '.')
+								var = var.substr(1);
+
+							i->show_var(var);
+
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
+						}
+				
+				
+				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
+				{
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 8 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 2);
+						var.resize(var.size() - 5);
+						i->hide_var(var);
+						used_command = true;
 					}
+					else if (dummy_line.size() >= 8 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 2);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
+					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 2);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
+							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_SET: i->set_var(var, val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							default: throw;
+							}
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
+					}
+					
+				}
 				else if (comp_substring("--" + lowercase_name + "::", dummy_line, ("--" + lowercase_name + "::").length()))
 				{
 					try {
@@ -2565,152 +2669,171 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				else if (comp_substring(lowercase_name + ".", dummy_line, (lowercase_name + ".").length()))
 				{
-					try {
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 7 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
-						if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
-							}
-
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if (space != std::string::npos)
-								var[space] = ' ';
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_DECREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_INCREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-							space = var.find(" ");
-
-						bool is_signed = false;
-						int val = 1;
-						if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-
-						var.resize(space);
-						switch (SET_TYPE)
-						{
-						case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
-						case VAR_SET: i->set_var(var, val); break;
-						case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-						default: throw;
-						}
+						var.resize(var.size() - 5);
+						i->hide_var(var);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
+					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 1);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
+					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 1);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
 
+							if (space == std::string::npos)
+							{
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
+							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_SET: i->set_var(var, val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							default: throw;
+							}
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
 					}
-					}
+					
+				}
 				else if (comp_substring("--" + lowercase_name + ".", dummy_line, ("--" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2741,152 +2864,170 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				else if (comp_substring(lowercase_name + ":", dummy_line, (lowercase_name + ":").length()))
 				{
-					try {
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 7 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
-						if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
-							}
-
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if (space != std::string::npos)
-								var[space] = ' ';
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_DECREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_INCREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-							space = var.find(" ");
-
-						bool is_signed = false;
-						int val = 1;
-						if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-
-						var.resize(space);
-						switch (SET_TYPE)
-						{
-						case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
-						case VAR_SET: i->set_var(var, val); break;
-						case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-						default: throw;
-						}
+						var.resize(var.size() - 5);
+						i->hide_var(var);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
+					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 1);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
+					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 1);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
 
+							if (space == std::string::npos)
+							{
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
+							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_SET: i->set_var(var, val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							default: throw;
+							}
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
 					}
-					}
+				}
 				else if (comp_substring("--" + lowercase_name + ":", dummy_line, ("--" + lowercase_name + ".").length()))
 				{
 					try {
@@ -2914,7 +3055,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-					}
+				}
 
 			}
 		}
@@ -6308,153 +6449,223 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 
 
+				else if (
+					comp_substring("hide " + lowercase_name, dummy_line, ("hide " + lowercase_name).length())
+					)
+					{
+						try {
+							size_t start_length = lowercase_name.length() + 5;
+							std::string var = dummy_line.substr(start_length);
+							trim(var);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+
+							if (var.size() > 2 && var[0] == '.')
+								var = var.substr(1);
+
+							i->hide_var(var);
+
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
+						}
+
+				else if (
+					comp_substring("show " + lowercase_name, dummy_line, ("show " + lowercase_name).length())
+					)
+					{
+						try {
+							size_t start_length = lowercase_name.length() + 5;
+							std::string var = dummy_line.substr(start_length);
+							trim(var);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+							if (var.size() > 2 && var[0] == ':')
+								var = var.substr(1);
+
+							if (var.size() > 2 && var[0] == '.')
+								var = var.substr(1);
+
+							i->show_var(var);
+
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
+						}
+
+
 				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
 				{
-					try {
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 8 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
-						if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
-							}
-
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if (space != std::string::npos)
-								var[space] = ' ';
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_DECREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_INCREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-							space = var.find(" ");
-
-						bool is_signed = false;
-						int val = 1;
-						if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-
-						var.resize(space);
-						switch (SET_TYPE)
-						{
-						case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
-						case VAR_SET: i->set_var(var, val); break;
-						case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-						default: throw;
-						}
+						var.resize(var.size() - 5);
+						i->hide_var(var);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					else if (dummy_line.size() >= 8 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 2);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
 					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 2);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
+							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_SET: i->set_var(var, val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							default: throw;
+							}
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
+					}
+
 					}
 				else if (comp_substring("--" + lowercase_name + "::", dummy_line, ("--" + lowercase_name + "::").length()))
 				{
@@ -6488,152 +6699,171 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				else if (comp_substring(lowercase_name + ".", dummy_line, (lowercase_name + ".").length()))
 				{
-					try {
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 7 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
-						if (var.size()>lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
+						var.resize(var.size() - 5);
+						i->hide_var(var);
+						used_command = true;
+					}
+					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 1);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
+					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 1);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
 
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
+							if (space == std::string::npos)
 							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
 							}
 
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
+							if (space == std::string::npos)
 							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
 							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if(space != std::string::npos)
-								var[space] = ' ';
-						}
-						
 
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
+							if (space == std::string::npos)
 							{
-								SET_TYPE = VAR_DECREMENT;
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
 							}
-						}
 
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
+							if (space == std::string::npos)
 							{
-								SET_TYPE = VAR_INCREMENT;
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
 							}
-						}
 
-						if (space == std::string::npos)
-							space = var.find(" ");
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
 
-						bool is_signed = false;
-						int val = 1;
-						if((SET_TYPE!=VAR_INCREMENT) && (SET_TYPE!=VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-						
-						var.resize(space);
-						switch (SET_TYPE)
-						{
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var)-val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
 							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
 							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
 							default: throw;
+							}
+							used_command = true;
 						}
-						used_command = true;
+						catch (const std::exception& E) {
+
+						}
 					}
-					catch (const std::exception& E) {
 
 					}
-				}
 				else if (comp_substring("--" + lowercase_name + ".", dummy_line, ("--" + lowercase_name + ".").length()))
 				{
 					try {
@@ -6647,7 +6877,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
+					}
 				else if (comp_substring("++" + lowercase_name + ".", dummy_line, ("++" + lowercase_name + ".").length()))
 				{
 					try {
@@ -6657,157 +6887,175 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var)+1);
+							i->set_var("#" + var, i->get_var("#" + var) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-				}
+					}
 				else if (comp_substring(lowercase_name + ":", dummy_line, (lowercase_name + ":").length()))
 				{
-					try {
+					int last = dummy_line.size() - 1;
+					if (dummy_line.size() >= 7 && dummy_line[last] == 'e' && dummy_line[last - 1] == 'd' && dummy_line[last - 2] == 'i' && dummy_line[last - 3] == 'h')
+					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
-						if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
-							var[lowercase_name.length()] = ' ';
-						int space = std::string::npos;
-						const int VAR_SET = 1;
-						const int VAR_ADD = 2;
-						const int VAR_SUB = 3;
-						const int VAR_INCREMENT = 4;
-						const int VAR_DECREMENT = 5;
-						int SET_TYPE = VAR_SET;
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" += ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("+=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_ADD;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" -= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 4);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-= ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-								SET_TYPE = VAR_SUB;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("-=");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 2);
-								SET_TYPE = VAR_SUB;
-							}
-
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find(" = ");
-							if (space != std::string::npos)
-							{
-								std::string prefix = var;
-								prefix.resize(space);
-								var = prefix + " " + var.substr(space + 3);
-							}
-						}
-						if (space == std::string::npos)
-						{
-							space = var.find("=");
-							if (space != std::string::npos)
-								var[space] = ' ';
-						}
-
-
-						if (space == std::string::npos)
-						{
-							space = var.find("--");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_DECREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-						{
-							space = var.find("++");
-							if (space != std::string::npos)
-							{
-								SET_TYPE = VAR_INCREMENT;
-							}
-						}
-
-						if (space == std::string::npos)
-							space = var.find(" ");
-
-						bool is_signed = false;
-						int val = 1;
-						if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-							val = get_number_arg(var, is_signed, creatures);
-
-						var.resize(space);
-						switch (SET_TYPE)
-						{
-						case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
-						case VAR_SET: i->set_var(var, val); break;
-						case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-						case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-						default: throw;
-						}
+						var.resize(var.size() - 5);
+						i->hide_var(var);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
+					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
+					{
+						std::string var = dummy_line.substr(lowercase_name.length() + 1);
+						var.resize(var.size() - 5);
+						i->show_var(var);
+						used_command = true;
+					}
+					else
+					{
+						try {
+							std::string var = dummy_line.substr(lowercase_name.length() + 1);
+							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
+								var[lowercase_name.length()] = ' ';
+							int space = std::string::npos;
+							const int VAR_SET = 1;
+							const int VAR_ADD = 2;
+							const int VAR_SUB = 3;
+							const int VAR_INCREMENT = 4;
+							const int VAR_DECREMENT = 5;
+							int SET_TYPE = VAR_SET;
 
+							if (space == std::string::npos)
+							{
+								space = var.find(" += ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("+=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_ADD;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" -= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_SUB;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("-=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_SUB;
+								}
+
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" = ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("=");
+								if (space != std::string::npos)
+									var[space] = ' ';
+							}
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find("--");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_DECREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
+								space = var.find("++");
+								if (space != std::string::npos)
+								{
+									SET_TYPE = VAR_INCREMENT;
+								}
+							}
+
+							if (space == std::string::npos)
+								space = var.find(" ");
+
+							bool is_signed = false;
+							int val = 1;
+							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
+								val = get_number_arg(var, is_signed, creatures);
+
+							var.resize(space);
+							switch (SET_TYPE)
+							{
+							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_SET: i->set_var(var, val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							default: throw;
+							}
+							used_command = true;
+						}
+						catch (const std::exception& E) {
+
+						}
 					}
 					}
 				else if (comp_substring("--" + lowercase_name + ":", dummy_line, ("--" + lowercase_name + ".").length()))
@@ -7139,7 +7387,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 
 
-				else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
+				else if (
+					comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length())
+					||
+					comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length())
+					)
 				{
 					try {
 						size_t start_length = ("rf " + lowercase_name + " ").length();
@@ -7152,36 +7404,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("fr " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
+				else if (
+					comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length())
+					||
+					comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length())
+					)
 				{
 					try {
 						size_t start_length = (lowercase_name + " rf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " fr ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
 						i->remove_flag(arg);
