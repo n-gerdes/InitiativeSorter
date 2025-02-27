@@ -350,6 +350,9 @@ log
 		-Higher number = more recent log.
    -Logs are saved to file in real time; can review it at any time outside of the tracker itself with another program.
 
+roll [dice expression]
+	-Will roll the dice in a given expression and read out the results. Notably the only command in the progrm that will accept a dice expression with spaces.
+
 hide [variable]
 	-Makes a character's variable "hidden" (only visible in the character list in full display mode).
 
@@ -393,7 +396,7 @@ By using "@flagname" in place of a character's name, it applies the command to e
 For example, "heal @pc max" will heal every character flagged with "pc" to their maximum hit points.
 
 Numbers can typically be substituted with character variables or even dice rolls.
-For example, "max_hp character2 5d10+10" will set character2's maximum hit points to a rolled value of 5d10+10.
+For example, "max_hp character2 5d10+10" will set character2's maximum hit points to a rolled value of 5d10+10. Notably, these dice roll expressions cannot include spaces, except in the "roll" command.
 If a die roll is used in a command that gets applied to multiple characters via flags, it will roll the dice separately for each character.
 For example, "max_hp @minion 3d10" will set the max hp of every minion to an independent roll of 3d10. One might have 15, another 20.
 Doing something like "@enemy::#gold=2d10" will set every enemy's hidden gold variable to an independent 2d10 roll.
