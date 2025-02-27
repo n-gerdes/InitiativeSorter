@@ -1,0 +1,404 @@
+INITIAL CHARACTER ENTRY
+When the program is first opened, you are brought to a command prompt. By typing entries, characters can be added to the initiative.
+Turn-order tracking doesn't start right away - first is only character entry.
+
+These entries start with the character name - which is mandatory and must always be included. Technically everything else is optional.
+Example:
+"character1" will add a character called "character1" to the initiative. "add character1" will do the same.
+Spaces are never permitted in character names. Most special characters aren't either, and no commands or keywords can be used either.
+No two characters can share names or aliases.
+
+By default a character has +0 as their initiative modifier.
+Simply typing a modifier somewhere in the character entry is enough to give it one.
+ 
+For example: "character1 +3" will ensure that the newly added "character1" has an initiative modifier of +3. It works for minuses too.
+
+Initiative values are automatically rolled if one isn't supplied when it's added to the initiative. 
+
+Adding a number to the character entry anywhere after the name gives it that value as its initiative.
+	For example: "character1 17" will make it so character1 has an initiative value of 17.
+
+Modifiers and initiative values can both be supplied for extra detail.
+	For example: "character1 +3 17" will add character1, with a supplied modifier of +3 and an initiative value of 17.
+
+Many more trackers can be added to a character when they're entered, or any time after.
+For example, hit points and armor class are both easily specified in the character entry.
+To enter extra data, simply use the 'data_name:value' format.
+For example, 'hp:100' will enable HP tracking for an added character, setting their initial hit points to 100.
+A current and maximum value can be supplied separately: "hp:current/maximum". For example: "hp:50/100".
+
+Armor class can be added in a similar way:
+"ac:15" would add an AC value of 15 to whatever character has that entry.
+
+The following is an example of a character with a modifier, hit points, and ac:
+"character1 +3 hp:50/100 ac:18"
+
+An initial amount of temporary hit points can also be added: "temp_hp:amount", "temp:amount", "thp:amount", "buffer:amount"
+Temporary hit points can be added or removed during initiative with commands.
+
+Characters can also have aliases and flags. 
+Aliases are a useful tool for allowing you to refer to a character by more than one name during initiative tracking.
+For example, you might have a character that can be referred to by "fighter" or "jack", and either will be accepted.
+A character can have as many aliases as desired.
+Add aliases during an initial character entry with "alias:alias1,alias2,...,aliasN".
+'aliases' can also be used instead of 'alias'.
+Aliases are separated by commas, and spaces are not permitted in alias names. Restrictions on names apply to aliases as well.
+No two characters can have the same name or alias.
+
+Flags can be added using "flags:flag1,flag2,...,flagN".
+Flags are like special tags or traits that can be added to characters to signify important information about them.
+Like aliases, flags are separated here by commas and cannot contain spaces. They can otherwise be anything you want.
+Characters either have a flag or they don't. Flags are useful for tracking conditions, recharged abilities, and more.
+The "simple" flag has a minor special purpose that will be detailed later. No other flag has any special purpose.
+
+The flags a character has will be displayed during turn tracking, except for "hidden" flags.
+A flag is made hidden if it starts with a '#'
+A "hidden" flag is still visible on a character's full information readout, and on the character turn list only while in 'full display mode'.
+However, if the display mode is set to 'simple', then hidden flags are only shown on a character's full information readout, not on the character turn list.
+Hiding flags is a good way to reduce visual clutter during turn tracking, without losing their functionality.
+Hidden flags start with a '#' symbol when initially entered, but do not include the pound sign thereafter.
+	Trying to refer to a flag with the pound sign included will fail.
+
+Commands can also be applied to groups of characters at once as long as they share a common flag.
+For example, if every player character has a 'pc' flag, then it's possible to enter commands that will affect every player character at once.
+
+
+
+Characters with hit point tracking can also be configured to automatically regenerate at the start of their turn, if desired.
+Simply use "regen:amount" during the character entry.
+
+Any trait that can be added during character entry can be added or removed later with commands.
+Avoid accidentally adding two of the same traits during entry.
+For example: "character flags:flag1 flags:flag2" will cause an error. Instead, simply do "character flags:flag1,flag2"
+
+The order you add tracking features in doesn't matter. "ac:15 hp:64" will work just as well as "hp:64 ac:15".
+
+Characters can be removed with "rm [character]". This will delete the character entry.
+"clear" at this time will erase all characters and give you a clean slate.
+
+Adding the party and all of their appropriate data every time would be tedious.
+To save time, you can write out all of the entries in text files and load the files with "load" or "ld".
+For example: "load party.txt" will load all of the entries from 'party.txt'. 
+To ensure it loads correctly, make sure the program is running in the same directory as the file.
+Alternatively, you can specify the whole file path instead.
+If you want to change the working directory of the program after it starts, use "cd new/file/path" or "wd new/file/path".
+These paths are relative to the program itself by default, but an absolute path will work as well.
+To reset the working directory, you can type "cd" without a path. This resets it to the program's directory.
+"wd" by itself with no path will print out the current working directory, instead of resetting it.
+
+If desired, keep all of the files relevent to a campaign in a dedicated folder. 
+This is good organization, and makes it easier to keep them from getting mixed up. 
+For example: "party.txt" for one group or campaign will have different contents than the "party.txt" file of another.
+By separating them, you can keep the name consistent without mixing them up.
+
+Characters can be assigned variables. Variables can't be added during initial entry, but can be added/modified with commands after.
+Variables can be used to helpfully track many arbitrary values for a character. Encumbrance, treasure, spell slots - you name it.
+Variables are added to a character by simply setting their value.
+To set the value, use 'character.variable_name = value'
+	-Can use a colon (':') in place of the period. Two colons work as well ('::').
+		-For example, 'Jane::gold = 15' will set Jane's gold variable to 15.
+
+If a variable name includes a pound sign symbol at the beginning ("#"), then it's a "hidden" variable.
+Like hidden flags, hidden variables are not shown on the character list in simple display mode.
+They can still be seen in full display mode, or in a character's full information readout.
+Unlike hidden flags, hidden variables can be referenced with or without the "#". Whether it's hidden or not depends on how it's set for the first time.
+For example, "character::#gold = 15" and "character::gold = 15" will both work.
+If you want to show or hide a hidden variable, the commands "show" and "hide" can do that.
+
+TURN TRACKING
+Once you've finished adding characters, you can begin tracking turns. Type "go" to start. "start", "begin", and "done" work too.
+Combat starts one round 1, starting with the very first character's turn.
+Pressing "enter" without typing any commands will allow you to advance to the next character's turn.
+If a character is detected as complex, the program will not let you advance more quickly than one turn every three seconds.
+This helps
+
+During tracking, you can use many commands to alter the state of the combat. 
+For example, "hurt [character] 5" would deal 5 damage to the specified character if they have HP tracking enabled.
+
+Sometimes you forget to add something to initiative before starting turn tracking, or realize you want to add another character later.
+You can add new characters exactly the same way as usual, except you must use the "add" command during turn tracking (whereas the keyword is optional during initial entry).
+
+For example: "add new_guy +3 15 hp:97 ac:16 flags:ally,npc aliases:ng,guy".
+
+You can also load from files during turn tracking, just as you would during initial entry.
+Luckily you don't have to - the "load" command works here as well. The "add" keyword is optional when loading from files this way, even though it usually isn't during turn tracking.
+Commands present in a loaded file will be executed. This can be used to implement more complex behavior - such as randomizing enemy hp on load.
+
+If the session ends in the middle of a combat, you probably don't want to manually re-enter the data next time (or keep it until then).
+Luckily you don't have to. The "save" command will write the current state of the program to a file.
+A file created via "save" can be loaded with the "load" command later, and the program will recreate everything exactly as it was.
+For example: "save state" at the end of one session, and then "load state" when you start the next.
+A file extension is optional here. "save state" and "load state" will work exactly as written, but you can name the file anything.
+"savet" or "savec" is a variant of the "save" command.
+When a file is created with "savec" or "savet" it will hold the data for the characters, but not include a directive to delete existing characters or set the turn/round number.
+Consequently, it's good for saving an encounter that can be loaded on top of an existing combat without resetting the state of the whole program.
+This can be used for reinforcements, or other purposes.
+
+Character variables can be used exactly the same in turn tracking as they can during entry.
+
+Following is a list of master commands:
+
+turn [character]
+visit [character]
+goto [character]
+trn [character]
+go [character]
+	-Will set the current turn to the specified character, without changing the round number.
+
+round [number]
+	-Will set the current round number.
+
+mod [character] [modifier]
+md [character] [modifier]
+	-Sets a character's initiative modifier.
+
+move [character] [initiative]
+mv [character] [initiative]
+m [character] [initiative]
+init [character] [initiative]
+int [character] [initiative]
+i [character] [initiative]
+	-Will move the character to the specified initiative.
+	-Using the 'i' variant only works if a number is specified. If no number is given, it instead acts as an alias for the 'info' command (see next).
+
+query [character]
+info [character]
+i [character]
+	-Shows a character's full information readout. All information is displayed - including hidden traits - even in simple display mode.
+	-'i [character]' only shows a character's info if no number is given to the command - otherwise it changes their initiative value.
+
+
+alias [character] [alias]
+al [character] [alias]
+as [character] [alias]
+	-Adds the specified alias to the given character.
+	-All restrictions that apply to names (no special characters, no spaces, no keywords, etc) apply to aliases.
+
+ra [character] [alias]
+	-Removes the specified alias from the specified character
+
+
+
+sort [characters]
+	-Use @flagname to apply this to all characters with a specific flag.
+	-Rearranges the initiatives of all applied characters to sort their turns by name.
+	-Sorts alphanumerically.
+	-Useful for sorting a group of similarly named minions who differ only by numbers. i.e., "minion1", "minion2", etc.
+		-Would put minion1 first, minion2 second, minion3 third, etc.
+	-No initiative values are created or destroyed - only rearranged.
+
+clone [character] [number]
+	-Clones the specified character the specified number of times. Will create one clone if no number is given.
+	-Useful for building encounters. If multiple of an enemy occur, a "template" can be created, and then cloned to add more of them.
+	-They're automatically named in order of their relative turns. Aliases are as well. Duplicate names/aliases will never occur.
+		-"clone minion 3" will create "minion1", "minion2", minion3", and they'll be placed in initiative to act in that order.
+			-Initiatives are rolled fairly. Clones are not guaranteed to act consecutively, but their RELATIVE order is correct.
+	
+
+save [filename]
+	-Will save the state of the program to the specified file.
+	-Can specify a directory, but uses the program's directory as a default. Can set the working directory with "cd" or "wd" too.
+
+savec [filename]
+savet [filename]
+	-Will save the list of existing characters to the specified file, but not any other data about the state of the program.
+	-Loading this file later will add the characters in it to the existing context, but not delete any other characters.
+	-Can specify a directory, but uses the program's directory as a default. Can set the working directory with "cd" or "wd" too.
+
+load [filename]
+	-Loads entries/commands from a file. These files can be handwritten, or produced via the "save" command.
+	-Can specify a directory, but uses the program's directory as a default. Can set the working directory with "cd" or "wd" too.
+
+ac [character] [amount]
+	-Lets you change a character's AC to a particular amount. Setting it to 0 disables AC tracking.
+
+reroll [character]
+	-Reroll a character's initiative, using their initiative modifier.
+
+swap [character1] [character2]
+	-Swap the initiative values of two characters, thus switching their turn orders.
+
+temp_hp [character] [amount]
+temphp [character] [amount]
+thp [character] [amount]
+buffer [character] [amount]
+temp [character] [amount]
+t [character] [amount]
+	-Sets the specified character's temp hp.
+
+health [character] [amount]
+hp [character] [amount]
+	-Sets the character's hp. For characters without hp tracking enabled, this enables it and sets both hp and max hp.
+	-For characters who already have hp tracking, this changes their current hp without changing their max hp.
+
+max_health [character] [amount]
+max_hp [character] [amount]
+	-Sets the character's max_hp. For characters without hp tracking enabled, this enables it and sets both hp and max hp.
+
+regen [character] [amount]
+	-Sets the character's regeneration amount.
+	-Characters heal by the specified amount automatically at the start of their turn.
+	-Can be set to negative numbers to represent "bleed" effects.
+
+disable [character]
+	-Temporarily disables a character's regeneration. On their next turn it won't be applied. Following that it is no longer disabled.
+
+heal [character] [amount]
+	-Heals the specified character by the specified amount.
+	-Putting 'all' or '@all' for the character applies the specified healing to every character.
+	-Putting 'max' or 'all' for the amount heals the character(s) to their maximum hp.
+
+hurt [character] [amount]
+	-Deals the specified amount of damage to the character.
+	-Putting 'all' or '@all' for the character applies the specified damage to every character.
+	-Putting 'max' or 'all' for the amount simply reduces the affected character(s) to 0 hp.
+
+dmg [character] [amount]
+hurt [character] [amount]
+harm [character] [amount]
+damage [character] [amount]
+	-Deals the specified damage to the specified character.
+	-Variations exist; including 'r' or 'h' at the end of the command word (as a part of the command word) causes it to count as resistance/halved.
+		-i.e., "hurtr character 5" deals half of the specified damage, rounded down. This would subtract 2 hit points from the character.
+		-'v' and 'd' count as vulnerability or doubling of damage. 'hurtv character 5' would subtract 10 hit points from the character.
+
+kill [character]
+rm [character]
+remove [character]
+	-Removes the specified character(s) from the tracker.
+
+keep [character]
+	-Deletes all characters except the one specified.
+	-Since commands applying to an individual character can also be applied to groups, you can use this to keep a group as well.
+
+add_flag [character] [flag]
+addf [character] [flag]
+adf [character] [flag]
+f [character] [flag]
+adflg [character] [flag]
+adlf [character] [flag]
+adfl [character] [flag]
+flag [character] [flag]
+	-Adds the specified flag to the specified character(s)
+	-Write a '#' symbol at the beginning of a flag name to make it "hidden".
+		-Hidden flags are only displayed in a character's full information readout, or in full display mode.
+		-Hidden flags are not shown in the character list if the program is set to simple display mode.
+		-Hidden flag names don't actually include the '#' once added. Trying to refer to a flag with one will fail. Refer to it normally.
+	-Write a '_' underscore symbol at the beginning of the flag name to make it temporary. 
+		-A temporary flag deletes itself at the start of the character's turn.
+		-The '_' underscore symbol IS included in the flag name. If you need to refer to the flag, be sure to include it.
+		-Useful for tracking which characters have used reactions. '_r' is the recommended flag for this purpose.
+		-If a flag is both hidden and temporary, the order of the pound sign and underscore symbols does not matter.
+
+	-"tflag", "tfalg", "talfg", and "tf" are variants that automatically start the flag name with an underscore, making them temporary.
+		-Many typos of this variant are implemented as aliases, so getting it right isn't usually critical.
+
+rf [character] [flag]
+rmf [character] [flag]
+frm [character] [flag]
+fr [character] [flag]
+rflag [character] [flag]
+flagr [character] [flag]
+rmflag [character] [flag]
+flagrm [character] [flag]
+	-Removes the specified flag from the character.
+
+rv [character] [variable]
+	-Removes a variable from a character.
+
+cleanup
+clean
+   -Deletes all characters with 0 hit points.
+
+
+undo
+u
+   -Undoes the last action performed. Can undo up to 20 steps by default.
+
+redo
+r
+   -Reverses an 'undo'
+
+reminder [character] [reminder text]
+	-Will set a character reminder. 
+	-The reminder is displayed in a character's full information readout, and at the bottom of the screen during their turn.
+	-'\n' lets you add line seperators.
+	-Giving no text will simply clear the character of any note text.
+	-Text can be anything.
+
+note [character] [note text]
+notes [character] [note text]
+	-Sets a character's note text. This is only displayed in a character's full information readout.
+	-'\n' lets you add line separators.
+	-Giving no text will simply clear the character of any note text.
+	-Text can be anything.
+
+cd [directory]
+	-Change the working directory.
+	-Writing "cd" without giving a directory simply resets the working directory to the program's own directory.
+	-Working directory is where "save" and "load" work.
+
+wd [directory]
+	-Change the working directory.
+	-Writing "cd" without giving a directory will instead read out the current working directory.
+	-Working directory is where "save" and "load" work.
+
+log
+   -Will print out the current log of events. Can grow to be quite long.
+   -Logs are automatically saved to the program's directory (NOT the working directory as set by "cd" and "wd").
+	-Always follow the format of "log[numbers].txt"
+		-Higher number = more recent log.
+   -Logs are saved to file in real time; can review it at any time outside of the tracker itself with another program.
+
+hide [variable]
+	-Makes a character's variable "hidden" (only visible in the character list in full display mode).
+
+show [variable]
+	-Makes a character's variable shown (visible in the character list even in simple display mode).
+
+full display mode
+full display
+fdisp
+...
+show
+showall
+    -Set program to full display mode.
+	-Full display mode shows the maximum amount of information on the character list. Can get cluttered.
+    -Many aliases for this command exist. You don't really have to think about it, just type something that makes some sense.
+
+simple display mode
+simple mode
+hideall
+hide
+...
+sdisp
+    -Set program to simple display mode
+	-Simple display mode hides certain things from the character list. Helps keep the display tidy and streamlined.
+	-Many aliases for this command exist. You don't really have to think about it, just type something that makes some sense.
+
+quit
+end
+finish
+stop
+terminate
+done
+	-Ends the program. Remember to save state if you wish to return to it later!
+
+Commands given here follow the format of "command [character]", but nearly all of them accept "[character] command" as well.
+For example, "spider clone 5" is equivalent to "clone spider 5".
+
+When a command calls for a character, you can instead apply it to a set of characters. 
+Flags can be used to create groups of characters that commands can act on all at once.
+By using "@flagname" in place of a character's name, it applies the command to every character with that flag.
+For example, "heal @pc max" will heal every character flagged with "pc" to their maximum hit points.
+
+Numbers can typically be substituted with character variables or even dice rolls.
+For example, "max_hp character2 5d10+10" will set character2's maximum hit points to a rolled value of 5d10+10.
+If a die roll is used in a command that gets applied to multiple characters via flags, it will roll the dice separately for each character.
+For example, "max_hp @minion 3d10" will set the max hp of every minion to an independent roll of 3d10. One might have 15, another 20.
+Doing something like "@enemy::#gold=2d10" will set every enemy's hidden gold variable to an independent 2d10 roll.
+
+'@current' will apply it to the character whose turn it is.
+'@all' will apply the command to all characters. Select commands accept 'all' without the '@' symbol as well.
+
+Simply typing a character's name with no other command is equivalent to using the 'turn' command.

@@ -1750,6 +1750,16 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 
 void command_replacement(std::string& dummy_line)
 {
+	if (dummy_line == "full display mode")
+	{
+		dummy_line = "full display";
+		return;
+	}
+	if (dummy_line == "simple display mode")
+	{
+		dummy_line = "simple display";
+		return;
+	}
 	if (dummy_line == "complex display")
 	{
 		dummy_line = "full display";
@@ -7984,45 +7994,8 @@ int main(int argc, char** args)
 	std::list<creature> creatures; //Create a list to hold the creature data in
 
 	//Display help instructions
-	std::cout << "When prompted, add creatures by giving its name, initiative, and modifier. The name must be one word." << std::endl;
-	std::cout << "The initiative and modifier must be separated by a space (i.e., \"Rogue 17 +6\")" << std::endl;
-	std::cout << "When you're done entering creatures, type \'done\' to finish (not case sensitive)" << std::endl;
-	std::cout << "When you're tracking initiatives, pressing the \'Enter\' key will advance the initiative counter." << std::endl;
-	std::cout << std::endl;
-	std::cout << "You can also make it roll initiatives for you by telling it a modifier instead of a roll" << std::endl;
-	std::cout << "(i.e., \"Barbarian +3\")" << std::endl;
-	std::cout << std::endl;
-	std::cout << "Add HP:[Hit Points] or HP:[Current HP]/[Max HP] to enable optional HP tracking." << std::endl;
-	std::cout << "Creatures with HP tracking enabled can be hurt or healed with their corresponding commands (\'hurt\' & \'heal\')" << std::endl;
-	std::cout << std::endl;
-	std::cout << "You can also set a creature's HP with the \'hp\' command." << std::endl;
-	std::cout << std::endl;
-	std::cout << "You must manually kill creatures with 0 HP via the \'kill\' command." << std::endl;
-	std::cout << std::endl << std::endl;
-	std::cout << "Flags can be specified when adding creatures with the 'flags:' modifier. Flags are comma-separated and do not permit\nspaces." << std::endl;
-	std::cout << "Flags can also be added or removed with 'flag', 'rmflag', and other variations." << std::endl;
-	std::cout << "Can also track temp hp, as well as automatic regeneration with \'temp\' and \'regen\'" << std::endl;
-	std::cout << "The \'disable\' command temporarily disables a creature\'s regeneration for one round" << std::endl;
-	std::cout << std::endl << "Use \'roll [dice pattern]\' to tell the program to roll dice and tell you the output." << std::endl;
-	std::cout << "A die pattern (with no spaces) can also be used in most numerical inputs to roll dice instead." << std::endl;
-	std::cout << "\tIf the command applies to multiple creatures, it typically rolls each one separately." << std::endl;
-	std::cout << std::endl << std::endl;
-	std::cout << "Save the state of the encounter with \'save [filename]\', and load it again later with \'load [filename]\'" << std::endl;
-	std::cout << "\t\'savec\' or \'savet\' saves the creatures, but does not remove existing characters or set the round number when\n\tloaded." << std::endl;
-	std::cout << std::endl;
-	std::cout << "Use \'clone\' to clone a character and add them to the tracker. Can also specify how many clones to make." << std::endl << std::endl;
-	std::cout << "\'flag\' can be used to add flags to a character. \'rf\' can be used to remove them." << std::endl;
-	std::cout << "Starting a flag with an underscore (\'_\') makes it a temporary flag that gets deleted at the start of the character's\nnext turn.\n";
-	std::cout << "When referencing characters, use either their name or '@flag' to reference all characters with a given flag.\n@all references all characters.\n";
-	std::cout << "@current refers to the character currently taking their turn.";
-	std::cout << std::endl << std::endl;
-	std::cout << "\'clean\' or \'cleanup\' removes every character with 0 hp from the turn order.";
-	std::cout << std::endl << std::endl;
-	std::cout << "\'rm\' can be used to remove addressed creature(s). \'keep\' removes all except the addressed creature(s)." << std::endl;
-	std::cout << "Can use \'swap\' to swap two character's initiative values." << std::endl;
-	std::cout << "Can use \'simple display\' or \'full display\' to change how much information is shown about each creature on the display." << std::endl;
-	std::cout << "Call \'info\' on a creature to display all information about it, even in simple display mode." << std::endl;
-	std::cout << "\n\'sort\' can rearrange initiatives of characters with specific flags to sort them in order by name." << std::endl;
+	std::cout << "Program started, begin character entries below. See \"instrunctions.txt\" for help." << std::endl;
+
 	const static bool PROMPT_FILE_LOAD = false;
 	
 	std::string line; //A place to store input from the keyboard
