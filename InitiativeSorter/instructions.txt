@@ -359,6 +359,9 @@ hide [variable]
 show [variable]
 	-Makes a character's variable shown (visible in the character list even in simple display mode).
 
+rename [character] [new_name]
+	-Rename a character.
+
 full display mode
 full display
 fdisp
