@@ -50,6 +50,7 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 
 std::string wd = ""; //Working directory to load files from
 
+
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
 static int initial_round = 1; //Global variables are a bad practice
@@ -1945,6 +1946,21 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_all(dummy_line, "notes", "note", true, false);
 }
 
+std::list<std::list<creature>> creatures_buffer;
+std::list<bool> new_round_buffer;
+std::list<std::string> turn_msg_buffer;
+std::list<index_t> current_turn_buffer;
+std::list<size_t> current_round_buffer;
+std::list<bool> display_mode_buffer;
+std::list<std::string> wd_buffer;
+
+std::list<std::list<creature>>::iterator creatures_buffer_iterator;
+std::list<bool>::iterator new_round_buffer_iterator;
+std::list<std::string>::iterator turn_msg_buffer_iterator;
+std::list<index_t>::iterator current_turn_buffer_iterator;
+std::list<size_t>::iterator current_round_buffer_iterator;
+std::list<bool>::iterator display_mode_buffer_iterator;
+std::list<std::string>::iterator wd_buffer_iterator;
 
 //Sorts the initiatives of the given creatures after sorting them by name
 inline void sort(std::list<creature>& creatures, const std::string& name)
@@ -1996,10 +2012,73 @@ inline void sort(std::list<creature>& creatures, const std::string& name)
 
 	creatures.sort();
 }
-
+const static int STATE_NODO = 0;
+const static int STATE_UNDO = 1;
+const static int STATE_REDO = 2;
+static int get_creature_buffer_manipulation_state = STATE_NODO;
 //Process command/add a creature, and return whether or not a creature was added.
 inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory, bool initial_execution)
 {
+	auto save_buffer = [&]() -> void
+		{
+			//std::cout << "SAVING BUFFER\n";
+			if (get_creature_buffer_manipulation_state == STATE_NODO && initial_execution)
+			{
+				creatures_buffer.push_front(creatures);
+				new_round_buffer.push_front(false);
+				turn_msg_buffer.push_front("turn_msg");
+				current_turn_buffer.push_front(0);
+				current_round_buffer.push_front(0);
+				display_mode_buffer.push_front(simple_display);
+				wd_buffer.push_front(wd);
+
+				creatures_buffer_iterator = creatures_buffer.begin();
+				new_round_buffer_iterator = new_round_buffer.begin();
+				turn_msg_buffer_iterator = turn_msg_buffer.begin();
+				current_turn_buffer_iterator = current_turn_buffer.begin();
+				current_round_buffer_iterator = current_round_buffer.begin();
+				display_mode_buffer_iterator = display_mode_buffer.begin();
+				wd_buffer_iterator = wd_buffer.begin();
+				if (creatures_buffer.size() > MAX_UNDO_STEPS)
+				{
+					creatures_buffer.pop_back();
+					new_round_buffer.pop_back();
+					turn_msg_buffer.pop_back();
+					current_turn_buffer.pop_back();
+					current_round_buffer.pop_back();
+					display_mode_buffer.pop_back();
+					wd_buffer.pop_back();
+				}
+				//std::cout << "Saved buffer\n";
+			}
+		};
+
+	if (initial_execution)
+	{
+		if (wd_buffer.size() == 0)
+			save_buffer();
+
+		if (get_creature_buffer_manipulation_state == STATE_NODO)
+		{
+			while (creatures_buffer_iterator != creatures_buffer.begin()) //Once a non redo/undo command is executed, the current buffer - whichever it is - becomes current
+			{
+				creatures_buffer.pop_front();
+				new_round_buffer.pop_front();
+				turn_msg_buffer.pop_front();
+				current_turn_buffer.pop_front();
+				current_round_buffer.pop_front();
+				display_mode_buffer.pop_front();
+				wd_buffer.pop_front();
+			}
+		}
+		else
+		{
+			creatures = *creatures_buffer_iterator;
+			simple_display = *display_mode_buffer_iterator;
+			wd = *wd_buffer_iterator;
+
+		}
+	}
 	//takes_commands = true;
 	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
@@ -2052,6 +2131,55 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	command_replacement(dummy_line);
 	if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 		exit(0);
+
+	
+	if (initial_execution)
+	{
+
+		get_creature_buffer_manipulation_state = STATE_NODO; //Default buffer manipulation state for commands
+
+		if (dummy_line == "undo" || dummy_line == "u")
+		{
+			get_creature_buffer_manipulation_state = STATE_UNDO;
+			//Increment buffer iterators
+			if (creatures_buffer_iterator != (--creatures_buffer.end()))
+			{
+				++creatures_buffer_iterator;
+				++new_round_buffer_iterator;
+				++turn_msg_buffer_iterator;
+				++current_turn_buffer_iterator;
+				++current_round_buffer_iterator;
+				++display_mode_buffer_iterator;
+				++wd_buffer_iterator;
+			}
+			return false;
+		}
+		else if (dummy_line == "redo" || dummy_line == "r")
+		{
+			get_creature_buffer_manipulation_state = STATE_REDO;
+			if (creatures_buffer_iterator != creatures_buffer.begin())
+			{
+				//Decrement buffer iterators
+				--creatures_buffer_iterator;
+				--new_round_buffer_iterator;
+				--turn_msg_buffer_iterator;
+				--current_turn_buffer_iterator;
+				--current_round_buffer_iterator;
+				--display_mode_buffer_iterator;
+				--wd_buffer_iterator;
+			}
+			return false;
+		}
+		else if (dummy_line.size() > 5 && dummy_line[0] == 's' && dummy_line[1] == 'o' && dummy_line[2] == 'r' && dummy_line[3] == 't' && dummy_line[4] == ' ')
+		{
+			std::string arg = dummy_line.substr(4);
+			trim(arg);
+			sort(creatures, arg);
+			used_command = true;
+			save_buffer();
+			return false;
+		}
+	}
 
 	if ((dummy_line.size() > 3) && dummy_line[2] == ' ' && dummy_line[1] == 'd' && (dummy_line[0] == 'c' || dummy_line[0] == 'w'))
 	{
@@ -2119,7 +2247,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						used_command = true;
 						i->touched = true;
 						i = creatures.begin();
-						//return false;
 					}
 					catch (const std::exception& E) {
 
@@ -2133,7 +2260,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 						i->touched = true;
-						//return false;
 						i = creatures.begin();
 					}
 					catch (const std::exception& E) {
@@ -2146,7 +2272,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					used_command = true;
 					i->touched = true;
 					i = creatures.begin();
-					//return false;
 				}
 				else if (comp_substring(lowercase_name + " clone", dummy_line, (lowercase_name + " clone").length()))
 				{
@@ -2154,7 +2279,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					used_command = true;
 					i->touched = true;
 					i = creatures.begin();
-					//return false;
 				}
 
 				else if (comp_substring(lowercase_name + " tf ", dummy_line, (lowercase_name + " tf ").length()))
@@ -3140,6 +3264,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					++rmc;
 				}
 			}
+			save_buffer();
 			return false;
 		}
 
@@ -3164,6 +3289,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					++rmc;
 				}
 			}
+			save_buffer();
 			return false;
 		}
 
@@ -3940,7 +4066,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 
 						if (i == (--creatures.end()))
+						{
+							save_buffer();
 							return false;
+						}
 
 					}
 					catch (const std::exception& E) {
@@ -4657,6 +4786,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
+				save_buffer();
 				return false;
 			}
 		}
@@ -4697,6 +4827,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
+				save_buffer();
 				return false;
 			}
 		}
@@ -4889,6 +5020,20 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 	}
 
+	if (used_command && initial_execution)
+	{
+		while (creatures_buffer_iterator != creatures_buffer.begin())
+		{
+			creatures_buffer.pop_front();
+			new_round_buffer.pop_front();
+			turn_msg_buffer.pop_front();
+			current_turn_buffer.pop_front();
+			current_round_buffer.pop_front();
+			display_mode_buffer.pop_front();
+			wd_buffer.pop_front();
+		}
+	}
+	save_buffer();
 	return added_creature;
 }
 
@@ -4908,13 +5053,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 std::string event_log = "";
 const static char LOG_HEADER_CHAR = 9;
-
-std::list<std::list<creature>> creatures_buffer;
-std::list<bool> new_round_buffer;
-std::list<std::string> turn_msg_buffer;
-std::list<index_t> current_turn_buffer;
-std::list<size_t> current_round_buffer;
-std::list<bool> display_mode_buffer;
 
 std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg)
 {
@@ -5067,17 +5205,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		current_turn = init_turn_setter;
 	}
-	const static int STATE_NODO = 0;
-	const static int STATE_UNDO = 1;
-	const static int STATE_REDO = 2;
+	
 	int buffer_manipulation_state = STATE_NODO;
 	bool file_load_disable = ignore_initial_file_load;
-	std::list<std::list<creature>>::iterator creatures_buffer_iterator;
-	std::list<bool>::iterator new_round_buffer_iterator;
-	std::list<std::string>::iterator turn_msg_buffer_iterator;
-	std::list<index_t>::iterator current_turn_buffer_iterator;
-	std::list<size_t>::iterator current_round_buffer_iterator;
-	std::list<bool>::iterator display_mode_buffer_iterator;
+	
 	bool new_turn = true;
 	auto save_buffer = [&]() -> void
 		{
@@ -5090,6 +5221,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_turn_buffer.push_front(current_turn);
 				current_round_buffer.push_front(current_round);
 				display_mode_buffer.push_front(simple_display);
+				wd_buffer.push_front(wd);
 
 				creatures_buffer_iterator = creatures_buffer.begin();
 				new_round_buffer_iterator = new_round_buffer.begin();
@@ -5097,6 +5229,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_turn_buffer_iterator = current_turn_buffer.begin();
 				current_round_buffer_iterator = current_round_buffer.begin();
 				display_mode_buffer_iterator = display_mode_buffer.begin();
+				wd_buffer_iterator = wd_buffer.begin();
 				if (creatures_buffer.size() > MAX_UNDO_STEPS)
 				{
 					creatures_buffer.pop_back();
@@ -5105,11 +5238,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					current_turn_buffer.pop_back();
 					current_round_buffer.pop_back();
 					display_mode_buffer.pop_back();
+					wd_buffer.pop_back();
 				}
 			}
 		};
 	bool first = true;
 	bool new_round2 = false;
+	creatures_buffer.clear();
+	new_round_buffer.clear();
+	turn_msg_buffer.clear();
+	current_turn_buffer.clear();
+	current_round_buffer.clear();
+	display_mode_buffer.clear();
+	wd_buffer.clear();
 	save_buffer(); //To initialize the state buffers so they have a place to begin.
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
@@ -5117,7 +5258,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		//BEGIN UNDO/REDO BUFFER STUFF
 		
 		
-		//First save the current state of the program to the buffer.
+		//Check buffer state and manipulate accordingly
 		if (buffer_manipulation_state == STATE_NODO)
 		{
 			while (creatures_buffer_iterator != creatures_buffer.begin()) //Once a non redo/undo command is executed, the current buffer - whichever it is - becomes current
@@ -5128,6 +5269,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_turn_buffer.pop_front();
 				current_round_buffer.pop_front();
 				display_mode_buffer.pop_front();
+				wd_buffer.pop_front();
 			}
 		}
 		else
@@ -5138,11 +5280,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			current_turn = *current_turn_buffer_iterator;
 			current_round = *current_round_buffer_iterator;
 			simple_display = *display_mode_buffer_iterator;
+			wd = *wd_buffer_iterator;
+
 		}
 
-		//Then check if it should switch to a previous buffer-state
-		
-		
 		//END UNDO/REDO BUFFER STUFF
 		new_round2 = false;
 		if (new_round)
@@ -5416,6 +5557,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				++current_turn_buffer_iterator;
 				++current_round_buffer_iterator;
 				++display_mode_buffer_iterator;
+				++wd_buffer_iterator;
 			}
 			continue;
 		}
@@ -5431,7 +5573,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				--current_turn_buffer_iterator;
 				--current_round_buffer_iterator;
 				--display_mode_buffer_iterator;
-				
+				--wd_buffer_iterator;
 			}
 			continue;
 		}
@@ -5516,6 +5658,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_turn_buffer.pop_front();
 				current_round_buffer.pop_front();
 				display_mode_buffer.pop_front();
+				wd_buffer.pop_front();
 			}
 		}
 		
@@ -6511,7 +6654,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						catch (const std::exception& E) {
 
 						}
-						}
+					}
 
 
 				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
