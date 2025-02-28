@@ -2308,24 +2308,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
-				else if (comp_substring("rv " + lowercase_name + " ", dummy_line, ("rv " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("dv " + lowercase_name + " ").length();
-						std::string trunc = dummy_line.substr(3);
-						//std::cout << "TRUNC=" << trunc << std::endl;
-						int loc = trunc.find(" ");
-						std::string var = trunc.substr(loc);
-						trim(var);
-						i->remove_var(var);
-
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
 				else if (((lowercase_name + " note") == dummy_line) || (dummy_line == ("note " + lowercase_name)))
 				{
 					i->set_note("");
@@ -2344,6 +2326,59 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(reminder);
 					i->set_note(reminder);
 					used_command = true;
+				}
+
+				else if (comp_substring("rv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + "::").length()))
+				{
+					try {
+						size_t start_length = ("dv " + lowercase_name + "::").length();
+						std::string trunc = dummy_line.substr(3);
+						//std::cout << "TRUNC=" << trunc << std::endl;
+						int loc = trunc.find("::");
+						std::string var = trunc.substr(loc + 2);
+						trim(var);
+						i->remove_var(var);
+
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("dv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + "::").length()))
+				{
+					try {
+						size_t start_length = ("dv " + lowercase_name + "::").length();
+						std::string trunc = dummy_line.substr(3);
+						//std::cout << "TRUNC=" << trunc << std::endl;
+						int loc = trunc.find("::");
+						std::string var = trunc.substr(loc + 2);
+						trim(var);
+						i->remove_var(var);
+
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+
+				else if (comp_substring("rv " + lowercase_name + " ", dummy_line, ("rv " + lowercase_name + " ").length()))
+				{
+					try {
+						size_t start_length = ("dv " + lowercase_name + " ").length();
+						std::string trunc = dummy_line.substr(3);
+						//std::cout << "TRUNC=" << trunc << std::endl;
+						int loc = trunc.find(" ");
+						std::string var = trunc.substr(loc);
+						trim(var);
+						i->remove_var(var);
+
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
 				}
 
 				else if (comp_substring("rv " + lowercase_name + ":", dummy_line, ("rv " + lowercase_name + " ").length()))
@@ -2371,40 +2406,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						//std::cout << "TRUNC=" << trunc << std::endl;
 						int loc = trunc.find(":");
 						std::string var = trunc.substr(loc + 1);
-						trim(var);
-						i->remove_var(var);
-
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("rv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("dv " + lowercase_name + " ").length();
-						std::string trunc = dummy_line.substr(3);
-						//std::cout << "TRUNC=" << trunc << std::endl;
-						int loc = trunc.find("::");
-						std::string var = trunc.substr(loc + 2);
-						trim(var);
-						i->remove_var(var);
-
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("dv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("dv " + lowercase_name + " ").length();
-						std::string trunc = dummy_line.substr(3);
-						//std::cout << "TRUNC=" << trunc << std::endl;
-						int loc = trunc.find("::");
-						std::string var = trunc.substr(loc + 2);
 						trim(var);
 						i->remove_var(var);
 
@@ -7242,8 +7243,42 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-					}
+				}
 
+				else if (comp_substring("rv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + "::").length()))
+				{
+					try {
+						size_t start_length = ("dv " + lowercase_name + "::").length();
+						std::string trunc = dummy_line.substr(3);
+						//std::cout << "TRUNC=" << trunc << std::endl;
+						int loc = trunc.find("::");
+						std::string var = trunc.substr(loc + 2);
+						trim(var);
+						i->remove_var(var);
+
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("dv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + "::").length()))
+				{
+					try {
+						size_t start_length = ("dv " + lowercase_name + "::").length();
+						std::string trunc = dummy_line.substr(3);
+						//std::cout << "TRUNC=" << trunc << std::endl;
+						int loc = trunc.find("::");
+						std::string var = trunc.substr(loc + 2);
+						trim(var);
+						i->remove_var(var);
+
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
 
 				else if (comp_substring("rv " + lowercase_name + ":", dummy_line, ("rv " + lowercase_name + " ").length()))
 				{
@@ -7279,41 +7314,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if (comp_substring("rv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("dv " + lowercase_name + " ").length();
-						std::string trunc = dummy_line.substr(3);
-						//std::cout << "TRUNC=" << trunc << std::endl;
-						int loc = trunc.find("::");
-						std::string var = trunc.substr(loc + 2);
-						trim(var);
-						i->remove_var(var);
-
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("dv " + lowercase_name + "::", dummy_line, ("rv " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("dv " + lowercase_name + " ").length();
-						std::string trunc = dummy_line.substr(3);
-						//std::cout << "TRUNC=" << trunc << std::endl;
-						int loc = trunc.find("::");
-						std::string var = trunc.substr(loc + 2);
-						trim(var);
-						i->remove_var(var);
-
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
+				
 				else if (comp_substring("rv " + lowercase_name + ".", dummy_line, ("rv " + lowercase_name + " ").length()))
 				{
 					try {
