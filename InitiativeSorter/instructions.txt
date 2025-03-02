@@ -1,4 +1,6 @@
-INITIAL CHARACTER ENTRY
+
+----------------------------------------------- BASIC CHARACTER ENTRY -----------------------------------------------------------
+
 When the program is first opened, you are brought to a command prompt. By typing entries, characters can be added to the initiative.
 Turn-order tracking doesn't start right away - first is only character entry.
 
@@ -36,6 +38,28 @@ The following is an example of a character with a modifier, hit points, and ac:
 An initial amount of temporary hit points can also be added: "temp_hp:amount", "temp:amount", "thp:amount", "buffer:amount"
 Temporary hit points can be added or removed during initiative with commands.
 
+
+Characters with hit point tracking can also be configured to automatically regenerate at the start of their turn, if desired.
+Simply use "regen:amount" during the character entry.
+
+Any trait that can be added during character entry can be added or removed later with commands.
+Avoid accidentally adding two of the same traits during entry.
+For example: "character flags:flag1 flags:flag2" will cause an error. Instead, simply do "character flags:flag1,flag2"
+
+The order you add tracking features in doesn't matter. "ac:15 hp:64" will work just as well as "hp:64 ac:15".
+
+Characters can be removed with "rm [character]". This will delete the character entry.
+"clear" at this time will erase all characters and give you a clean slate.
+
+
+
+
+
+
+
+
+-------------------------------------------- FLAGS & ALIASES ------------------------------------------------
+
 Characters can also have aliases and flags. 
 Aliases are a useful tool for allowing you to refer to a character by more than one name during initiative tracking.
 For example, you might have a character that can be referred to by "fighter" or "jack", and either will be accepted.
@@ -64,17 +88,13 @@ For example, if every player character has a 'pc' flag, then it's possible to en
 
 
 
-Characters with hit point tracking can also be configured to automatically regenerate at the start of their turn, if desired.
-Simply use "regen:amount" during the character entry.
 
-Any trait that can be added during character entry can be added or removed later with commands.
-Avoid accidentally adding two of the same traits during entry.
-For example: "character flags:flag1 flags:flag2" will cause an error. Instead, simply do "character flags:flag1,flag2"
 
-The order you add tracking features in doesn't matter. "ac:15 hp:64" will work just as well as "hp:64 ac:15".
 
-Characters can be removed with "rm [character]". This will delete the character entry.
-"clear" at this time will erase all characters and give you a clean slate.
+
+
+
+------------------------------------------------- LOADING FILES ----------------------------------------------------
 
 Adding the party and all of their appropriate data every time would be tedious.
 To save time, you can write out all of the entries in text files and load the files with "load" or "ld".
@@ -90,6 +110,17 @@ If desired, keep all of the files relevent to a campaign in a dedicated folder.
 This is good organization, and makes it easier to keep them from getting mixed up. 
 For example: "party.txt" for one group or campaign will have different contents than the "party.txt" file of another.
 By separating them, you can keep the name consistent without mixing them up.
+
+There are also commands that can load files when certain conditions are met, such as if a character has a specific flag.
+For example, "[variable]>[amount] somefile.txt" will load somefile.txt if the given variable exceeds the amount given.
+More detail under "CHARACTER VARIABLES" and "COMMAND LIST"
+
+
+
+
+
+
+-------------------------------------------- CHARACTER VARIABLES ---------------------------------------------------
 
 Characters can be assigned variables. Variables can't be added during initial entry, but can be added/modified with commands after.
 Variables can be used to helpfully track many arbitrary values for a character. Encumbrance, treasure, spell slots - you name it.
@@ -114,9 +145,17 @@ Max HP can be referred to via the 'max_hp' variable.
 
 Characters can also act as an "array", where numbered variables represent positions in that array.
 To refer to an arbitrarily numbered variable, put the argument for that variable in brackets.
-For example: ""character1::[2d6] = 5" will roll 2d6 and use that as the variable name to assign 5 to. Other variables (even those from other characters) can be used for this value as well.
+For example: "character1::[2d6] = 5" will roll 2d6 and use that as the variable name to assign 5 to. Other variables (even those from other characters) can be used for this value as well.
 
-TURN TRACKING
+Number-named variables can be assigned without brackets as well, but not dynamically.
+For example, "character::2d6" refers to a variable literally named "2d6", not the result of rolling 2d6.
+
+
+
+
+
+------------------------------------------------ TURN TRACKING -------------------------------------------
+
 Once you've finished adding characters, you can begin tracking turns. Type "go" to start. "start", "begin", and "done" work too.
 Combat starts one round 1, starting with the very first character's turn.
 Pressing "enter" without typing any commands will allow you to advance to the next character's turn.
@@ -146,6 +185,10 @@ Consequently, it's good for saving an encounter that can be loaded on top of an 
 This can be used for reinforcements, or other purposes.
 
 Character variables can be used exactly the same in turn tracking as they can during entry.
+
+
+
+---------------------------------------- COMMAND LIST --------------------------------------------
 
 Following is a list of master commands:
 
@@ -455,17 +498,22 @@ Flags can be used to create groups of characters that commands can act on all at
 By using "@flagname" in place of a character's name, it applies the command to every character with that flag.
 For example, "heal @pc max" will heal every character flagged with "pc" to their maximum hit points.
 
+'@current' will apply it to the character whose turn it is.
+'@all' will apply the command to all characters. Select commands accept 'all' without the '@' symbol as well.
+
+Simply typing a character's name with no other command is equivalent to using the 'turn' command.
+
+
+----------------------------------------------- NUMERIC ARGUMENTS ------------------------------------------------
 Numbers can typically be substituted with character variables or even dice rolls.
 For example, "max_hp character2 5d10+10" will set character2's maximum hit points to a rolled value of 5d10+10. Notably, these dice roll expressions cannot include spaces, except in the "roll" command.
 If a die roll is used in a command that gets applied to multiple characters via flags, it will roll the dice separately for each character.
 For example, "max_hp @minion 3d10" will set the max hp of every minion to an independent roll of 3d10. One might have 15, another 20.
 Doing something like "@enemy::#gold=2d10" will set every enemy's hidden gold variable to an independent 2d10 roll.
 
+When referring to variables, simply refer to it the same way you would when assigning its value.
+For example, "character hp character::var" can set the character's hp to the value of its "var" variable.
+
 You can also write "input" where a command would call for a number argument.
 Doing so prompts the user to enter a number.
 This is useful when writing scripts to automate complex turns.
-
-'@current' will apply it to the character whose turn it is.
-'@all' will apply the command to all characters. Select commands accept 'all' without the '@' symbol as well.
-
-Simply typing a character's name with no other command is equivalent to using the 'turn' command.

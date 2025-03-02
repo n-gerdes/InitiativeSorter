@@ -313,7 +313,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 const static int SHOW_ONE_NAME = 0;
 const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
-
+int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -401,7 +401,7 @@ public:
 				{
 					if (!has_flag(flag_name))
 					{
-						add_flag(flag_name);
+						add_flag(flag_name, true);
 					}
 				}
 			}
@@ -438,9 +438,20 @@ public:
 		}
 	}
 
-	int get_var(std::string var_name) const
+	int get_var(std::string var_name, std::list<creature>& creatures)
 	{
 		make_lowercase(var_name);
+		trim(var_name);
+		if (var_name.size() > 2 && var_name[0] == '[' && var_name[var_name.size() - 1] == ']' && var_name != "[ac]" && var_name != "[hp]" && var_name!="[max_hp]")
+		{
+			var_name = var_name.substr(1);
+			var_name.resize(var_name.size() - 1);
+			std::string dummy_line = "parse " + var_name;
+			bool is_signed = false;
+			int num_var = get_number_arg(dummy_line, is_signed, creatures, this);
+			var_name = std::to_string(num_var);
+		}
+
 		if (var_name == "ac")
 		{
 			return ac;
@@ -545,6 +556,7 @@ public:
 	void set_var(std::string var_name, int value)
 	{
 		make_lowercase(var_name);
+		trim(var_name);
 		if (var_name == "ac")
 		{
 			ac = value;
@@ -629,25 +641,26 @@ public:
 		}
 	}
 
-	void hide_var(const std::string& var_name)
+	void hide_var(std::string var_name, std::list<creature>& creatures)
 	{
+		trim(var_name);
 		if (get_lowercase(var_name) == "ac")
 		{
 			ac = 0;
 		}
 		else if (has_var(var_name) && var_name.size() > 0 && (var_name[0] != '#'))
 		{
-			int val = get_var(var_name);
+			int val = get_var(var_name, creatures);
 			remove_var(var_name);
 			set_var("#" + var_name, val);
 		}
 	}
 
-	void show_var(std::string var_name)
+	void show_var(std::string var_name, std::list<creature>& creatures)
 	{
 		if (has_var(var_name))
 		{
-			int val = get_var(var_name);
+			int val = get_var(var_name, creatures);
 			remove_var(var_name);
 			while(var_name[0] == '#' && var_name.size()>1)
 				var_name = var_name.substr(1);
@@ -845,9 +858,10 @@ public:
 		return false;
 	}
 
-	inline void add_flag(const std::string& flag_name)
+	inline void add_flag(const std::string& flag_name, bool disable_keyword_flags)
 	{
-		if (get_lowercase(flag_name) == "current")
+		std::string lc = get_lowercase(flag_name);
+		if (disable_keyword_flags && (lc == "current" || lc == "executor" || lc == "all" || lc == "#current" || lc == "#executor" || lc == "#all"))
 			return;
 		std::string new_flag = flag_name;
 		bool hidden = false;
@@ -966,14 +980,14 @@ public:
 				{
 					if (flag != "")
 					{
-						add_flag(flag);
+						add_flag(flag, true);
 						flag = "";
 					}
 					break;
 				}
 				if (c==',' || c=='&')
 				{
-					add_flag(flag);
+					add_flag(flag, true);
 					flag = "";
 				}
 				else
@@ -983,7 +997,7 @@ public:
 			}
 			if (flag != "")
 			{
-				add_flag(flag);
+				add_flag(flag, true);
 				flag = "";
 			}
 		}
@@ -1411,6 +1425,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "recharge5-6"
 			|| lowerc == "recharge6-6"
 			|| lowerc == "if"
+			|| lowerc == "hidevar"
+			|| lowerc == "showvar"
 		) 
 			return false;
 
@@ -1848,7 +1864,8 @@ inline int parse_dice(std::string& input)
 	return sum;
 }
 
-inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const std::list<creature>& creatures)
+
+inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor)
 {
 	is_signed = false;
 	size_t first_space = dummy_line.find(" ");
@@ -1882,7 +1899,6 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const 
 	}
 
 	std::string trimmed = sub.substr(1);
-
 	if (trimmed.find(":") != std::string::npos || trimmed.find(".") != std::string::npos)
 	{
 		std::string creature = "";
@@ -1898,9 +1914,9 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const 
 
 		for (auto ci = creatures.begin(); ci != creatures.end(); ++ci)
 		{
-			if (ci->has_alias(creature))
+			if (ci->has_alias(creature) || (creature=="@executor" && (ci->get_raw_ptr()==executor)))
 			{
-				return ci->get_var(varname);
+				return ci->get_var(varname, creatures);
 			}
 		}
 		return 0;
@@ -1974,7 +1990,6 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const 
 	{
 		value = parse_dice(sub);
 	}
-		
 	return value;
 };
 
@@ -2284,6 +2299,8 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "adlf", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "flag_add", "add_flag", true, false);
 	dummy_line = replace_first(dummy_line, "fr", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "hidevar", "hide", true, false);
+	dummy_line = replace_first(dummy_line, "showvar", "show", true, false);
 }
 
 std::list<std::list<creature>> creatures_buffer;
@@ -2371,8 +2388,11 @@ const int VAR_LESS_THAN = 9;
 const int VAR_LESS_THAN_OR_EQUAL = 10;
 const int VAR_NOT_EQUAL = 11;
 
+const int VAR_MULTIPLY = 12;
+const int VAR_DIVIDE = 13;
 
-inline std::string resolve_var_name(const std::string& var, const std::list<creature>& creatures, creature& current_creature)
+
+inline std::string resolve_var_name(const std::string& var, std::list<creature>& creatures, creature& current_creature)
 {
 	if (var.size() > 2 && var[0] == '[' && var[var.size() - 1] == ']')
 	{
@@ -2383,7 +2403,7 @@ inline std::string resolve_var_name(const std::string& var, const std::list<crea
 		trim(parse);
 		parse = "parse " + parse;
 		bool is_signed = false;
-		int val = get_number_arg(parse, is_signed, creatures);
+		int val = get_number_arg(parse, is_signed, creatures, &current_creature);
 		parse = "#" + std::to_string(val);
 		return parse;
 	}
@@ -2653,7 +2673,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(1, flag_name);
 					if (!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 				else if (comp_substring(lowercase_name + " recharge2 ", dummy_line, (lowercase_name + " recharge2 ").length())
@@ -2678,7 +2698,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(2, flag_name);
 					if (!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 				else if (comp_substring(lowercase_name + " recharge3 ", dummy_line, (lowercase_name + " recharge3 ").length())
@@ -2703,7 +2723,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(3, flag_name);
 					if (!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 				else if (comp_substring(lowercase_name + " recharge4 ", dummy_line, (lowercase_name + " recharge4 ").length())
@@ -2728,7 +2748,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(4, flag_name);
 					if (!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 				else if (comp_substring(lowercase_name + " recharge5 ", dummy_line, (lowercase_name + " recharge5 ").length())
@@ -2753,7 +2773,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(5, flag_name);
 					if (!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 				else if (comp_substring(lowercase_name + " recharge6 ", dummy_line, (lowercase_name + " recharge6 ").length())
@@ -2778,7 +2798,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					trim(flag_name);
 					i->add_recharge(6, flag_name);
 					if(!i->has_flag(flag_name))
-						i->add_flag(flag_name);
+						i->add_flag(flag_name, true);
 					used_command = true;
 				}
 
@@ -2786,7 +2806,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed, creatures);
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 						i->touched = true;
@@ -2800,7 +2820,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed, creatures);
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 						i->touched = true;
@@ -2831,7 +2851,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = (lowercase_name + " tf ").length();
 						std::string arg = dummy_line.substr(start_length);
 
-						i->add_flag("_" + arg);
+						i->add_flag("_" + arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -2844,7 +2864,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = ("tf " + lowercase_name + " ").length();
 						std::string arg = dummy_line.substr(start_length);
 
-						i->add_flag("_" + arg);
+						i->add_flag("_" + arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -3232,15 +3252,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = lowercase_name.length() + 5;
 						std::string var = dummy_line.substr(start_length);
 						trim(var);
-						if (var.size() > 2 && var[0] == ':')
+						if (var.size() >= 2 && var[0] == ':')
 							var = var.substr(1);
-						if (var.size() > 2 && var[0] == ':')
+						if (var.size() >= 2 && var[0] == ':')
 							var = var.substr(1);
 
-						if (var.size() > 2 && var[0] == '.')
+						if (var.size() >= 2 && var[0] == '.')
 							var = var.substr(1);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 
 						used_command = true;
 					}
@@ -3257,15 +3277,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							size_t start_length = lowercase_name.length() + 5;
 							std::string var = dummy_line.substr(start_length);
 							trim(var);
-							if (var.size() > 2 && var[0] == ':')
+							if (var.size() >= 2 && var[0] == ':')
 								var = var.substr(1);
-							if (var.size() > 2 && var[0] == ':')
+							if (var.size() >= 2 && var[0] == ':')
 								var = var.substr(1);
 
-							if (var.size() > 2 && var[0] == '.')
+							if (var.size() >= 2 && var[0] == '.')
 								var = var.substr(1);
 							var = resolve_var_name(var, creatures, *i);
-							i->show_var(var);
+							i->show_var(var, creatures);
 
 							used_command = true;
 						}
@@ -3283,7 +3303,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 8 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -3291,7 +3311,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -3302,7 +3322,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								//var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-
+							
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -3472,6 +3492,95 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							if (space == std::string::npos)
 							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+
+							if (space == std::string::npos)
+							{
 								space = var.find(" -= ");
 								if (space != std::string::npos)
 								{
@@ -3562,7 +3671,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 
 							std::string og_var = var;
 							
@@ -3570,11 +3679,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
@@ -3586,10 +3697,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -3646,9 +3757,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -3706,9 +3817,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -3766,9 +3877,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -3825,9 +3936,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -3885,9 +3996,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -3953,9 +4064,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -3968,9 +4079,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -3985,7 +4096,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -3993,7 +4104,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -4224,6 +4335,96 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							if (space == std::string::npos)
 							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+
+
+							if (space == std::string::npos)
+							{
 								space = var.find(" = ");
 								if (space != std::string::npos)
 								{
@@ -4264,18 +4465,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 							std::string og_var = var; //Right before var is resized
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
 
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
@@ -4288,10 +4490,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -4348,9 +4550,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -4408,9 +4610,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -4468,9 +4670,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -4527,9 +4729,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -4587,9 +4789,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -4655,9 +4857,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -4670,9 +4872,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -4685,7 +4887,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -4693,7 +4895,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -4922,6 +5124,94 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							}
 
+							if (space == std::string::npos)
+							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
 
 							if (space == std::string::npos)
 							{
@@ -4965,18 +5255,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
-
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
@@ -4988,10 +5279,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -5048,9 +5339,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -5108,9 +5399,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -5168,9 +5459,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -5227,9 +5518,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -5287,9 +5578,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -5354,9 +5645,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -5369,9 +5660,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -5487,13 +5778,16 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 		std::string& original_dummy_line = line;
 		bool did_erase = false;
+		//remove_executor_tags(creatures);
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			if (start_over)
 			{
 				start_over = false;
 				i = creatures.begin();
+				//remove_executor_tags(creatures);
 			}
+			//add_executor_tag(creatures, *i);
 			auto names = i->get_all_names();
 			for (auto alias_iterator = names.begin(); alias_iterator != names.end(); ++alias_iterator) //Spaghetti
 			{
@@ -5512,7 +5806,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						if (!i->touched)
 						{
 							i->set_initiative(val);
@@ -5533,7 +5827,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int new_ac = get_number_arg(dummy_line, is_signed, creatures);
+						int new_ac = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->set_ac(new_ac);
 						used_command = true;
 					}
@@ -5546,7 +5840,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int new_ac = get_number_arg(dummy_line, is_signed, creatures);
+						int new_ac = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->set_ac(new_ac);
 						used_command = true;
 					}
@@ -5620,7 +5914,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->adjust_hp(val);
 						used_command = true;
 					}
@@ -5634,7 +5928,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->adjust_hp(-val);
 						used_command = true;
 					}
@@ -5711,7 +6005,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5724,7 +6018,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5737,7 +6031,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5750,7 +6044,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5763,7 +6057,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5776,7 +6070,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -5790,7 +6084,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = ("addf " + lowercase_name + " ").length();
 						std::string arg = line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -5803,7 +6097,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = (lowercase_name + " addf ").length();
 						std::string arg = line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -5817,7 +6111,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = ("adf " + lowercase_name + " ").length();
 						std::string arg = line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -5830,7 +6124,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = (lowercase_name + " adf ").length();
 						std::string arg = line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -6032,7 +6326,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						unsigned char* tval = reinterpret_cast<unsigned char*>(&(i->touched));
 						if (!i->touched)
 						{
@@ -6055,7 +6349,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 				
 					if (val < 0)
 					{
@@ -6070,7 +6364,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6085,7 +6379,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6100,7 +6394,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6115,7 +6409,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6130,7 +6424,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " temp ", dummy_line, (lowercase_name + " temp ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6145,7 +6439,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6160,7 +6454,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6176,7 +6470,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " buffer ", dummy_line, (lowercase_name + " buffer ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6192,7 +6486,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " temphp ", dummy_line, (lowercase_name + " temphp ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6207,7 +6501,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6222,7 +6516,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("temp " + lowercase_name + " ", dummy_line, ("temp " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 					if (val < 0)
 					{
@@ -6246,7 +6540,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							if (i->touched == false)
 							{
 								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures);
+								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 								i->set_max_hp(val, is_signed);
 								i->touched = true;
 							}
@@ -6263,7 +6557,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 					//if (val < 0)
 						//val = 0;
 					i->set_regen(val);
@@ -6273,7 +6567,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 					//if (val < 0)
 						//val = 0;
 					i->set_regen(val);
@@ -6296,7 +6590,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					)
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 					try {
 						size_t slash_index = dummy_line.find("/");
 						if (slash_index != std::string::npos)
@@ -6326,6 +6620,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 		}
+		//remove_executor_tags(creatures);
 	}
 	trim(line);
 	if (may_expect_add_keyword && line.size() > 4 && get_lowercase(line.substr(0, 4)) == "add ")
@@ -7922,7 +8217,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
 						int new_hp = i->get_hp();
@@ -7944,7 +8239,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						if (!i->touched)
 						{
 							i->adjust_hp(-val);
@@ -8198,7 +8493,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int new_ac = get_number_arg(dummy_line, is_signed, creatures);
+						int new_ac = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->set_ac(new_ac);
 						used_command = true;
 					}
@@ -8211,7 +8506,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int new_ac = get_number_arg(dummy_line, is_signed, creatures);
+						int new_ac = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->set_ac(new_ac);
 						used_command = true;
 					}
@@ -8223,7 +8518,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 					//if (val < 0)
 						//val = 0;
 					i->set_regen(val);
@@ -8272,7 +8567,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				else if (comp_substring(lowercase_name + " regen ", dummy_line, (lowercase_name + " regen ").length()))
 				{
 					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures);
+					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 					//if (val < 0)
 						//val = 0;
 					i->set_regen(val);
@@ -8324,7 +8619,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						val >>= 1;
 						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
@@ -8347,7 +8642,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						val <<= 1;
 						int old_hp = i->get_hp();
 						i->adjust_hp(-val);
@@ -8369,7 +8664,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						int old_hp = i->get_hp();
 						i->adjust_hp(val);
 						int new_hp = i->get_hp();
@@ -8384,7 +8679,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						if (!i->touched)
 						{
 							i->adjust_hp(val);
@@ -8404,7 +8699,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed, creatures);
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 					}
@@ -8416,7 +8711,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int clones = get_number_arg(dummy_line, is_signed, creatures);
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
 						used_command = true;
 					}
@@ -8437,7 +8732,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = ("flag " + lowercase_name + " ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8450,7 +8745,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = (lowercase_name + " flag ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8464,7 +8759,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = ("f " + lowercase_name + " ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8477,7 +8772,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = (lowercase_name + " f ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8492,7 +8787,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -8505,7 +8800,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 					}
 					catch (const std::exception& E) {
 
@@ -8518,7 +8813,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = ("addf " + lowercase_name + " ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8531,7 +8826,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = (lowercase_name + " addf ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8545,7 +8840,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = ("adf " + lowercase_name + " ").length();
 						std::string arg = original_dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8558,7 +8853,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = (lowercase_name + " adf ").length();
 						std::string arg = dummy_line.substr(start_length);
 
-						i->add_flag(arg);
+						i->add_flag(arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8572,7 +8867,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = (lowercase_name + " tf ").length();
 						std::string arg = dummy_line.substr(start_length);
 
-						i->add_flag("_" + arg);
+						i->add_flag("_" + arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8585,7 +8880,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = ("tf " + lowercase_name + " ").length();
 						std::string arg = dummy_line.substr(start_length);
 
-						i->add_flag("_" + arg);
+						i->add_flag("_" + arg, true);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -8623,6 +8918,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 
 				else if (
+					dummy_line.size() > (5+lowercase_name.size())
+					&&
 					comp_substring("hide " + lowercase_name, dummy_line, ("hide " + lowercase_name).length())
 					)
 					{
@@ -8630,16 +8927,16 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							size_t start_length = lowercase_name.length() + 5;
 							std::string var = dummy_line.substr(start_length);
 							trim(var);
+							//
+							if (var.size() >= 2 && var[0] == ':')
+								var = var.substr(1);
+							if (var.size() >= 2 && var[0] == ':')
+								var = var.substr(1);
+
+							if (var.size() >= 2 && var[0] == '.')
+								var = var.substr(1);
 							var = resolve_var_name(var, creatures, *i);
-							if (var.size() > 2 && var[0] == ':')
-								var = var.substr(1);
-							if (var.size() > 2 && var[0] == ':')
-								var = var.substr(1);
-
-							if (var.size() > 2 && var[0] == '.')
-								var = var.substr(1);
-
-							i->hide_var(var);
+							i->hide_var(var, creatures);
 
 							used_command = true;
 						}
@@ -8656,16 +8953,16 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							size_t start_length = lowercase_name.length() + 5;
 							std::string var = dummy_line.substr(start_length);
 							trim(var);
+							if (var.size() >= 2 && var[0] == ':')
+								var = var.substr(1);
+							if (var.size() >= 2 && var[0] == ':')
+								var = var.substr(1);
+
+							if (var.size() >= 2 && var[0] == '.')
+								var = var.substr(1);
+
 							var = resolve_var_name(var, creatures, *i);
-							if (var.size() > 2 && var[0] == ':')
-								var = var.substr(1);
-							if (var.size() > 2 && var[0] == ':')
-								var = var.substr(1);
-
-							if (var.size() > 2 && var[0] == '.')
-								var = var.substr(1);
-
-							i->show_var(var);
+							i->show_var(var, creatures);
 
 							used_command = true;
 						}
@@ -8837,7 +9134,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 8 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -8845,7 +9142,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -9037,7 +9334,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									SET_TYPE = VAR_SUB;
 								}
 							}
-
 							if (space == std::string::npos)
 							{
 								space = var.find("-= ");
@@ -9049,7 +9345,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									SET_TYPE = VAR_SUB;
 								}
 							}
-
 							if (space == std::string::npos)
 							{
 								space = var.find("-= ");
@@ -9061,7 +9356,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									SET_TYPE = VAR_SUB;
 								}
 							}
-
 							if (space == std::string::npos)
 							{
 								space = var.find("-=");
@@ -9073,6 +9367,97 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									SET_TYPE = VAR_SUB;
 								}
 
+							}
+
+
+
+							if (space == std::string::npos)
+							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
 							}
 
 
@@ -9118,17 +9503,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
 
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
@@ -9141,10 +9528,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -9215,10 +9602,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -9289,10 +9676,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -9363,10 +9750,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -9437,10 +9824,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -9512,10 +9899,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -9596,9 +9983,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -9611,9 +9998,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -9628,7 +10015,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -9636,7 +10023,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -9865,6 +10252,94 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 							}
 
+							if (space == std::string::npos)
+							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
 
 							if (space == std::string::npos)
 							{
@@ -9908,17 +10383,19 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
 
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
@@ -9931,10 +10408,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -10005,10 +10482,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -10079,10 +10556,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -10153,10 +10630,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -10227,10 +10704,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -10302,10 +10779,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -10384,9 +10861,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -10399,9 +10876,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -10414,7 +10891,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->hide_var(var);
+						i->hide_var(var, creatures);
 						used_command = true;
 					}
 					else if (dummy_line.size() >= 7 && dummy_line[last] == 'w' && dummy_line[last - 1] == 'o' && dummy_line[last - 2] == 'h' && dummy_line[last - 3] == 's')
@@ -10422,7 +10899,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
 						var = resolve_var_name(var, creatures, *i);
-						i->show_var(var);
+						i->show_var(var, creatures);
 						used_command = true;
 					}
 					else
@@ -10578,7 +11055,94 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									SET_TYPE = VAR_EQUAL_TO;
 								}
 							}
-
+							if (space == std::string::npos)
+							{
+								space = var.find(" *= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("*=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_MULTIPLY;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find(" /= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 4);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/= ");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 3);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
+							if (space == std::string::npos)
+							{
+								space = var.find("/=");
+								if (space != std::string::npos)
+								{
+									std::string prefix = var;
+									prefix.resize(space);
+									var = prefix + " " + var.substr(space + 2);
+									SET_TYPE = VAR_DIVIDE;
+								}
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" += ");
@@ -10695,16 +11259,18 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							bool is_signed = false;
 							int val = 1;
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
-								val = get_number_arg(var, is_signed, creatures);
+								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
 							std::string og_var = var;
 							var.resize(space);
 							switch (SET_TYPE)
 							{
-							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_SUB: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_ADD: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_SUB: i->set_var(var, i->get_var(var, creatures) - val); break;
 							case VAR_SET: i->set_var(var, val); break;
-							case VAR_INCREMENT: i->set_var(var, i->get_var(var) + val); break;
-							case VAR_DECREMENT: i->set_var(var, i->get_var(var) - val); break;
+							case VAR_MULTIPLY: i->set_var(var, i->get_var(var, creatures) * val); break;
+							case VAR_DIVIDE: i->set_var(var, i->get_var(var, creatures) / val); break;
+							case VAR_INCREMENT: i->set_var(var, i->get_var(var, creatures) + val); break;
+							case VAR_DECREMENT: i->set_var(var, i->get_var(var, creatures) - val); break;
 
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
@@ -10717,10 +11283,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) == val)
+								if (i->get_var(var, creatures) == val)
 								{
 									std::string filename = sub;
 
@@ -10791,10 +11357,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) >= val)
+								if (i->get_var(var, creatures) >= val)
 								{
 									std::string filename = sub;
 
@@ -10865,10 +11431,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) > val)
+								if (i->get_var(var, creatures) > val)
 								{
 									std::string filename = sub;
 
@@ -10939,10 +11505,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) <= val)
+								if (i->get_var(var, creatures) <= val)
 								{
 									std::string filename = sub;
 
@@ -11013,10 +11579,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) < val)
+								if (i->get_var(var, creatures) < val)
 								{
 									std::string filename = sub;
 
@@ -11088,10 +11654,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = sub.substr(arg_index);
 								num.resize(arg_index);
 								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures);
+								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
 								trim(sub);
 								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var) != val)
+								if (i->get_var(var, creatures) != val)
 								{
 									std::string filename = sub;
 
@@ -11168,9 +11734,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) - 1);
+							i->set_var(var, i->get_var(var, creatures) - 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) - 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) - 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -11183,9 +11749,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
 						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
-							i->set_var(var, i->get_var(var) + 1);
+							i->set_var(var, i->get_var(var, creatures) + 1);
 						else if (i->variables.count("#" + var) != 0)
-							i->set_var("#" + var, i->get_var("#" + var) + 1);
+							i->set_var("#" + var, i->get_var("#" + var, creatures) + 1);
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
@@ -11638,7 +12204,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						try {
 							bool is_signed = false;
-							int val = get_number_arg(dummy_line, is_signed, creatures);
+							int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 							i->set_temp_hp(val, is_signed);
 							used_command = true;
@@ -11658,7 +12224,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							if (i->touched == false)
 							{
 								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures);
+								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 								if (i->get_max_hp() == -1)
 								{
 									i->set_max_hp(val, false);
@@ -11689,7 +12255,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							if (i->touched == false)
 							{
 								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures);
+								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 								i->set_max_hp(val, is_signed);
 								i->touched = true;
 							}
@@ -11712,7 +12278,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						bool is_signed = false;
 						int old_hp = i->get_hp();
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						try {
 							size_t slash_index = dummy_line.find("/");
 							if (slash_index != std::string::npos)
@@ -11752,7 +12318,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						bool is_signed = false;
-						int val = get_number_arg(dummy_line, is_signed, creatures);
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						i->set_max_hp(val, is_signed);
 						if (i->get_hp() == -1)
 							i->set_hp(val, false);
@@ -11900,7 +12466,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							bool is_signed;
 							if (!i->touched)
 							{
-								int val = get_number_arg(dummy_line, is_signed, creatures);
+								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 								i->set_initiative(val);
 								i->touched = true;
 								creatures.sort();
@@ -11929,7 +12495,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 					make_lowercase(dice_pattern);
 					turn_msg = "Rolled " + dice_pattern + ", got ";
-					int val = get_number_arg("roll " + dice_pattern, is_signed, creatures);
+					int val = get_number_arg("roll " + dice_pattern, is_signed, creatures, i->get_raw_ptr());
 					turn_msg += std::to_string(val);
 					turn_msg += "\n\n";
 					used_command = true;
