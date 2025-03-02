@@ -1604,7 +1604,12 @@ inline bool is_digits(const std::string& input)
 		case '8': break;
 		case '9': break;
 		case '+': break;
-		case '-': break;
+		case '-': {
+			if (i == 0)
+				break;
+			else
+				return false;
+		}
 		default: return false;
 		}
 	}
@@ -1863,6 +1868,17 @@ inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const 
 	if (sub == " max" || sub == " all" || sub == " full")
 	{
 		return INT_MAX;
+	}
+
+	if (sub == " input")
+	{
+		std::string user_input = "a";
+		while (!is_digits(user_input))
+		{
+			std::cout << "Please enter a number: ";
+			std::getline(std::cin, user_input);
+		}
+		return std::stoi(user_input);
 	}
 
 	std::string trimmed = sub.substr(1);
@@ -2264,6 +2280,8 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "rmfg", "rf", true, false);
 	dummy_line = replace_first(dummy_line, "rmflg", "rf", true, false);
 	dummy_line = replace_first(dummy_line, "adflg", "flag", true, false);
+	dummy_line = replace_first(dummy_line, "adfl", "flag", true, false);
+	dummy_line = replace_first(dummy_line, "adlf", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "flag_add", "add_flag", true, false);
 	dummy_line = replace_first(dummy_line, "fr", "rf", true, false);
 }
@@ -3062,6 +3080,64 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (comp_substring("if " + lowercase_name + " ", dummy_line, ("if " + lowercase_name + " ").size()))
 				{
 					int cmd_len = ("if " + lowercase_name + " ").size();
+					std::string sub = dummy_line.substr(cmd_len);
+					trim(sub);
+					std::string og_sub = sub;
+					int space = sub.find(" ");
+					sub.resize(space);
+					if (i->has_flag(sub))
+					{
+						sub = og_sub;
+						space = sub.find(" ");
+						sub = sub.substr(space);
+						trim(sub);
+						std::string filename = sub;
+
+						if (directory != "")
+						{
+							filename = directory + "/" + filename;
+						}
+						else
+						{
+							if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+							{
+								size_t backi = filename.size() - 1;
+								while (filename[backi] != '/' && filename[backi] != '\\')
+								{
+									--backi;
+								}
+								directory = filename;
+								directory.resize(backi);
+								if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+									wd = directory;
+							}
+						}
+						std::ifstream new_file;
+						new_file.open(filename);
+						if (!new_file.is_open())
+						{
+							std::cout << "Error: Could not open " << filename << std::endl;
+							//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+							return false;
+						}
+						else {
+							while (new_file.good() && !new_file.eof())
+							{
+								get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+							}
+							ignore_initial_file_load = true;
+							new_file.close();
+							save_buffer();
+							return false;
+						}
+					}
+					else
+						used_command = true;
+				}
+
+				else if (comp_substring(lowercase_name + " if ", dummy_line, (lowercase_name + " if ").size()))
+				{
+					int cmd_len = (lowercase_name + " if ").size();
 					std::string sub = dummy_line.substr(cmd_len);
 					trim(sub);
 					std::string og_sub = sub;
@@ -5343,6 +5419,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			trim(removal_name);
 			make_lowercase(removal_name);
 		}
+		else if (dummy_line.size()>6 && comp_substring(dummy_line, "print ", 6))
+		{
+			std::cout << line.substr(6);
+			used_command = true;
+			return false;
+		}
 		else if (comp_substring(dummy_line, "remove ", 7))
 		{
 			removal_name = line.substr(6);
@@ -5939,62 +6021,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 
 						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("adfl " + lowercase_name + " ", dummy_line, ("adfl " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adfl " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("adlf " + lowercase_name + " ", dummy_line, ("adlf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adlf " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " adfl ", dummy_line, (lowercase_name + " adfl ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adfl ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " adlf ", dummy_line, (lowercase_name + " adlf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adlf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -7790,6 +7816,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			keep_name = dummy_line.substr(5);
 			trim(keep_name);
 		}
+		else if (dummy_line.size()>6 && (comp_substring("print  ", dummy_line, 6)))
+		{
+			std::cout << line.substr(6) << std::endl;
+			turn_msg = line.substr(6) + "\n\n";
+			used_command = true;
+			skip_command_checks = true;
+		}
 		else if (dummy_line.length() > 5 && dummy_line[l] == 'p' && dummy_line[l - 1] == 'e' && dummy_line[l - 2] == 'e' && dummy_line[l - 3] == 'k' && dummy_line[l - 4] == ' ')
 		{
 			keep_name = dummy_line;
@@ -8477,64 +8510,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 
 					}
-					}
-
-				else if (comp_substring("adfl " + lowercase_name + " ", dummy_line, ("adfl " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adfl " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring("adlf " + lowercase_name + " ", dummy_line, ("adlf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adlf " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring(lowercase_name + " adfl ", dummy_line, (lowercase_name + " adfl ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adfl ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring(lowercase_name + " adlf ", dummy_line, (lowercase_name + " adlf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adlf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
+				}
 
 				else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
 				{
@@ -8548,7 +8524,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 
 					}
-					}
+				}
 				else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
 				{
 					try {
@@ -8775,6 +8751,83 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
+
+				else if (comp_substring(lowercase_name + " if ", dummy_line, (lowercase_name + " if ").size()))
+				{
+					try {
+						int cmd_len = (lowercase_name + " if ").size();
+						std::string sub = dummy_line.substr(cmd_len);
+						trim(sub);
+						std::string og_sub = sub;
+						int space = sub.find(" ");
+						sub.resize(space);
+						if (i->has_flag(sub))
+						{
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							std::string filename = sub;
+
+							std::string directory = wd;
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+								}
+							}
+							std::ifstream new_file;
+							new_file.open(filename);
+							used_command = true;
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+							}
+							else {
+								bool taking_initiatives = false;
+								while (new_file.good() && !new_file.eof())
+								{
+									get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+								}
+								new_file.close();
+								creatures.sort();
+								turn_count = current_creature->get_turn_count();
+								current_turn = 0;
+								for (auto i = creatures.begin(); i != creatures.end(); ++i)
+								{
+									if (i->get_name() == current_creature->get_name())
+									{
+
+										break;
+									}
+									++current_turn;
+								}
+								buffer_manipulation_state = STATE_NODO;
+								save_buffer();
+								file_load_disable = true;
+								continue;
+							}
+						}
+						else
+							used_command = true;
+					}
+					catch (const std::exception& E)
+					{
+
+					}
+					}
 
 				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
 				{
