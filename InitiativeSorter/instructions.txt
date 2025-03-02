@@ -369,6 +369,46 @@ show [variable]
 rename [character] [new_name]
 	-Rename a character.
 
+recharge 1-6 [character] [flag]
+recharge1-6 [character] [flag]
+recharge 1 [character] [flag]
+recharge1 [character] [flag]
+	On a roll of 1 - 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+	Because every roll on a d6 is between 1 and 6 (inclusive), this means the character will always gain that flag if they don't have it at the start of their turn.
+
+recharge 3-6 [character] [flag]
+recharge3-6 [character] [flag]
+recharge 3 [character] [flag]
+recharge3 [character] [flag]
+	On a roll of 2 - 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+
+recharge 3-6 [character] [flag]
+recharge3-6 [character] [flag]
+recharge 3 [character] [flag]
+recharge3 [character] [flag]
+	On a roll of 3 - 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+
+recharge 4-6 [character] [flag]
+recharge4-6 [character] [flag]
+recharge 4 [character] [flag]
+recharge4 [character] [flag]
+	On a roll of 4 - 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+
+recharge 5-6 [character] [flag]
+recharge5-6 [character] [flag]
+recharge 5 [character] [flag]
+recharge5 [character] [flag]
+	On a roll of 5 - 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+
+recharge 6-6 [character] [flag]
+recharge6-6 [character] [flag]
+recharge 6 [character] [flag]
+recharge6 [character] [flag]
+	On a roll of 6 on a d6, gives the specified character the specified flag at the beginning of their turn.
+
+recharge 0 [character] [flag]
+	Makes it so the specified character no longer recharges the flag on any rolls of a d6.
+
 full display mode
 full display
 fdisp

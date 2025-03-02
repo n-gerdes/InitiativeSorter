@@ -222,6 +222,95 @@ public:
 	std::map<std::string, bool> flags_hidden;
 	std::list<std::string> aliases;
 	std::map<std::string, int> variables;
+	std::vector<std::string> recharge1; //Recharge 0 just removes it from any recharge list.
+	std::vector<std::string> recharge2;
+	std::vector<std::string> recharge3;
+	std::vector<std::string> recharge4;
+	std::vector<std::string> recharge5;
+	std::vector<std::string> recharge6;
+
+	inline void remove_recharge(const std::string& flag_name)
+	{
+		auto found = std::find(recharge1.begin(), recharge1.end(), flag_name);
+		if (found != recharge1.end())
+		{
+			recharge1.erase(found);
+		}
+
+		found = std::find(recharge2.begin(), recharge2.end(), flag_name);
+		if (found != recharge2.end())
+		{
+			recharge2.erase(found);
+		}
+
+		found = std::find(recharge3.begin(), recharge3.end(), flag_name);
+		if (found != recharge3.end())
+		{
+			recharge3.erase(found);
+		}
+
+		found = std::find(recharge4.begin(), recharge4.end(), flag_name);
+		if (found != recharge4.end())
+		{
+			recharge4.erase(found);
+		}
+
+		found = std::find(recharge5.begin(), recharge5.end(), flag_name);
+		if (found != recharge5.end())
+		{
+			recharge5.erase(found);
+		}
+
+		found = std::find(recharge6.begin(), recharge6.end(), flag_name);
+		if (found != recharge6.end())
+		{
+			recharge6.erase(found);
+		}
+	}
+
+	inline void add_recharge(int frequency, const std::string& flag_name)
+	{
+		remove_recharge(flag_name);
+		switch (frequency)
+		{
+			case 1: { std::vector<std::string>& recharger = recharge1; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			case 2: { std::vector<std::string>& recharger = recharge2; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			case 3: { std::vector<std::string>& recharger = recharge3; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			case 4: { std::vector<std::string>& recharger = recharge4; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			case 5: { std::vector<std::string>& recharger = recharge5; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			case 6: { std::vector<std::string>& recharger = recharge6; if (std::find(recharger.begin(), recharger.end(), flag_name) == recharger.end()) { recharger.push_back(flag_name); } break; }
+			default: return;
+		}
+	}
+
+	inline void poll_recharges()
+	{
+		auto d6 = [&]() -> int {return 1 + (rand() % 6);};
+
+		auto poll_recharger = [&](std::vector<std::string>& recharger, int odds) {
+			for (auto i = recharger.begin(); i != recharger.end(); ++i)
+			{
+				const std::string& flag_name = *i;
+				int roll = d6();
+				//std::cout << "RECHARGE ROLL=" << roll << std::endl;
+				if (roll >= odds)
+				{
+					if (!has_flag(flag_name))
+					{
+						add_flag(flag_name);
+					}
+				}
+			}
+		};
+
+		poll_recharger(recharge1, 1);
+		poll_recharger(recharge2, 2);
+		poll_recharger(recharge3, 3);
+		poll_recharger(recharge4, 4);
+		poll_recharger(recharge5, 5);
+		poll_recharger(recharge6, 6);
+	}
+
 	bool touched = false;
 	inline const std::list<std::string>& get_flags() const
 	{
@@ -1322,6 +1411,36 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 				out << "note " << i->get_name() << " " << i->get_note(false) << std::endl;
 			}
 
+			for (int index = 0; index < i->recharge1.size(); ++index)
+			{
+				out << "recharge1 " << i->get_name() << " " << i->recharge1[index] << std::endl;
+			}
+
+			for (int index = 0; index < i->recharge2.size(); ++index)
+			{
+				out << "recharge2 " << i->get_name() << " " << i->recharge2[index] << std::endl;
+			}
+
+			for (int index = 0; index < i->recharge3.size(); ++index)
+			{
+				out << "recharge3 " << i->get_name() << " " << i->recharge3[index] << std::endl;
+			}
+
+			for (int index = 0; index < i->recharge4.size(); ++index)
+			{
+				out << "recharge4 " << i->get_name() << " " << i->recharge4[index] << std::endl;
+			}
+
+			for (int index = 0; index < i->recharge5.size(); ++index)
+			{
+				out << "recharge5 " << i->get_name() << " " << i->recharge5[index] << std::endl;
+			}
+
+			for (int index = 0; index < i->recharge6.size(); ++index)
+			{
+				out << "recharge6 " << i->get_name() << " " << i->recharge6[index] << std::endl;
+			}
+
 		}
 
 		if (!temp_file)
@@ -2024,6 +2143,10 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_all(dummy_line, "aliasremove", "ra", true, false);
 	dummy_line = replace_all(dummy_line, "alias_remove", "ra", true, false);
 	dummy_line = replace_all(dummy_line, "notes", "note", true, false);
+	dummy_line = replace_all(dummy_line, "rmfg", "rf", true, false);
+	dummy_line = replace_all(dummy_line, "rmflg", "rf", true, false);
+	dummy_line = replace_all(dummy_line, "adflg", "flag", true, false);
+	dummy_line = replace_all(dummy_line, "flag_add", "add_flag", true, false);
 }
 
 std::list<std::list<creature>> creatures_buffer;
@@ -2331,6 +2454,173 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				if (dummy_line.find(lowercase_name) == std::string::npos)
 				{
 					continue;
+				}
+				else if (comp_substring(lowercase_name + " recharge0 ", dummy_line, (lowercase_name + " recharge0 ").length())
+					|| comp_substring(lowercase_name + " recharge 0 ", dummy_line, (lowercase_name + " recharge 0 ").length())
+					||
+					comp_substring("recharge0 " + lowercase_name + " ", dummy_line, ("recharge0 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 0 " + lowercase_name + " ", dummy_line, ("recharge 0 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->remove_recharge(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge1 ", dummy_line, (lowercase_name + " recharge1 ").length())
+					|| comp_substring(lowercase_name + " recharge1-6 ", dummy_line, (lowercase_name + " recharge1-6 ").length())
+					||
+					comp_substring("recharge1 " + lowercase_name + " ", dummy_line, ("recharge1 " + lowercase_name + " ").length())
+					|| comp_substring("recharge1-6 " + lowercase_name + " ", dummy_line, ("recharge1-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 1 ", dummy_line, (lowercase_name + " recharge 1 ").length())
+					|| comp_substring(lowercase_name + " recharge 1-6 ", dummy_line, (lowercase_name + " recharge 1-6 ").length())
+					||
+					comp_substring("recharge 1 " + lowercase_name + " ", dummy_line, ("recharge 1 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 1-6 " + lowercase_name + " ", dummy_line, ("recharge 1-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(1, flag_name);
+					if (!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge2 ", dummy_line, (lowercase_name + " recharge2 ").length())
+					|| comp_substring(lowercase_name + " recharge2-6 ", dummy_line, (lowercase_name + " recharge2-6 ").length())
+					||
+					comp_substring("recharge2 " + lowercase_name + " ", dummy_line, ("recharge2 " + lowercase_name + " ").length())
+					|| comp_substring("recharge2-6 " + lowercase_name + " ", dummy_line, ("recharge2-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 2 ", dummy_line, (lowercase_name + " recharge 2 ").length())
+					|| comp_substring(lowercase_name + " recharge 2-6 ", dummy_line, (lowercase_name + " recharge 2-6 ").length())
+					||
+					comp_substring("recharge 2 " + lowercase_name + " ", dummy_line, ("recharge 2 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 2-6 " + lowercase_name + " ", dummy_line, ("recharge 2-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(2, flag_name);
+					if (!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge3 ", dummy_line, (lowercase_name + " recharge3 ").length())
+					|| comp_substring(lowercase_name + " recharge3-6 ", dummy_line, (lowercase_name + " recharge3-6 ").length())
+					||
+					comp_substring("recharge3 " + lowercase_name + " ", dummy_line, ("recharge3 " + lowercase_name + " ").length())
+					|| comp_substring("recharge3-6 " + lowercase_name + " ", dummy_line, ("recharge3-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 3 ", dummy_line, (lowercase_name + " recharge 3 ").length())
+					|| comp_substring(lowercase_name + " recharge 3-6 ", dummy_line, (lowercase_name + " recharge 3-6 ").length())
+					||
+					comp_substring("recharge 3 " + lowercase_name + " ", dummy_line, ("recharge 3 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 3-6 " + lowercase_name + " ", dummy_line, ("recharge 3-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(3, flag_name);
+					if (!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge4 ", dummy_line, (lowercase_name + " recharge4 ").length())
+					|| comp_substring(lowercase_name + " recharge4-6 ", dummy_line, (lowercase_name + " recharge4-6 ").length())
+					||
+					comp_substring("recharge4 " + lowercase_name + " ", dummy_line, ("recharge4 " + lowercase_name + " ").length())
+					|| comp_substring("recharge4-6 " + lowercase_name + " ", dummy_line, ("recharge4-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 4 ", dummy_line, (lowercase_name + " recharge 4 ").length())
+					|| comp_substring(lowercase_name + " recharge 4-6 ", dummy_line, (lowercase_name + " recharge 4-6 ").length())
+					||
+					comp_substring("recharge 4 " + lowercase_name + " ", dummy_line, ("recharge 4 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 4-6 " + lowercase_name + " ", dummy_line, ("recharge 4-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(4, flag_name);
+					if (!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge5 ", dummy_line, (lowercase_name + " recharge5 ").length())
+					|| comp_substring(lowercase_name + " recharge5-6 ", dummy_line, (lowercase_name + " recharge5-6 ").length())
+					||
+					comp_substring("recharge5 " + lowercase_name + " ", dummy_line, ("recharge5 " + lowercase_name + " ").length())
+					|| comp_substring("recharge5-6 " + lowercase_name + " ", dummy_line, ("recharge5-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 5 ", dummy_line, (lowercase_name + " recharge 5 ").length())
+					|| comp_substring(lowercase_name + " recharge 5-6 ", dummy_line, (lowercase_name + " recharge 5-6 ").length())
+					||
+					comp_substring("recharge 5 " + lowercase_name + " ", dummy_line, ("recharge 5 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 5-6 " + lowercase_name + " ", dummy_line, ("recharge 5-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(5, flag_name);
+					if (!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge6 ", dummy_line, (lowercase_name + " recharge6 ").length())
+					|| comp_substring(lowercase_name + " recharge6-6 ", dummy_line, (lowercase_name + " recharge6-6 ").length())
+					||
+					comp_substring("recharge6 " + lowercase_name + " ", dummy_line, ("recharge6 " + lowercase_name + " ").length())
+					|| comp_substring("recharge6-6 " + lowercase_name + " ", dummy_line, ("recharge6-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 6 ", dummy_line, (lowercase_name + " recharge 6 ").length())
+					|| comp_substring(lowercase_name + " recharge 6-6 ", dummy_line, (lowercase_name + " recharge 6-6 ").length())
+					||
+					comp_substring("recharge 6 " + lowercase_name + " ", dummy_line, ("recharge 6 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 6-6 " + lowercase_name + " ", dummy_line, ("recharge 6-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(6, flag_name);
+					if(!i->has_flag(flag_name))
+						i->add_flag(flag_name);
+					used_command = true;
 				}
 
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
@@ -5212,60 +5502,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				else if (comp_substring("flag_add " + lowercase_name + " ", dummy_line, ("flag_add " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("flag_add " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " flag_add ", dummy_line, (lowercase_name + " flag_add ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " flag_add ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("rmfg " + lowercase_name + " ", dummy_line, ("rmfg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmfg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " rmfg ", dummy_line, (lowercase_name + " rmfg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmfg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
 
 
 				else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
@@ -5315,61 +5551,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						std::string arg = line.substr(start_length);
 
 						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("adflg " + lowercase_name + " ", dummy_line, ("adflg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adflg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " adflg ", dummy_line, (lowercase_name + " adflg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adflg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("rmflg " + lowercase_name + " ", dummy_line, ("rmflg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmflg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " rmflg ", dummy_line, (lowercase_name + " rmflg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmflg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -6773,6 +6954,29 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 		else
 			turn_msg += "false\n";
 	}
+
+	auto disp_recharge = [&](std::vector<std::string>& recharger, const std::string& dispname)
+		{
+			if (recharger.size() != 0)
+			{
+			turn_msg +="\t" + dispname + ": ";
+				for (int j = 0; j < recharger.size(); ++j)
+				{
+					if (j != 0)
+						turn_msg += ", ";
+					turn_msg += recharger[j];
+				}
+			turn_msg += "\n";
+			}
+		};
+
+	disp_recharge(i->recharge1, "Flag Recharge (1-6)");
+	disp_recharge(i->recharge2, "Flag Recharge (2-6)");
+	disp_recharge(i->recharge3, "Flag Recharge (3-6)");
+	disp_recharge(i->recharge4, "Flag Recharge (4-6)");
+	disp_recharge(i->recharge5, "Flag Recharge (5-6)");
+	disp_recharge(i->recharge6, "Flag Recharge (6-6)");
+
 	if (i->get_reminder(false) != "")
 		turn_msg += "\tReminder: " + (i->get_reminder(true)) + "\n";
 
@@ -6974,6 +7178,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				if (new_turn)
 				{
+					current_creature->poll_recharges();
 					int regen = current_creature->get_regen();
 					if (regen != 0 && (current_creature->get_hp() != current_creature->get_max_hp()))
 					{
@@ -7589,6 +7794,162 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					used_command = true;
 				}
 
+				else if (comp_substring(lowercase_name + " recharge0 ", dummy_line, (lowercase_name + " recharge0 ").length())
+					|| comp_substring(lowercase_name + " recharge 0 ", dummy_line, (lowercase_name + " recharge 0 ").length())
+					||
+					comp_substring("recharge0 " + lowercase_name + " ", dummy_line, ("recharge0 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 0 " + lowercase_name + " ", dummy_line, ("recharge 0 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->remove_recharge(flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge1 ", dummy_line, (lowercase_name + " recharge1 ").length())
+					|| comp_substring(lowercase_name + " recharge1-6 ", dummy_line, (lowercase_name + " recharge1-6 ").length())
+					||
+					comp_substring("recharge1 " + lowercase_name + " ", dummy_line, ("recharge1 " + lowercase_name + " ").length())
+					|| comp_substring("recharge1-6 " + lowercase_name + " ", dummy_line, ("recharge1-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 1 ", dummy_line, (lowercase_name + " recharge 1 ").length())
+					|| comp_substring(lowercase_name + " recharge 1-6 ", dummy_line, (lowercase_name + " recharge 1-6 ").length())
+					||
+					comp_substring("recharge 1 " + lowercase_name + " ", dummy_line, ("recharge 1 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 1-6 " + lowercase_name + " ", dummy_line, ("recharge 1-6 " + lowercase_name + " ").length())
+					)
+				{
+					std::string flag_name;
+					for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+					{
+						flag_name += dummy_line[index];
+					}
+					std::reverse(flag_name.begin(), flag_name.end());
+					trim(flag_name);
+					i->add_recharge(1, flag_name);
+					used_command = true;
+				}
+				else if (comp_substring(lowercase_name + " recharge2 ", dummy_line, (lowercase_name + " recharge2 ").length())
+					|| comp_substring(lowercase_name + " recharge2-6 ", dummy_line, (lowercase_name + " recharge2-6 ").length())
+					||
+					comp_substring("recharge2 " + lowercase_name + " ", dummy_line, ("recharge2 " + lowercase_name + " ").length())
+					|| comp_substring("recharge2-6 " + lowercase_name + " ", dummy_line, ("recharge2-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 2 ", dummy_line, (lowercase_name + " recharge 2 ").length())
+					|| comp_substring(lowercase_name + " recharge 2-6 ", dummy_line, (lowercase_name + " recharge 2-6 ").length())
+					||
+					comp_substring("recharge 2 " + lowercase_name + " ", dummy_line, ("recharge 2 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 2-6 " + lowercase_name + " ", dummy_line, ("recharge 2-6 " + lowercase_name + " ").length())
+					)
+					{
+						std::string flag_name;
+						for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+						{
+							flag_name += dummy_line[index];
+						}
+						std::reverse(flag_name.begin(), flag_name.end());
+						trim(flag_name);
+						i->add_recharge(2, flag_name);
+						used_command = true;
+						}
+				else if (comp_substring(lowercase_name + " recharge3 ", dummy_line, (lowercase_name + " recharge3 ").length())
+					|| comp_substring(lowercase_name + " recharge3-6 ", dummy_line, (lowercase_name + " recharge3-6 ").length())
+					||
+					comp_substring("recharge3 " + lowercase_name + " ", dummy_line, ("recharge3 " + lowercase_name + " ").length())
+					|| comp_substring("recharge3-6 " + lowercase_name + " ", dummy_line, ("recharge3-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 3 ", dummy_line, (lowercase_name + " recharge 3 ").length())
+					|| comp_substring(lowercase_name + " recharge 3-6 ", dummy_line, (lowercase_name + " recharge 3-6 ").length())
+					||
+					comp_substring("recharge 3 " + lowercase_name + " ", dummy_line, ("recharge 3 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 3-6 " + lowercase_name + " ", dummy_line, ("recharge 3-6 " + lowercase_name + " ").length())
+					)
+					{
+						std::string flag_name;
+						for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+						{
+							flag_name += dummy_line[index];
+						}
+						std::reverse(flag_name.begin(), flag_name.end());
+						trim(flag_name);
+						i->add_recharge(3, flag_name);
+						used_command = true;
+						}
+				else if (comp_substring(lowercase_name + " recharge4 ", dummy_line, (lowercase_name + " recharge4 ").length())
+					|| comp_substring(lowercase_name + " recharge4-6 ", dummy_line, (lowercase_name + " recharge4-6 ").length())
+					||
+					comp_substring("recharge4 " + lowercase_name + " ", dummy_line, ("recharge4 " + lowercase_name + " ").length())
+					|| comp_substring("recharge4-6 " + lowercase_name + " ", dummy_line, ("recharge4-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 4 ", dummy_line, (lowercase_name + " recharge 4 ").length())
+					|| comp_substring(lowercase_name + " recharge 4-6 ", dummy_line, (lowercase_name + " recharge 4-6 ").length())
+					||
+					comp_substring("recharge 4 " + lowercase_name + " ", dummy_line, ("recharge 4 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 4-6 " + lowercase_name + " ", dummy_line, ("recharge 4-6 " + lowercase_name + " ").length())
+					)
+					{
+						std::string flag_name;
+						for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+						{
+							flag_name += dummy_line[index];
+						}
+						std::reverse(flag_name.begin(), flag_name.end());
+						trim(flag_name);
+						i->add_recharge(4, flag_name);
+						used_command = true;
+						}
+				else if (comp_substring(lowercase_name + " recharge5 ", dummy_line, (lowercase_name + " recharge5 ").length())
+					|| comp_substring(lowercase_name + " recharge5-6 ", dummy_line, (lowercase_name + " recharge5-6 ").length())
+					||
+					comp_substring("recharge5 " + lowercase_name + " ", dummy_line, ("recharge5 " + lowercase_name + " ").length())
+					|| comp_substring("recharge5-6 " + lowercase_name + " ", dummy_line, ("recharge5-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 5 ", dummy_line, (lowercase_name + " recharge 5 ").length())
+					|| comp_substring(lowercase_name + " recharge 5-6 ", dummy_line, (lowercase_name + " recharge 5-6 ").length())
+					||
+					comp_substring("recharge 5 " + lowercase_name + " ", dummy_line, ("recharge 5 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 5-6 " + lowercase_name + " ", dummy_line, ("recharge 5-6 " + lowercase_name + " ").length())
+					)
+					{
+						std::string flag_name;
+						for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+						{
+							flag_name += dummy_line[index];
+						}
+						std::reverse(flag_name.begin(), flag_name.end());
+						trim(flag_name);
+						i->add_recharge(5, flag_name);
+						used_command = true;
+						}
+				else if (comp_substring(lowercase_name + " recharge6 ", dummy_line, (lowercase_name + " recharge6 ").length())
+					|| comp_substring(lowercase_name + " recharge6-6 ", dummy_line, (lowercase_name + " recharge6-6 ").length())
+					||
+					comp_substring("recharge6 " + lowercase_name + " ", dummy_line, ("recharge6 " + lowercase_name + " ").length())
+					|| comp_substring("recharge6-6 " + lowercase_name + " ", dummy_line, ("recharge6-6 " + lowercase_name + " ").length())
+					||
+					comp_substring(lowercase_name + " recharge 6 ", dummy_line, (lowercase_name + " recharge 6 ").length())
+					|| comp_substring(lowercase_name + " recharge 6-6 ", dummy_line, (lowercase_name + " recharge 6-6 ").length())
+					||
+					comp_substring("recharge 6 " + lowercase_name + " ", dummy_line, ("recharge 6 " + lowercase_name + " ").length())
+					|| comp_substring("recharge 6-6 " + lowercase_name + " ", dummy_line, ("recharge 6-6 " + lowercase_name + " ").length())
+					)
+					{
+						std::string flag_name;
+						for (size_t index = dummy_line.size() - 1; index >= 1 && dummy_line[index] != ' '; --index)
+						{
+							flag_name += dummy_line[index];
+						}
+						std::reverse(flag_name.begin(), flag_name.end());
+						trim(flag_name);
+						i->add_recharge(6, flag_name);
+						used_command = true;
+						}
+
 
 				else if (((lowercase_name + " start") == dummy_line) || (dummy_line == ("start " + lowercase_name)))
 				{
@@ -7892,89 +8253,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 
-				else if (comp_substring("adflg " + lowercase_name + " ", dummy_line, ("adflg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adflg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-				else if (comp_substring(lowercase_name + " adflg ", dummy_line, (lowercase_name + " adflg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adflg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring("rmflg " + lowercase_name + " ", dummy_line, ("rmflg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmflg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring(lowercase_name + " rmflg ", dummy_line, (lowercase_name + " rmflg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmflg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring("rmfg " + lowercase_name + " ", dummy_line, ("rmfg " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmfg " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring(lowercase_name + " rmfg ", dummy_line, (lowercase_name + " rmfg ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmfg ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
 				else if (comp_substring("f " + lowercase_name + " ", dummy_line, ("f " + lowercase_name + " ").length()))
 				{
 					try {
@@ -8019,32 +8297,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						size_t start_length = (lowercase_name + " add_flag ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-				else if (comp_substring("flag_add " + lowercase_name + " ", dummy_line, ("flag_add " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("flag_add " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-				else if (comp_substring(lowercase_name + " flag_add ", dummy_line, (lowercase_name + " flag_add ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " flag_add ").length();
 						std::string arg = line.substr(start_length);
 						used_command = true;
 
