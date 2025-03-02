@@ -112,6 +112,10 @@ A character's HP can also be referenced like a variable. For example:
 AC can also be referenced via variable syntax.
 Max HP can be referred to via the 'max_hp' variable.
 
+Characters can also act as an "array", where numbered variables represent positions in that array.
+To refer to an arbitrarily numbered variable, put the argument for that variable in brackets.
+For example: ""character1::[2d6] = 5" will roll 2d6 and use that as the variable name to assign 5 to. Other variables (even those from other characters) can be used for this value as well.
+
 TURN TRACKING
 Once you've finished adding characters, you can begin tracking turns. Type "go" to start. "start", "begin", and "done" work too.
 Combat starts one round 1, starting with the very first character's turn.
@@ -408,6 +412,9 @@ recharge6 [character] [flag]
 
 recharge 0 [character] [flag]
 	Makes it so the specified character no longer recharges the flag on any rolls of a d6.
+
+if [character] [flag] [filename]
+	-If the specified character has the specified flag, it will try to call the specified file. Note that "if-then" logic involving numeric variables is resolved very differently.
 
 full display mode
 full display

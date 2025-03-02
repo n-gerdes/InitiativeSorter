@@ -438,7 +438,7 @@ public:
 		}
 	}
 
-	int get_var(std::string var_name)
+	int get_var(std::string var_name) const
 	{
 		make_lowercase(var_name);
 		if (var_name == "ac")
@@ -467,12 +467,12 @@ public:
 			}
 			else
 			{
-				return variables["#" + var_name];
+				return variables.at("#" + var_name);
 			}
 		}
 		else
 		{
-			return variables[var_name];
+			return variables.at(var_name);
 		}
 	}
 
@@ -656,7 +656,7 @@ public:
 
 	}
 
-	bool has_var(const std::string& var_name)
+	bool has_var(const std::string& var_name) const
 	{
 		if (var_name.size() == 0)
 			return false;
@@ -1410,6 +1410,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "recharge4-6"
 			|| lowerc == "recharge5-6"
 			|| lowerc == "recharge6-6"
+			|| lowerc == "if"
 		) 
 			return false;
 
@@ -1842,7 +1843,7 @@ inline int parse_dice(std::string& input)
 	return sum;
 }
 
-inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<creature>& creatures)
+inline int get_number_arg(const std::string& dummy_line, bool& is_signed, const std::list<creature>& creatures)
 {
 	is_signed = false;
 	size_t first_space = dummy_line.find(" ");
@@ -2264,6 +2265,7 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "rmflg", "rf", true, false);
 	dummy_line = replace_first(dummy_line, "adflg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "flag_add", "add_flag", true, false);
+	dummy_line = replace_first(dummy_line, "fr", "rf", true, false);
 }
 
 std::list<std::list<creature>> creatures_buffer;
@@ -2350,6 +2352,28 @@ const int VAR_EQUAL_TO = 8;
 const int VAR_LESS_THAN = 9;
 const int VAR_LESS_THAN_OR_EQUAL = 10;
 const int VAR_NOT_EQUAL = 11;
+
+
+inline std::string resolve_var_name(const std::string& var, const std::list<creature>& creatures, creature& current_creature)
+{
+	if (var.size() > 2 && var[0] == '[' && var[var.size() - 1] == ']')
+	{
+		std::string og_var = var;
+		std::string parse = var;
+		parse[0] = ' ';
+		parse[var.size() - 1] = ' ';
+		trim(parse);
+		parse = "parse " + parse;
+		bool is_signed = false;
+		int val = get_number_arg(parse, is_signed, creatures);
+		parse = "#" + std::to_string(val);
+		return parse;
+	}
+	else
+	{
+		return var;
+	}
+}
 
 //Process command/add a creature, and return whether or not a creature was added.
 inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory, bool initial_execution)
@@ -2839,6 +2863,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find("::");
 						std::string var = trunc.substr(loc + 2);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2856,6 +2881,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find("::");
 						std::string var = trunc.substr(loc + 2);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2874,6 +2900,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(" ");
 						std::string var = trunc.substr(loc);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2892,6 +2919,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(":");
 						std::string var = trunc.substr(loc + 1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2909,6 +2937,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(":");
 						std::string var = trunc.substr(loc + 1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2927,6 +2956,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(".");
 						std::string var = trunc.substr(loc+1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2944,6 +2974,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(".");
 						std::string var = trunc.substr(loc+1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -2960,6 +2991,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int loc = trunc.find(" ");
 						std::string var = trunc.substr(loc);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -3027,12 +3059,71 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
+				else if (comp_substring("if " + lowercase_name + " ", dummy_line, ("if " + lowercase_name + " ").size()))
+				{
+					int cmd_len = ("if " + lowercase_name + " ").size();
+					std::string sub = dummy_line.substr(cmd_len);
+					trim(sub);
+					std::string og_sub = sub;
+					int space = sub.find(" ");
+					sub.resize(space);
+					if (i->has_flag(sub))
+					{
+						sub = og_sub;
+						space = sub.find(" ");
+						sub = sub.substr(space);
+						trim(sub);
+						std::string filename = sub;
+
+						if (directory != "")
+						{
+							filename = directory + "/" + filename;
+						}
+						else
+						{
+							if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+							{
+								size_t backi = filename.size() - 1;
+								while (filename[backi] != '/' && filename[backi] != '\\')
+								{
+									--backi;
+								}
+								directory = filename;
+								directory.resize(backi);
+								if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+									wd = directory;
+							}
+						}
+						std::ifstream new_file;
+						new_file.open(filename);
+						if (!new_file.is_open())
+						{
+							std::cout << "Error: Could not open " << filename << std::endl;
+							//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+							return false;
+						}
+						else {
+							while (new_file.good() && !new_file.eof())
+							{
+								get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+							}
+							ignore_initial_file_load = true;
+							new_file.close();
+							save_buffer();
+							return false;
+						}
+					}
+					else
+						used_command = true;
+				}
+
 				else if (comp_substring(lowercase_name + " dv ", dummy_line, (lowercase_name + " dv ").length()))
 				{
 					try {
 						size_t start_length = lowercase_name.length() + 4;
 						std::string var = dummy_line.substr(start_length);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -3047,6 +3138,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						size_t start_length = lowercase_name.length() + 4;
 						std::string var = dummy_line.substr(start_length);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -3071,7 +3163,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						if (var.size() > 2 && var[0] == '.')
 							var = var.substr(1);
-
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 
 						used_command = true;
@@ -3096,7 +3188,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							if (var.size() > 2 && var[0] == '.')
 								var = var.substr(1);
-
+							var = resolve_var_name(var, creatures, *i);
 							i->show_var(var);
 
 							used_command = true;
@@ -3114,6 +3206,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -3121,6 +3214,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -3397,6 +3491,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							std::string og_var = var;
 							
 							var.resize(space);
+							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
@@ -3780,6 +3875,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 4)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -3794,6 +3890,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 4)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -3811,6 +3908,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -3818,6 +3916,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -4092,6 +4191,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								val = get_number_arg(var, is_signed, creatures);
 							std::string og_var = var; //Right before var is resized
 							var.resize(space);
+							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
@@ -4477,6 +4577,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -4491,6 +4592,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -4506,6 +4608,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -4513,6 +4616,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -4788,6 +4892,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								val = get_number_arg(var, is_signed, creatures);
 							std::string og_var = var;
 							var.resize(space);
+							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
@@ -5171,6 +5276,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -5185,6 +5291,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -5515,32 +5622,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("fr " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->remove_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " fr ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->remove_flag(arg);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
 				else if (comp_substring("f " + lowercase_name + " ", dummy_line, ("f " + lowercase_name + " ").length()))
 				{
 					try {
@@ -5795,37 +5876,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				else if (comp_substring("fr " + lowercase_name + " ", dummy_line, ("fr " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("fr " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
 				else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
 				{
 					try {
 						size_t start_length = (lowercase_name + " rf ").length();
 						std::string arg =line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " fr ", dummy_line, (lowercase_name + " fr ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " fr ").length();
-						std::string arg = line.substr(start_length);
 
 						i->remove_flag(arg);
 						used_command = true;
@@ -8599,6 +8654,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							size_t start_length = lowercase_name.length() + 5;
 							std::string var = dummy_line.substr(start_length);
 							trim(var);
+							var = resolve_var_name(var, creatures, *i);
 							if (var.size() > 2 && var[0] == ':')
 								var = var.substr(1);
 							if (var.size() > 2 && var[0] == ':')
@@ -8624,6 +8680,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							size_t start_length = lowercase_name.length() + 5;
 							std::string var = dummy_line.substr(start_length);
 							trim(var);
+							var = resolve_var_name(var, creatures, *i);
 							if (var.size() > 2 && var[0] == ':')
 								var = var.substr(1);
 							if (var.size() > 2 && var[0] == ':')
@@ -8642,6 +8699,83 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 
 
+				else if (comp_substring("if " + lowercase_name + " ", dummy_line, ("if " + lowercase_name + " ").size()))
+				{
+					try {
+						int cmd_len = ("if " + lowercase_name + " ").size();
+						std::string sub = dummy_line.substr(cmd_len);
+						trim(sub);
+						std::string og_sub = sub;
+						int space = sub.find(" ");
+						sub.resize(space);
+						if (i->has_flag(sub))
+						{
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							std::string filename = sub;
+
+							std::string directory = wd;
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+								}
+							}
+							std::ifstream new_file;
+							new_file.open(filename);
+							used_command = true;
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+							}
+							else {
+								bool taking_initiatives = false;
+								while (new_file.good() && !new_file.eof())
+								{
+									get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+								}
+								new_file.close();
+								creatures.sort();
+								turn_count = current_creature->get_turn_count();
+								current_turn = 0;
+								for (auto i = creatures.begin(); i != creatures.end(); ++i)
+								{
+									if (i->get_name() == current_creature->get_name())
+									{
+
+										break;
+									}
+									++current_turn;
+								}
+								buffer_manipulation_state = STATE_NODO;
+								save_buffer();
+								file_load_disable = true;
+								continue;
+							}
+						}
+						else
+							used_command = true;
+					}
+					catch (const std::exception& E)
+					{
+
+					}
+				}
+
 				else if (comp_substring(lowercase_name + "::", dummy_line, (lowercase_name + "::").length()))
 				{
 					int last = dummy_line.size() - 1;
@@ -8649,6 +8783,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -8656,6 +8791,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 2);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -8932,6 +9068,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								val = get_number_arg(var, is_signed, creatures);
 							std::string og_var = var;
 							var.resize(space);
+							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
@@ -9404,6 +9541,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 4)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -9418,6 +9556,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 4)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 4);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -9435,6 +9574,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -9442,6 +9582,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -9717,6 +9858,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								val = get_number_arg(var, is_signed, creatures);
 							std::string og_var = var;
 							var.resize(space);
+							var = resolve_var_name(var, creatures, *i);
 							switch (SET_TYPE)
 							{
 							case VAR_ADD: i->set_var(var, i->get_var(var) + val); break;
@@ -10187,6 +10329,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -10201,6 +10344,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -10216,6 +10360,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->hide_var(var);
 						used_command = true;
 					}
@@ -10223,6 +10368,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						std::string var = dummy_line.substr(lowercase_name.length() + 1);
 						var.resize(var.size() - 5);
+						var = resolve_var_name(var, creatures, *i);
 						i->show_var(var);
 						used_command = true;
 					}
@@ -10967,6 +11113,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) - 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -10981,6 +11128,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (dummy_line.length() <= lowercase_name.length() + 3)
 							throw;
 						std::string var = dummy_line.substr(lowercase_name.length() + 3);
+						var = resolve_var_name(var, creatures, *i);
 						if (i->variables.count(var) != 0)
 							i->set_var(var, i->get_var(var) + 1);
 						else if (i->variables.count("#" + var) != 0)
@@ -10999,6 +11147,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find("::");
 						std::string var = trunc.substr(loc + 2);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11016,6 +11165,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find("::");
 						std::string var = trunc.substr(loc + 2);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11034,6 +11184,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(":");
 						std::string var = trunc.substr(loc + 1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11051,6 +11202,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(":");
 						std::string var = trunc.substr(loc + 1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11069,6 +11221,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(".");
 						std::string var = trunc.substr(loc+1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11086,6 +11239,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(".");
 						std::string var = trunc.substr(loc+1);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11104,6 +11258,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(" ");
 						std::string var = trunc.substr(loc);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11120,6 +11275,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int loc = trunc.find(" ");
 						std::string var = trunc.substr(loc);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11134,6 +11290,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = lowercase_name.length() + 4;
 						std::string var = dummy_line.substr(start_length);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
@@ -11148,6 +11305,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						size_t start_length = lowercase_name.length() + 4;
 						std::string var = dummy_line.substr(start_length);
 						trim(var);
+						var = resolve_var_name(var, creatures, *i);
 						i->remove_var(var);
 
 						used_command = true;
