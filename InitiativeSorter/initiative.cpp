@@ -110,6 +110,110 @@ std::string replace_first(const std::string& original, const std::string& origin
 	}
 }
 
+std::string replace_first(const std::string& original, const std::string& original_substring, const std::string& new_substring, bool whole_word_only, bool case_sensitive)
+{
+	if (!whole_word_only)
+	{
+		if (case_sensitive)
+		{
+			return replace_first(original, original_substring, new_substring);
+		}
+		else
+		{
+			std::string lowercase_original = get_lowercase(original);
+			std::string lowercase_original_substring = get_lowercase(original_substring);
+			size_t index = lowercase_original.find(lowercase_original_substring);
+
+			if (index != std::string::npos)
+			{
+				std::string prestring = original.substr(0, index);
+				std::string post = "";
+				if (index + original_substring.length() < original.length())
+					post = original.substr(index + original_substring.length());
+
+				return prestring + new_substring + post;
+			}
+			else
+			{
+				return original;
+			}
+		}
+	}
+	else
+	{
+		if (case_sensitive)
+		{
+			if (whole_word_only)
+			{
+				std::string returned = " " + original + " ";
+				std::string substring = " " + original_substring + " ";
+				size_t index = returned.find(substring);
+				if (index != std::string::npos)
+				{
+					std::string pre = returned.substr(0, index);
+					std::string post = "";
+					if (index + substring.length() < returned.length())
+						post = returned.substr(index + substring.length());
+
+					returned = pre + " " + new_substring + " " + post;
+
+					index = returned.find(substring);
+				}
+				if (returned[returned.size() - 1] == ' ')
+					returned.resize(returned.size() - 1);
+				if (returned[0] == ' ')
+					returned = returned.substr(1);
+				return returned;
+			}
+			else
+			{
+				std::string returned = original;
+				size_t index = returned.find(original_substring);
+				if (index != std::string::npos)
+				{
+					std::string pre = returned.substr(0, index);
+					std::string post = "";
+					if (index + original_substring.length() < returned.length())
+						post = returned.substr(index + original_substring.length());
+
+					returned = pre + new_substring + post;
+					index = returned.find(original_substring);
+				}
+				return returned;
+			}
+		}
+		else
+		{
+			std::string cur = original;
+			if (whole_word_only)
+				cur = " " + cur + " ";
+			std::string lowercase_original_substring = get_lowercase(original_substring);
+			if (whole_word_only)
+				lowercase_original_substring = " " + lowercase_original_substring + " ";
+
+			if (whole_word_only)
+			{
+				if (get_lowercase(cur).find(lowercase_original_substring) != std::string::npos)
+				{
+					cur = replace_first(cur, " " + original_substring + " ", " " + new_substring + " ", false);
+				}
+
+
+				cur = cur.substr(1);
+				cur.resize(cur.size() - 1);
+			}
+			else
+			{
+				if (get_lowercase(cur).find(lowercase_original_substring) != std::string::npos)
+					cur = replace_first(cur, original_substring, new_substring, false);
+			}
+
+			return cur;
+		}
+	}
+	
+}
+
 
 std::string replace_all(const std::string& original, const std::string& original_substring, const std::string& new_substring, bool whole_word_only)
 {
@@ -1293,6 +1397,19 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "log"
 			|| lowerc == "note"
 			|| lowerc == "notes"
+			|| lowerc == "recharge0"
+			|| lowerc == "recharge1"
+			|| lowerc == "recharge2"
+			|| lowerc == "recharge3"
+			|| lowerc == "recharge4"
+			|| lowerc == "recharge5"
+			|| lowerc == "recharge6"
+			|| lowerc == "recharge1-6"
+			|| lowerc == "recharge2-6"
+			|| lowerc == "recharge3-6"
+			|| lowerc == "recharge4-6"
+			|| lowerc == "recharge5-6"
+			|| lowerc == "recharge6-6"
 		) 
 			return false;
 
@@ -2130,23 +2247,23 @@ void command_replacement(std::string& dummy_line)
 
 	dummy_line = replace_all(dummy_line, " .", ".", false);
 	dummy_line = replace_all(dummy_line, ". ", ".", false);
-	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
-	dummy_line = replace_all(dummy_line, "tflag", "tf", true,false);
-	dummy_line = replace_all(dummy_line, "tfalg", "tf", true,false);
-	dummy_line = replace_all(dummy_line, "tlafg", "tf", true,false);
-	dummy_line = replace_all(dummy_line, "talfg", "tf", true,false);
-	dummy_line = replace_all(dummy_line, "ralias", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "aliasr", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "ar", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "removealias", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "remove_alias", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "aliasremove", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "alias_remove", "ra", true, false);
-	dummy_line = replace_all(dummy_line, "notes", "note", true, false);
-	dummy_line = replace_all(dummy_line, "rmfg", "rf", true, false);
-	dummy_line = replace_all(dummy_line, "rmflg", "rf", true, false);
-	dummy_line = replace_all(dummy_line, "adflg", "flag", true, false);
-	dummy_line = replace_all(dummy_line, "flag_add", "add_flag", true, false);
+	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
+	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
+	dummy_line = replace_first(dummy_line, "tfalg", "tf", true,false);
+	dummy_line = replace_first(dummy_line, "tlafg", "tf", true,false);
+	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
+	dummy_line = replace_first(dummy_line, "ralias", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "aliasr", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "ar", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "removealias", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "remove_alias", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "aliasremove", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "alias_remove", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "notes", "note", true, false);
+	dummy_line = replace_first(dummy_line, "rmfg", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "rmflg", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "adflg", "flag", true, false);
+	dummy_line = replace_first(dummy_line, "flag_add", "add_flag", true, false);
 }
 
 std::list<std::list<creature>> creatures_buffer;
