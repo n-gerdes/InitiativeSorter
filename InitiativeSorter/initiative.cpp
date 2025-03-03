@@ -19,6 +19,8 @@ const static bool		LOAD_CHANGES_WORKING_DIRECTORY = false;
 //						This behavior only functions during initial character entry - not while running combat, even if this setting is enabled.
 
 
+//						Used by certain display code to cap the number of characters printed horizontally
+const static int		CONSOLE_WIDTH = 112;
 /*
 This may be some of the worst code I've ever written. 
 Originally it was intended to sort initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
@@ -293,6 +295,23 @@ std::string replace_all(const std::string& original, const std::string& original
 	}
 }
 
+std::string get_directory(std::string filename)
+{
+	if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+	{
+		size_t backi = filename.size() - 1;
+		while (filename[backi] != '/' && filename[backi] != '\\')
+		{
+			--backi;
+		}
+		std::string directory = filename;
+		directory.resize(backi);
+		return directory;
+	}
+	else
+		return wd;
+}
+
 //Makes an existing string lowercase in-place
 inline void make_lowercase(std::string& str)
 {
@@ -343,6 +362,21 @@ public:
 		{
 			add_flag(initial_flags[i], true);
 		}
+
+		auto recharge = [&](std::vector<std::string>& recharger)
+			{
+				for (int i = 0; i < recharger.size(); ++i)
+				{
+					add_flag(recharger[i], true);
+				}
+			};
+
+		recharge(recharge1);
+		recharge(recharge2);
+		recharge(recharge3);
+		recharge(recharge4);
+		recharge(recharge5);
+		recharge(recharge6);
 	}
 
 	inline void remove_recharge(const std::string& flag_name)
@@ -6888,19 +6922,33 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (start_file_index != std::string::npos)
 		{
 			size_t space_after_index = lowercase.find(' ', start_file_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
 			size_t length = space_after_index - start_file_index;
 			std::string sub = line.substr(start_file_index + 6, length - 6);
 			
 			start_file_name = sub;
 
-			if (space_after_index == std::string::npos)
+			if (npos)
 			{
-				space_after_index = lowercase.length() - 1;
+				lowercase = lowercase.substr(0, start_file_index);
+				line = line.substr(0, start_file_index);
+				trim(lowercase);
+				trim(line);
 			}
-			lowercase = lowercase.substr(0, start_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
-			line = line.substr(0,			start_file_index) + line.substr(	 space_after_index + 1, line.length() - space_after_index - 1);
-			trim(lowercase);
-			trim(line);
+			else
+			{
+				lowercase = lowercase.substr(0, start_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, start_file_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+			
+			
 		}
 
 		std::string end_file_name = "";
@@ -6908,19 +6956,39 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (end_file_index != std::string::npos)
 		{
 			size_t space_after_index = lowercase.find(' ', end_file_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
 			size_t length = space_after_index - end_file_index;
 			std::string sub = line.substr(end_file_index + 4, length - 4);
 
 			end_file_name = sub;
 
-			if (space_after_index == std::string::npos)
+
+			if (npos)
 			{
-				space_after_index = lowercase.length() - 1;
+				lowercase = lowercase.substr(0, end_file_index);
+				line = line.substr(0, end_file_index);
+				trim(lowercase);
+				trim(line);
 			}
+			else
+			{
+				lowercase = lowercase.substr(0, end_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, end_file_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+
+			/*
 			lowercase = lowercase.substr(0, end_file_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
 			line = line.substr(0, end_file_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
 			trim(lowercase);
 			trim(line);
+			*/
 		}
 
 		temp_hp_index = lowercase.find("buffer:");
@@ -7514,7 +7582,7 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 	return turn_msg;
 }
 
-inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line, bool ignore_initial_file_load)
+inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line, bool ignore_initial_file_load, bool& initial_no_script_run_override)
 {
 	//std::sort(creatures.begin(), creatures.end());
 	std::string logfile_name = "log_" + std::to_string(time(NULL)) + ".txt";
@@ -7721,29 +7789,34 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 			}
-			
-			std::cout << i->get_display_names();
+			std::string linedisp = "";
+
+			linedisp += i->get_display_names();
 			if(!simple_display)
-				std::cout << " [" << i->get_initiative() << "]";
+				linedisp += " [" + std::to_string(i->get_initiative()) + "]";
 			if (i->get_ac() != -1)
 			{
-				std::cout << " <AC " << i->get_ac() << ">";
+				linedisp += " <AC " + std::to_string(i->get_ac()) + ">";
 			}
 			
 			if (i->get_max_hp() != -1) {
 				if(i->get_temp_hp() == 0)
-					std::cout << "; " << i->get_hp() << " / " << i->get_max_hp() << " HP";
+					linedisp += "; " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + " HP";
 				else
-					std::cout << "; " << i->get_hp() << "[+" << i->get_temp_hp() << " temp]" << " / " << i->get_max_hp() << " HP";
+					linedisp +=  "; " + std::to_string(i->get_hp()) + "[+" + std::to_string(i->get_temp_hp()) + " temp]" + " / " + std::to_string(i->get_max_hp()) + " HP";
 			}
 			if (i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true)!="")
 			{
-				std::cout << " | FLAGS: " << i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
+				linedisp += " | FLAGS: " + i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
 			}
 			if(current_turn==turn_count)
-				std::cout << " <---------------------------";
-			std::cout << std::endl;
+				linedisp += " <---------------------------";
 
+			if (linedisp.size() > CONSOLE_WIDTH)
+				linedisp.resize(CONSOLE_WIDTH);
+			std::cout << linedisp;
+			std::cout << std::endl;
+			
 			std::cout << print_variables(i->get_raw_ptr(), false);
 			i->set_turn_count(turn_count);
 			++turn_count;
@@ -7803,8 +7876,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		if (new_turn)
 		{
 			std::string filename = current_creature->turn_start_file;
-			if (filename != "" && !file_load_disable)
+			if (filename != "" && ((!file_load_disable) || initial_no_script_run_override ))
 			{
+				initial_no_script_run_override = false;
 				std::ifstream new_file;
 				new_file.open(filename);
 				std::string line;
@@ -7818,7 +7892,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					bool taking_initiatives = false;
 					while (new_file.good() && !new_file.eof())
 					{
-						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, wd, false);
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, get_directory(filename), false);
 					}
 					new_file.close();
 					creatures.sort();
@@ -12747,7 +12821,7 @@ int main(int argc, char** args)
 	{
 		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename, ignore_initial_file_load, wd, true);
 	}
-
+	bool initial_no_script_run_override = true;
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
 	if (creatures.size() == 0)
 	{
@@ -12755,7 +12829,7 @@ int main(int argc, char** args)
 	}
 	else
 	{
-		track_initiatives(creatures, line, ignore_initial_file_load);
+		track_initiatives(creatures, line, ignore_initial_file_load, initial_no_script_run_override);
 	}
 	std::cout << "Combat has ended. Press \'enter\' to terminate program." << std::endl;
 	std::getline(std::cin, line);
