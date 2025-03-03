@@ -317,14 +317,16 @@ int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<cre
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
-	bool temp_disable_regen = false;
+	
 	std::string name, reminder, note;
 public:
+	bool temp_disable_regen = false;
 	std::string turn_start_file = "";
 	std::string turn_end_file = "";
 	std::list<std::string> flags;
 	std::map<std::string, bool> flags_hidden;
 	std::list<std::string> aliases;
+	std::vector<std::string> initial_flags;
 	std::map<std::string, int> variables;
 	std::vector<std::string> recharge1; //Recharge 0 just removes it from any recharge list.
 	std::vector<std::string> recharge2;
@@ -332,6 +334,16 @@ public:
 	std::vector<std::string> recharge4;
 	std::vector<std::string> recharge5;
 	std::vector<std::string> recharge6;
+
+	inline void reset_flags()
+	{
+		flags.clear();
+		flags_hidden.clear();
+		for (int i = 0; i < initial_flags.size(); ++i)
+		{
+			add_flag(initial_flags[i], true);
+		}
+	}
 
 	inline void remove_recharge(const std::string& flag_name)
 	{
@@ -861,7 +873,17 @@ public:
 	inline void add_flag(const std::string& flag_name, bool disable_keyword_flags)
 	{
 		std::string lc = get_lowercase(flag_name);
-		if (disable_keyword_flags && (lc == "current" || lc == "executor" || lc == "all" || lc == "#current" || lc == "#executor" || lc == "#all"))
+		if (disable_keyword_flags && (
+
+			lc == "current" 
+			|| lc == "executor" 
+			|| lc == "all" 
+
+			|| lc == "#current" 
+			|| lc == "#executor" 
+			|| lc == "#all"
+			
+			))
 			return;
 		std::string new_flag = flag_name;
 		bool hidden = false;
@@ -980,6 +1002,7 @@ public:
 				{
 					if (flag != "")
 					{
+						initial_flags.push_back(flag);
 						add_flag(flag, true);
 						flag = "";
 					}
@@ -987,6 +1010,7 @@ public:
 				}
 				if (c==',' || c=='&')
 				{
+					initial_flags.push_back(flag);
 					add_flag(flag, true);
 					flag = "";
 				}
@@ -997,6 +1021,7 @@ public:
 			}
 			if (flag != "")
 			{
+				initial_flags.push_back(flag);
 				add_flag(flag, true);
 				flag = "";
 			}
@@ -12370,6 +12395,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int roll = 1 + (rand() % 20);
 					i->set_initiative(roll + (i->get_initiative_modifier()));
 					i->set_hp(i->get_max_hp(), false);
+					i->reset_flags();
+					i->variables.clear();
+					i->temp_disable_regen = false;
 					current_round = 1;
 					if (i == (--creatures.end()))
 					{
@@ -12409,6 +12437,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					(dummy_line == "reset " + lowercase_name || dummy_line == lowercase_name + " reset")
 					)
 				{
+						i->reset_flags();
+						i->temp_disable_regen = false;
+						i->variables.clear();
 					i->set_hp(i->get_max_hp(), false);
 					used_command = true;
 				}
