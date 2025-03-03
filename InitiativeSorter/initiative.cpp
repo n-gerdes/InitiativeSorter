@@ -3020,6 +3020,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 		catch (const std::exception& E) {}
 	}
+	else if (dummy_line.size() >= 2 && dummy_line[0] == '/' && dummy_line[1] == '/')
+	{
+		used_command = true;
+	}
 	else if (dummy_line == "wd.." || dummy_line == "cd..")
 	{
 		used_command = true;
@@ -9563,6 +9567,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				skip_command_checks = true;
 			}
 			catch (const std::exception& E) {}
+		}
+		else if (dummy_line.size() >= 2 && dummy_line[0] == '/' && dummy_line[1] == '/')
+		{
+			used_command = true;
+			skip_command_checks = true;
 		}
 		else if (dummy_line.size() > 3 && comp_substring(dummy_line, "dc ", 3))
 		{

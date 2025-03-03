@@ -52,6 +52,8 @@ This can be used to automate saving throws for certain characters - particularly
 If no DEX save value is entered, the program will default to using the initiative modifier, since both key off of DEX.
 If a CON bonus is entered, the program can automate concentration saving throws.
 
+Saving throw modifiers can later be adjusted as though they were character variables.
+
 The order you add tracking features in doesn't matter. "ac:15 hp:64" will work just as well as "hp:64 ac:15".
 
 Characters can be removed with "rm [character]". This will delete the character entry.
@@ -156,6 +158,7 @@ A character's HP can also be referenced like a variable. For example:
 "Boss::HP = 1" will set the HP of "Boss" to just 1.
 AC can also be referenced via variable syntax.
 Max HP can be referred to via the 'max_hp' variable.
+Saving throw modifiers can be accessed as the "str", "dex", "con", "int", "wis", and "cha" variables.
 
 Characters can also act as an "array", where numbered variables represent positions in that array.
 To refer to an arbitrarily numbered variable, put the argument for that variable in brackets.
@@ -557,3 +560,11 @@ For example, "character hp character::var" can set the character's hp to the val
 You can also write "input" where a command would call for a number argument.
 Doing so prompts the user to enter a number.
 This is useful when writing scripts to automate complex turns.
+
+
+
+-------------------------------------------- SCRIPTS ---------------------------------------------------------
+Because you can load text files and have it add new creatures and execute each line as a command, this can be used as a scripting system.
+A creature's start-of-turn file can be used to automate behavior.
+
+//Comments can be denoted by starting the line with two slashes.
