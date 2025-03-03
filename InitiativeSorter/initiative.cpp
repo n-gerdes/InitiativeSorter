@@ -60,6 +60,7 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 
 std::string wd = ""; //Working directory to load files from
 
+int save_dc = 10;
 
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
@@ -337,6 +338,8 @@ const static int SHOW_ONE_NAME = 0;
 const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
 int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
+
+
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -357,6 +360,10 @@ public:
 	std::vector<std::string> recharge4;
 	std::vector<std::string> recharge5;
 	std::vector<std::string> recharge6;
+
+	bool has_con = false;
+
+	int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0;
 
 	inline void reset_flags()
 	{
@@ -466,6 +473,7 @@ public:
 	}
 
 	bool touched = false;
+	bool entered_dex = false;
 	inline const std::list<std::string>& get_flags() const
 	{
 		return flags;
@@ -520,6 +528,64 @@ public:
 			else
 				return max_hp;
 		}
+		else if (var_name == "con")
+		{
+			return con;
+		}
+		else if (var_name == "int")
+		{
+			return intelligence;
+		}
+		else if (var_name == "str")
+		{
+			return str;
+		}
+		else if (var_name == "dex")
+		{
+			return dex;
+		}
+		else if (var_name == "wis")
+			return wis;
+		else if (var_name == "cha")
+			return cha;
+		else if (var_name == "#ac")
+		{
+			return ac;
+		}
+		else if (var_name == "#hp")
+		{
+			if (max_hp >= 1)
+				return hp;
+			else
+				return 0;
+		}
+		else if (var_name == "#max_hp")
+		{
+			if (max_hp < 1)
+				return 0;
+			else
+				return max_hp;
+		}
+		else if (var_name == "#con")
+		{
+			return con;
+		}
+		else if (var_name == "#int")
+		{
+			return intelligence;
+		}
+		else if (var_name == "#str")
+		{
+			return str;
+		}
+		else if (var_name == "#dex")
+		{
+			return dex;
+		}
+		else if (var_name == "#wis")
+			return wis;
+		else if (var_name == "#cha")
+			return cha;
 		else if (variables.count(var_name) == 0)
 		{
 			if (variables.count("#" + var_name) == 0)
@@ -607,13 +673,13 @@ public:
 	{
 		make_lowercase(var_name);
 		trim(var_name);
-		if (var_name == "ac")
+		if (var_name == "ac" || var_name == "#ac")
 		{
 			ac = value;
 			if (ac < 0)
 				ac = 0;
 		}
-		else if (var_name == "hp")
+		else if (var_name == "hp" || var_name == "#hp")
 		{
 			if (value > 0)
 			{
@@ -635,7 +701,7 @@ public:
 				}
 			}
 		}
-		else if (var_name == "max_hp")
+		else if (var_name == "max_hp" || var_name == "#max_hp")
 		{
 			if (value < 1)
 			{
@@ -649,6 +715,24 @@ public:
 					hp = max_hp;
 			}
 		}
+		else if (var_name == "str" || var_name == "#str")
+			str = value;
+		else if (var_name == "dex" || var_name == "#dex")
+		{
+			dex = value;
+			entered_dex = true;
+		}
+		else if (var_name == "con" || var_name == "#con")
+		{
+			con = value;
+			has_con = true;
+		}
+		else if (var_name == "int" || var_name == "#int")
+			intelligence = value;
+		else if (var_name == "wis" || var_name == "#wis")
+			wis = value;
+		else if (var_name == "cha" || var_name == "#cha")
+			cha = value;
 		else
 		{
 			if (variables.count(var_name) != 0)
@@ -672,14 +756,40 @@ public:
 	void remove_var(std::string var_name)
 	{
 		make_lowercase(var_name);
-		if (var_name == "hp")
+		if (var_name == "hp" || var_name == "mxa_hp")
 		{
 			max_hp = -1;
 			hp = -1;
 		}
-		else if (var_name == "ac")
+		else if (var_name == "ac" || var_name=="#ac")
 		{
 			ac = 0;
+		}
+		else if (var_name == "str" || var_name == "#str")
+		{
+			str = 0;
+		}
+		else if (var_name == "dex" || var_name == "#dex")
+		{
+			dex = modifier;
+			entered_dex = false;
+		}
+		else if (var_name == "con" || var_name == "#con")
+		{
+			has_con = false;
+			con = 0;
+		}
+		else if (var_name == "int" || var_name == "#int")
+		{
+			intelligence = 0;
+		}
+		else if (var_name == "wis" || var_name == "#wis")
+		{
+			wis = 0;
+		}
+		else if (var_name == "cha" || var_name == "#cha")
+		{
+			cha = 0;
 		}
 		else if (variables.count(var_name) != 0)
 		{
@@ -733,61 +843,45 @@ public:
 
 	inline bool is_concentrating()
 	{
-		return has_flag("concentrating") || has_flag("concentration") || has_flag("conc") || has_flag("con") || has_flag("c")
+		return has_flag("concentrating") || has_flag("concentration") || has_flag("conc") || has_flag("con") || has_flag("c");
 	}
 
 	inline bool has_con_bonus()
 	{
-		return has_var("con_save") || has_var("con") || has_var("con_bonus") || has_var("con_save_bonus")
-			|| has_var("constitution") || has_var("constitution_save") || has_var("constitution_save_bonus")
-			|| has_var("constitution_saving_throw_bonus") || has_var("constitution_saving_throw");
+		return has_con;
 	}
 
 	inline int get_con_bonus(std::list<creature>& creatures)
 	{
-		if (has_con_bonus())
-		{
-			std::string
-			ref = "con";
-			if (has_var(ref))
-				return get_var(ref, creatures);
+		return con;
+	}
 
-			ref = "con_save";
-			if (has_var(ref))
-				return get_var(ref, creatures);
+	inline int get_str_bonus()
+	{
+		return intelligence;
+	}
 
-			ref = "con_bonus";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "con_save_bonus";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "constitution";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "constitution_save";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "constitution_save_bonus";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "constitution_saving_throw";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-
-			ref = "constitution_saving_throw_bonus";
-			if (has_var(ref))
-				return get_var(ref, creatures);
-		}
+	inline int get_dex_bonus()
+	{
+		if (!entered_dex)
+			return modifier;
 		else
-		{
-			return 0;
-		}
+			return dex;
+	}
+
+	inline int get_wis_bonus()
+	{
+		return wis;
+	}
+
+	inline int get_int_bonus()
+	{
+		return intelligence;
+	}
+
+	inline int get_cha_bonus()
+	{
+		return cha;
 	}
 
 	inline void set_reminder(const std::string& new_reminder)
@@ -1053,6 +1147,11 @@ public:
 		}
 	}
 
+	inline bool has_evasion()
+	{
+		return has_flag("evasion") || has_flag("avoidance");
+	}
+
 	inline void set_initiative(int new_initiative)
 	{
 		initiative = new_initiative;
@@ -1080,8 +1179,11 @@ public:
 	inline int get_temp_hp() const {
 		return temp_hp;
 	}
-	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, int armor_class, const std::list<creature> const* creatures_list, const std::string& start_turn_filename, const std::string& end_turn_filename) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
-		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class), turn_start_file(start_turn_filename), turn_end_file(end_turn_filename)
+	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, 
+		int armor_class, const std::list<creature> const* creatures_list, const std::string& start_turn_filename, const std::string& end_turn_filename,
+		bool has_con, int str, int dex, int con, int intelligence, int wis, int cha, bool entered_dex) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class), turn_start_file(start_turn_filename), turn_end_file(end_turn_filename),
+		has_con(has_con), str(str), dex(dex), con(con), intelligence(intelligence), wis(wis), cha(cha), entered_dex(entered_dex)
 	{
 		if (hp > max_hp)
 			hp = max_hp;
@@ -1162,10 +1264,12 @@ public:
 			}
 		}
 		aliases.push_back("@all");
+		if (!entered_dex)
+			dex = modifier;
 	}
 
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
-		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1)
+		hp(-1), max_hp(-1), turn_count(-1), temp_hp(0), regen(0), ac(-1), dex(modifier)
 	{
 		aliases.push_back("@all");
 	}
@@ -1327,9 +1431,19 @@ public:
 	}
 };
 
+std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg, bool is_concentrating, int intended_dmg, int con_bonus, bool found_con_bonus, creature* victim, bool is_adding_string_outside_function);
+
 inline bool comp_substring(const std::string& first, const std::string& second, size_t chars_to_compare) {
 	for (index_t i = 0; i < chars_to_compare; ++i) {
 		if (first[i] != second[i])
+			return false;
+	}
+	return true;
+}
+
+inline bool comp_substring_not_case_sensitive(const std::string& first, const std::string& second, size_t chars_to_compare) {
+	for (index_t i = 0; i < chars_to_compare; ++i) {
+		if (std::tolower(first[i]) != std::tolower(second[i]))
 			return false;
 	}
 	return true;
@@ -1552,6 +1666,13 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "print"
 			|| lowerc == "printnum"
 			|| lowerc == "print_num"
+			|| lowerc == "dc"
+			|| lowerc == "str_save"
+			|| lowerc == "dex_save"
+			|| lowerc == "con_save"
+			|| lowerc == "int_save"
+			|| lowerc == "wis_save"
+			|| lowerc == "cha_save"
 		) 
 			return false;
 
@@ -1605,8 +1726,11 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 		if (!out.is_open())
 			throw;
 
-		if(!temp_file)
+		if (!temp_file)
+		{
 			out << "reset\n";
+			out << "dc " << save_dc << std::endl;
+		}
 
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
@@ -1620,6 +1744,14 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			else
 				line += " " + mod;
 
+			line += " str:" + std::to_string(i->get_str_bonus()) + " ";
+			if(i->entered_dex)
+				line += "dex:" + std::to_string(i->get_dex_bonus()) + " ";
+			if(i->has_con_bonus())
+				line += "con:" + std::to_string(i->con) + " ";
+			line += "int:" + std::to_string(i->get_int_bonus()) + " ";
+			line += "wis:" + std::to_string(i->get_wis_bonus()) + " ";
+			line += "cha:" + std::to_string(i->get_cha_bonus()) + " ";
 
 			if (i->get_max_hp() != -1)
 			{
@@ -1639,6 +1771,7 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 
 			if (i->turn_end_file != "")
 				line += " end:" + i->turn_end_file;
+
 
 			line += "\n";
 
@@ -2227,182 +2360,199 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 	creatures.sort();
 }
 
+inline bool starts_with(const std::string& base, const std::string& beginning)
+{
+	return comp_substring_not_case_sensitive(base, beginning, beginning.size());;
+}
+
+std::string replace_beginning_if_match(const std::string& base, const std::string& original_beginning, const std::string& new_beginning)
+{
+	if (starts_with(base, original_beginning))
+	{
+		return new_beginning + base.substr(original_beginning.size());
+	}
+	else
+	{
+		return base;
+	}
+}
 
 void command_replacement(std::string& dummy_line)
 {
-	if (dummy_line == "full display mode")
+	std::string lc = get_lowercase(dummy_line);
+	if (lc == "full display mode")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "simple display mode")
+	if (lc == "simple display mode")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "complex display")
+	if (lc == "complex display")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "max display")
+	if (lc == "max display")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "display full")
+	if (lc == "display full")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "display max")
+	if (lc == "display max")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "hide")
+	if (lc == "hide")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "hide all")
+	if (lc == "hide all")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "hideall")
+	if (lc == "hideall")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "min display")
+	if (lc == "min display")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "display min")
+	if (lc == "display min")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "sdisplay")
+	if (lc == "sdisplay")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "displays")
+	if (lc == "displays")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "fdisplay")
+	if (lc == "fdisplay")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "displayf")
+	if (lc == "displayf")
 	{
 		dummy_line = "full display";
 		return;
 	}
 
 
-	if (dummy_line == "showall")
+	if (lc == "showall")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "show")
+	if (lc == "show")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "show all")
+	if (lc == "show all")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "complex disp")
+	if (lc == "complex disp")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "max disp")
+	if (lc == "max disp")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "disp full")
+	if (lc == "disp full")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "fulldisp")
+	if (lc == "fulldisp")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "maxdisp")
+	if (lc == "maxdisp")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "disp max")
+	if (lc == "disp max")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "min disp")
+	if (lc == "min disp")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "disp min")
+	if (lc == "disp min")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "mindisp")
+	if (lc == "mindisp")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "dispmin")
+	if (lc == "dispmin")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "sdisp")
+	if (lc == "sdisp")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "disps")
+	if (lc == "disps")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "simpdisp")
+	if (lc == "simpdisp")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "fdisp")
+	if (lc == "fdisp")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "dispf")
+	if (lc == "dispf")
 	{
 		dummy_line = "full display";
 		return;
 	}
-	if (dummy_line == "simple disp")
+	if (lc == "simple disp")
 	{
 		dummy_line = "simple display";
 		return;
 	}
-	if (dummy_line == "simpledisp")
+	if (lc == "simpledisp")
 	{
 		dummy_line = "simple display";
 		return;
@@ -2418,6 +2568,8 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "ralias", "ra", true, false);
 	dummy_line = replace_first(dummy_line, "aliasr", "ra", true, false);
 	dummy_line = replace_first(dummy_line, "ar", "ra", true, false);
+	dummy_line = replace_first(dummy_line, "as", "alias", true, false);
+	dummy_line = replace_first(dummy_line, "al", "alias", true, false);
 	dummy_line = replace_first(dummy_line, "removealias", "ra", true, false);
 	dummy_line = replace_first(dummy_line, "remove_alias", "ra", true, false);
 	dummy_line = replace_first(dummy_line, "aliasremove", "ra", true, false);
@@ -2425,6 +2577,10 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "notes", "note", true, false);
 	dummy_line = replace_first(dummy_line, "rmfg", "rf", true, false);
 	dummy_line = replace_first(dummy_line, "rmflg", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "rmflag", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "flagrm", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "rmf", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "frm", "rf", true, false);
 	dummy_line = replace_first(dummy_line, "adflg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "adfl", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "adlf", "flag", true, false);
@@ -2433,6 +2589,110 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "hidevar", "hide", true, false);
 	dummy_line = replace_first(dummy_line, "showvar", "show", true, false);
 	dummy_line = replace_first(dummy_line, "print_num", "printnum", true, false);
+	dummy_line = replace_first(dummy_line, "save_dc", "dc", true, false);
+	dummy_line = replace_first(dummy_line, "savedc", "dc", true, false);
+
+	dummy_line = replace_first(dummy_line, "buffer", "temp_hp", true, false);
+	dummy_line = replace_first(dummy_line, "thp", "temp_hp", true, false);
+	dummy_line = replace_first(dummy_line, "temp_hp", "temp_hp", true, false);
+	dummy_line = replace_first(dummy_line, "temp", "temp_hp", true, false);
+	dummy_line = replace_first(dummy_line, "t", "temp_hp", true, false);
+
+	dummy_line = replace_first(dummy_line, "roll str save", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll dex save", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll con save", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll int save", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll wis save", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll cha save", "cha_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "roll str", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll dex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll con", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll int", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll wis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll cha", "cha_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_str", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "savestr", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "strsave", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_str", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_str_save", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "str_roll", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "rollstr", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "strroll", "str_save", true, false);
+	dummy_line = replace_first(dummy_line, "stroll", "str_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_con", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "savecon", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "consave", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_con", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_con_save", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "con_roll", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "rollcon", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "conroll", "con_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_dex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "savedex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "dexsave", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_dex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_dex_save", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "dex_roll", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "rolldex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "dexroll", "dex_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_int", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "saveint", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "intsave", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_int", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_int_save", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "int_roll", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "rollint", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "introll", "int_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_wis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "savewis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "wissave", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_wis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_wis_save", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "wis_roll", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "rollwis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "wisroll", "wis_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save_cha", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "savecha", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "chasave", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_cha", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "roll_cha_save", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "cha_roll", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "rollcha", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "charoll", "cha_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save str", "str_save",true,false);
+	dummy_line = replace_first(dummy_line, "str save", "str_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save dex", "dex_save", true, false);
+	dummy_line = replace_first(dummy_line, "dex save", "dex_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save con", "con_save", true, false);
+	dummy_line = replace_first(dummy_line, "con save", "con_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save int", "int_save", true, false);
+	dummy_line = replace_first(dummy_line, "int save", "int_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save wis", "wis_save", true, false);
+	dummy_line = replace_first(dummy_line, "wis save", "wis_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "save cha", "cha_save", true, false);
+	dummy_line = replace_first(dummy_line, "cha save", "cha_save", true, false);
+
+	dummy_line = replace_first(dummy_line, "savedc", "dc", true, false);
+	dummy_line = replace_first(dummy_line, "save_dc", "dc", true, false);
+
+	dummy_line = replace_first(dummy_line, "rflag", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "flagr", "rf", true, false);
+	dummy_line = replace_first(dummy_line, "adf", "flag", true, false);
+	dummy_line = replace_first(dummy_line, "addf", "flag", true, false);
+	dummy_line = replace_first(dummy_line, "add_flag", "flag", true, false);
 }
 
 std::list<std::list<creature>> creatures_buffer;
@@ -2442,6 +2702,7 @@ std::list<index_t> current_turn_buffer;
 std::list<size_t> current_round_buffer;
 std::list<bool> display_mode_buffer;
 std::list<std::string> wd_buffer;
+std::list<int> save_dc_buffer;
 
 std::list<std::list<creature>>::iterator creatures_buffer_iterator;
 std::list<bool>::iterator new_round_buffer_iterator;
@@ -2450,6 +2711,7 @@ std::list<index_t>::iterator current_turn_buffer_iterator;
 std::list<size_t>::iterator current_round_buffer_iterator;
 std::list<bool>::iterator display_mode_buffer_iterator;
 std::list<std::string>::iterator wd_buffer_iterator;
+std::list<int>::iterator save_dc_buffer_iterator;
 
 //Sorts the initiatives of the given creatures after sorting them by name
 inline void sort(std::list<creature>& creatures, const std::string& name)
@@ -2560,6 +2822,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				current_round_buffer.push_front(0);
 				display_mode_buffer.push_front(simple_display);
 				wd_buffer.push_front(wd);
+				save_dc_buffer.push_front(save_dc);
 
 				creatures_buffer_iterator = creatures_buffer.begin();
 				new_round_buffer_iterator = new_round_buffer.begin();
@@ -2568,6 +2831,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				current_round_buffer_iterator = current_round_buffer.begin();
 				display_mode_buffer_iterator = display_mode_buffer.begin();
 				wd_buffer_iterator = wd_buffer.begin();
+				save_dc_buffer_iterator = save_dc_buffer.begin();
 				if (creatures_buffer.size() > MAX_UNDO_STEPS)
 				{
 					creatures_buffer.pop_back();
@@ -2577,6 +2841,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					current_round_buffer.pop_back();
 					display_mode_buffer.pop_back();
 					wd_buffer.pop_back();
+					save_dc_buffer.pop_back();
 				}
 				//std::cout << "Saved buffer\n";
 			}
@@ -2598,6 +2863,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				current_round_buffer.pop_front();
 				display_mode_buffer.pop_front();
 				wd_buffer.pop_front();
+				save_dc_buffer.pop_front();
 			}
 		}
 		else
@@ -2605,6 +2871,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			creatures = *creatures_buffer_iterator;
 			simple_display = *display_mode_buffer_iterator;
 			wd = *wd_buffer_iterator;
+			save_dc = *save_dc_buffer_iterator;
 
 		}
 	}
@@ -2685,6 +2952,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				++current_round_buffer_iterator;
 				++display_mode_buffer_iterator;
 				++wd_buffer_iterator;
+				++save_dc_buffer_iterator;
 			}
 			return false;
 		}
@@ -2701,6 +2969,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				--current_round_buffer_iterator;
 				--display_mode_buffer_iterator;
 				--wd_buffer_iterator;
+				--save_dc_buffer_iterator;
 			}
 			return false;
 		}
@@ -2739,6 +3008,17 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		used_command = true;
 		if (!suppress_display)
 			std::cout << "Working Directory: " << wd << std::endl;
+	}
+	else if (dummy_line == "dc")
+	{
+		try
+		{
+			turn_msg = "Save DC = " + std::to_string(save_dc) + "\n";
+			if (!suppress_display)
+				std::cout << turn_msg;
+			used_command = true;
+		}
+		catch (const std::exception& E) {}
 	}
 	else if (dummy_line == "wd.." || dummy_line == "cd..")
 	{
@@ -6575,6 +6855,16 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			trim(removal_name);
 			make_lowercase(removal_name);
 		}
+		else if (dummy_line.size() > 3 && comp_substring(dummy_line, "dc ", 3))
+		{
+			try
+			{
+				bool is_signed = false;
+				save_dc = get_number_arg(dummy_line, is_signed, creatures, nullptr);
+				used_command = true;
+			}
+			catch (const std::exception& E) {}
+		}
 		else if (dummy_line.size()>6 && comp_substring(dummy_line, "print ", 6))
 		{
 			std::cout << line.substr(6);
@@ -6759,6 +7049,561 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					i->turn_start_file = filename;
 					used_command = true;
 				}
+				else if (dummy_line == lowercase_name + " str_save" || dummy_line == "str_save " + lowercase_name)
+				{
+					int save = i->get_str_bonus();
+					std::string save_name = "str_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_"+save_name+"_success",true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+				}
+				else if (dummy_line == lowercase_name + " dex_save" || dummy_line == "dex_save " + lowercase_name)
+				{
+					int save = i->get_dex_bonus();
+					std::string save_name = "dex_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+				}
+				else if (dummy_line == lowercase_name + " con_save" || dummy_line == "con_save " + lowercase_name)
+				{
+					int save = i->get_con_bonus(creatures);
+					std::string save_name = "con_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+				}
+				else if (dummy_line == lowercase_name + " int_save" || dummy_line == "int_save " + lowercase_name)
+				{
+					int save = i->get_int_bonus();
+					std::string save_name = "int_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+				}
+				else if (dummy_line == lowercase_name + " wis_save" || dummy_line == "wis_save " + lowercase_name)
+				{
+					int save = i->get_wis_bonus();
+					std::string save_name = "wis_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " cha_save" || dummy_line == "cha_save " + lowercase_name)
+				{
+					int save = i->get_cha_bonus();
+					std::string save_name = "cha_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+				}
+				else if (comp_substring("str_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_str_bonus();
+						std::string save_name = "str_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+						
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring("dex_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_dex_bonus();
+						std::string save_name = "dex_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+							if (i->has_evasion())
+								dmg = 0;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+							if (i->has_evasion())
+								dmg /= 2;
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring("con_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_con_bonus(creatures);
+						std::string save_name = "con_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring("int_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_int_bonus();
+						std::string save_name = "int_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring("wis_save " + lowercase_name + " ", dummy_line, ("wis_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_wis_bonus();
+						std::string save_name = "wis_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring("cha_save " + lowercase_name + " ", dummy_line, ("cha_save " + lowercase_name + " ").length()))
+				{
+					try {
+						int save = i->get_cha_bonus();
+						std::string save_name = "cha_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " str_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_str_bonus();
+						std::string save_name = "str_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " con_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_con_bonus(creatures);
+						std::string save_name = "con_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " dex_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_dex_bonus();
+						std::string save_name = "dex_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+							if (i->has_evasion())
+								dmg = 0;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+							if (i->has_evasion())
+								dmg /= 2;
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " int_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_int_bonus();
+						std::string save_name = "int_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " wis_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_wis_bonus();
+						std::string save_name = "wis_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+				else if (comp_substring(lowercase_name + " cha_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_cha_bonus();
+						std::string save_name = "cha_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+				}
+
+
 				else if (comp_substring("start " + lowercase_name + " ", dummy_line, ("start " + lowercase_name + " ").length()))
 				{
 					std::string filename = original_dummy_line.substr(("start " + lowercase_name + " ").length());
@@ -6839,28 +7684,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						i->add_alias(new_alias);
 					}
 				}
-				else if
-					(comp_substring("al " + lowercase_name + " ", dummy_line, ("al " + lowercase_name + " ").length())
-						)
-				{
-					std::string new_alias = dummy_line.substr(("al " + lowercase_name + " ").length());
-					trim(new_alias);
-					if (name_is_unique(new_alias, creatures))
-					{
-						i->add_alias(new_alias);
-					}
-				}
-				else if
-					(comp_substring("as " + lowercase_name + " ", dummy_line, ("as " + lowercase_name + " ").length())
-						)
-				{
-					std::string new_alias = dummy_line.substr(("al " + lowercase_name + " ").length() );
-					trim(new_alias);
-					if (name_is_unique(new_alias, creatures))
-					{
-						i->add_alias(new_alias);
-					}
-				}
 
 				else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
 				{
@@ -6927,194 +7750,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
-				else if (comp_substring("add_flag " + lowercase_name + " ", dummy_line, ("add_flag " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("add_flag " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg, true);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " add_flag ", dummy_line, (lowercase_name + " add_flag ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " add_flag ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg, true);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-
-				else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("addf " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " addf ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("adf " + lowercase_name + " ", dummy_line, ("adf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adf " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " adf ", dummy_line, (lowercase_name + " adf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adf ").length();
-						std::string arg = line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-
-				else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmf " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("frm " + lowercase_name + " ", dummy_line, ("frm " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("frm " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " rmf ", dummy_line, (lowercase_name + " rmf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmf ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " frm ", dummy_line, (lowercase_name + " frm ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " frm ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("rmflag " + lowercase_name + " ", dummy_line, ("rmflag " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rmflag " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("flagrm " + lowercase_name + " ", dummy_line, ("flagrm " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("flagrm " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " rmflag ", dummy_line, (lowercase_name + " rmflag ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rmflag ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " flagrm ", dummy_line, (lowercase_name + " flagrm ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " flagrm ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
 
 				else if (comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length()))
 				{
@@ -7134,62 +7769,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					try {
 						size_t start_length = (lowercase_name + " rf ").length();
 						std::string arg =line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("rflag " + lowercase_name + " ", dummy_line, ("rflag " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rflag " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				
-				}
-
-				else if (comp_substring("flagr " + lowercase_name + " ", dummy_line, ("flagr " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("flagr " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " rflag ", dummy_line, (lowercase_name + " rflag ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rflag ").length();
-						std::string arg = line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring(lowercase_name + " flagr ", dummy_line, (lowercase_name + " flagr ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " flagr ").length();
-						std::string arg = line.substr(start_length);
 
 						i->remove_flag(arg);
 						used_command = true;
@@ -7239,54 +7818,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						used_command = true;
 					}
 				}
-				else if (comp_substring("thp " + lowercase_name + " ", dummy_line, ("thp " + lowercase_name + " ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring("t " + lowercase_name + " ", dummy_line, ("t " + lowercase_name + " ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-					}
-				else if (comp_substring("buffer " + lowercase_name + " ", dummy_line, ("buffer " + lowercase_name + " ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
 				else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
 				{
 					bool is_signed = false;
@@ -7303,145 +7834,6 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						used_command = true;
 					}
 				}
-				else if (comp_substring(lowercase_name + " temp ", dummy_line, (lowercase_name + " temp ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring(lowercase_name + " thp ", dummy_line, (lowercase_name + " thp ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring(lowercase_name + " t ", dummy_line, (lowercase_name + " t ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-
-				}
-				else if (comp_substring(lowercase_name + " buffer ", dummy_line, (lowercase_name + " buffer ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-
-				}
-				else if (comp_substring(lowercase_name + " temphp ", dummy_line, (lowercase_name + " temphp ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring("temphp " + lowercase_name + " ", dummy_line, ("temphp " + lowercase_name + " ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring("temp " + lowercase_name + " ", dummy_line, ("temp " + lowercase_name + " ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-
-				}
-
-
-				else if (comp_substring("max_hp all ", dummy_line, 7) ||
-					comp_substring("all max_hp ", dummy_line, 7) ||
-					comp_substring("max_health all ", dummy_line, 11) ||
-					comp_substring("all max_health ", dummy_line, 11))
-					{
-						try {
-							if (i->touched == false)
-							{
-								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-								i->set_max_hp(val, is_signed);
-								i->touched = true;
-							}
-
-							if (i == (--creatures.end()))
-								used_command = true;
-
-						}
-						catch (const std::exception& E) {
-							//std::cout << E.what() << std::endl;
-						}
-						}
 
 				else if (comp_substring("regen " + lowercase_name + " ", dummy_line, ("regen " + lowercase_name + " ").length()))
 				{
@@ -7652,7 +8044,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			aliases = line.substr(alias_index + 8, length - 7);
 			
 			lowercase = lowercase.substr(0, alias_index) + lowercase.substr(space_after_alias_index + 1, lowercase.length() - space_after_alias_index - 1);
-			lowercase = line.	  substr(0, alias_index) + line		.substr(space_after_alias_index + 1, line	  .length() - space_after_alias_index - 1);
+			line =		line.	  substr(0, alias_index) + line		.substr(space_after_alias_index + 1, line	  .length() - space_after_alias_index - 1);
 			trim(lowercase);
 			trim(line);
 		}
@@ -7819,6 +8211,205 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			trim(lowercase);
 			trim(line);
 			*/
+		}
+		int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0;
+		bool has_con = false;
+
+		size_t str_index = lowercase.find("str:");
+		if (str_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', str_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - str_index;
+			std::string sub = line.substr(str_index + 4, length - 4);
+
+			try{ str = std::stoi(sub); }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, str_index);
+				line = line.substr(0, str_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, str_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, str_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+		}
+
+		size_t con_index = lowercase.find("con:");
+		if (con_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', con_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - con_index;
+			std::string sub = line.substr(con_index + 4, length - 4);
+			try { con = std::stoi(sub); has_con = true; }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, con_index);
+				line = line.substr(0, con_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, con_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, con_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+		}
+		bool entered_dex = false;
+		size_t ability_index = lowercase.find("dex:");
+		if (ability_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', ability_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - ability_index;
+			std::string sub = line.substr(ability_index + 4, length - 4);
+
+			try { dex = std::stoi(sub); entered_dex = true; }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, ability_index);
+				line = line.substr(0, ability_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, ability_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, ability_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+		}
+
+		ability_index = lowercase.find("int:");
+		if (ability_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', ability_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - ability_index;
+			std::string sub = line.substr(ability_index + 4, length - 4);
+
+			try { intelligence = std::stoi(sub); }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, ability_index);
+				line = line.substr(0, ability_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, ability_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, ability_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+		}
+
+		ability_index = lowercase.find("wis:");
+		if (ability_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', ability_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - ability_index;
+			std::string sub = line.substr(ability_index + 4, length - 4);
+
+			try { wis = std::stoi(sub); }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, ability_index);
+				line = line.substr(0, ability_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, ability_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, ability_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
+		}
+
+		ability_index = lowercase.find("cha:");
+		if (ability_index != std::string::npos)
+		{
+			size_t space_after_index = lowercase.find(' ', ability_index);
+			bool npos = false;
+			if (space_after_index == std::string::npos)
+			{
+				space_after_index = lowercase.length();
+				npos = true;
+			}
+			size_t length = space_after_index - ability_index;
+			std::string sub = line.substr(ability_index + 4, length - 4);
+
+			try { cha = std::stoi(sub); }
+			catch (const std::exception& E) {}
+
+
+			if (npos)
+			{
+				lowercase = lowercase.substr(0, ability_index);
+				line = line.substr(0, ability_index);
+				trim(lowercase);
+				trim(line);
+			}
+			else
+			{
+				lowercase = lowercase.substr(0, ability_index) + lowercase.substr(space_after_index + 1, lowercase.length() - space_after_index - 1);
+				line = line.substr(0, ability_index) + line.substr(space_after_index + 1, line.length() - space_after_index - 1);
+				trim(lowercase);
+				trim(line);
+			}
 		}
 
 		temp_hp_index = lowercase.find("buffer:");
@@ -8142,13 +8733,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						int modifier = std::stoi(initiative_string);
 						int initiative = (rand() % 20) + 1 + modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
+						if (!entered_dex)
+							dex = modifier;
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
 					}
 				}
@@ -8194,7 +8787,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							initiative = std::stoi(initiative_string);
 							modifier = std::stoi(mod_string);
 						}
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
+						if (!entered_dex)
+							dex = modifier;
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
 
 					}
@@ -8220,7 +8815,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
 					return false;
 				}
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name);
+
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 				added_creature = true;
 			}
 			else
@@ -8242,6 +8838,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			current_round_buffer.pop_front();
 			display_mode_buffer.pop_front();
 			wd_buffer.pop_front();
+			save_dc_buffer.pop_front();
 		}
 	}
 	save_buffer();
@@ -8265,16 +8862,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 std::string event_log = "";
 const static char LOG_HEADER_CHAR = 9;
 
-std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg, bool is_concentrating, int intended_dmg, int con_bonus, bool found_con_bonus)
+std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg, bool is_concentrating, int intended_dmg, int con_bonus, bool found_con_bonus, creature* victim, bool is_adding_string_outside_function)
 {
 	if (old_hp < 0)
 		return cur_msg;
 	std::string str = cur_msg + name;
+	if (is_adding_string_outside_function)
+		str = name;
+
 	int diff = old_hp - new_hp;
 	if (diff < 0)
 		diff = -diff;
 	std::string concentration_check_text = "";
-	if (intended_dmg > 0)
+	if (intended_dmg > 0 && is_concentrating)
 	{
 		int dc = intended_dmg / 2;
 		if (dc < 10)
@@ -8282,8 +8882,6 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 
 		int save = 1 + (rand() % 20) + con_bonus;
 		concentration_check_text = name + " was forced to make a concentration save (DC " + std::to_string(dc) + ")\n\t";
-		if (found_con_bonus)
-			concentration_check_text += "Found a CON Save bonus of " + std::to_string(con_bonus) + "\n\t";
 		concentration_check_text += name + " rolled a " + std::to_string(save);
 		
 		if (found_con_bonus)
@@ -8295,9 +8893,15 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 			else
 			{
 				concentration_check_text += " (Failure)\n";
+				concentration_check_text += "\t" + name + " LOST CONCENTRATION!\n";
+				victim->add_flag("_lost_concentration", true);
+				victim->remove_flag("c");
+				victim->remove_flag("con");
+				victim->remove_flag("concentrating");
+				victim->remove_flag("concentration");
 			}
 		}
-		else
+		else if (is_concentrating)
 		{
 			concentration_check_text += " (but this is without accounting for CON Save bonus)\n";
 		}
@@ -8338,7 +8942,13 @@ std::string print_variables(creature* i, bool override_display_mode)
 				//std::cout << " << vi->first << " = " << vi->second << std::endl;
 				if (displayed_any)
 					text += "\n";
-				text += "\t    " + vi->first + " = " + std::to_string(vi->second);
+				std::string var_name = vi->first;
+				if (var_name[0] == '#')
+				{
+					var_name = var_name.substr(1);
+					var_name = "(" + var_name + ")";
+				}
+				text += "\t    " + var_name + " = " + std::to_string(vi->second);
 				displayed_any = true;
 			}
 		}
@@ -8354,7 +8964,15 @@ std::string print_variables(creature* i, bool override_display_mode)
 				{
 					if (displayed_any)
 						text += "\n";
-					text += "\t    " + vi->first + " = " + std::to_string(vi->second);
+
+					std::string var_name = vi->first;
+					if (var_name[0] == '#')
+					{
+						var_name = var_name.substr(1);
+						var_name = "(" + var_name + ")";
+					}
+
+					text += "\t    " + var_name + " = " + std::to_string(vi->second);
 					displayed_any = true;
 				}
 
@@ -8405,6 +9023,47 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 			turn_msg += "false\n";
 	}
 
+	turn_msg += "\nSaving Throws:\n";
+
+	auto disp_save = [&](const std::string& save_name, int val)
+		{
+			if(val >= 0)
+				turn_msg += "\t" + save_name + ": +" + std::to_string(val) + "\n";
+			else
+				turn_msg += "\t" + save_name + ": " + std::to_string(val) + "\n";
+		};
+
+	disp_save("STR", i->get_str_bonus());
+
+	if (i->entered_dex)
+	{
+		disp_save("DEX", i->get_dex_bonus());
+	}
+	else
+	{
+		if (i->get_dex_bonus() < 0)
+		{
+			turn_msg += "\tDEX: " + std::to_string(i->get_dex_bonus()) + " " + "(note: no value was entered, defaulting to initiative modifier)\n";
+		}
+		else
+		{
+			turn_msg += "\tDEX: +" + std::to_string(i->get_dex_bonus()) + " " + "(note: no value was entered, defaulting to initiative modifier)\n";
+		}
+	}
+
+	if (i->has_con_bonus())
+	{
+		disp_save("CON", i->con);
+	}
+	else
+	{
+		turn_msg += "\tCON: +0 (note: no value was ever entered, will not fully automate concentration saves)\n";
+	}
+
+	disp_save("INT", i->get_str_bonus());
+	disp_save("WIS", i->get_str_bonus());
+	disp_save("CHA", i->get_str_bonus());
+	turn_msg += "\n";
 	auto disp_recharge = [&](std::vector<std::string>& recharger, const std::string& dispname)
 		{
 			if (recharger.size() != 0)
@@ -8493,6 +9152,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_round_buffer.push_front(current_round);
 				display_mode_buffer.push_front(simple_display);
 				wd_buffer.push_front(wd);
+				save_dc_buffer.push_front(save_dc);
 
 				creatures_buffer_iterator = creatures_buffer.begin();
 				new_round_buffer_iterator = new_round_buffer.begin();
@@ -8501,6 +9161,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_round_buffer_iterator = current_round_buffer.begin();
 				display_mode_buffer_iterator = display_mode_buffer.begin();
 				wd_buffer_iterator = wd_buffer.begin();
+				save_dc_buffer_iterator = save_dc_buffer.begin();
 				if (creatures_buffer.size() > MAX_UNDO_STEPS)
 				{
 					creatures_buffer.pop_back();
@@ -8510,6 +9171,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					current_round_buffer.pop_back();
 					display_mode_buffer.pop_back();
 					wd_buffer.pop_back();
+					save_dc_buffer.pop_back();
 				}
 			}
 		};
@@ -8522,6 +9184,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	current_round_buffer.clear();
 	display_mode_buffer.clear();
 	wd_buffer.clear();
+	save_dc_buffer.clear();
 	save_buffer(); //To initialize the state buffers so they have a place to begin.
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
@@ -8541,6 +9204,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_round_buffer.pop_front();
 				display_mode_buffer.pop_front();
 				wd_buffer.pop_front();
+				save_dc_buffer.pop_front();
 			}
 		}
 		else
@@ -8552,6 +9216,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			current_round = *current_round_buffer_iterator;
 			simple_display = *display_mode_buffer_iterator;
 			wd = *wd_buffer_iterator;
+			save_dc = *save_dc_buffer_iterator;
 
 		}
 
@@ -8836,6 +9501,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				++current_round_buffer_iterator;
 				++display_mode_buffer_iterator;
 				++wd_buffer_iterator;
+				++save_dc_buffer_iterator;
 			}
 			continue;
 		}
@@ -8852,6 +9518,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				--current_round_buffer_iterator;
 				--display_mode_buffer_iterator;
 				--wd_buffer_iterator;
+				--save_dc_buffer_iterator;
 			}
 			continue;
 		}
@@ -8886,6 +9553,27 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (wd[0] == '/')
 				wd = wd.substr(1);
 			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
+		}
+		else if (dummy_line=="dc")
+		{
+			try
+			{
+				turn_msg = "Save DC = " + std::to_string(save_dc) + "\n";
+				used_command = true;
+				skip_command_checks = true;
+			}
+			catch (const std::exception& E) {}
+		}
+		else if (dummy_line.size() > 3 && comp_substring(dummy_line, "dc ", 3))
+		{
+			try
+			{
+				bool is_signed = false;
+				save_dc = get_number_arg(dummy_line, is_signed, creatures, nullptr);
+				used_command = true;
+				skip_command_checks = true;
+			}
+			catch (const std::exception& E) {}
 		}
 		else if (dummy_line == "wd" || dummy_line == "cd")
 		{
@@ -8937,6 +9625,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				current_round_buffer.pop_front();
 				display_mode_buffer.pop_front();
 				wd_buffer.pop_front();
+				save_dc_buffer.pop_front();
 			}
 		}
 		
@@ -9198,7 +9887,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						{
 							knocked_out_creature = &(*i);
 						}
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus());
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),false);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -9602,7 +10291,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus());
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),false);
 					}
 					catch (const std::exception& E) {
 
@@ -9625,7 +10314,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus());
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),false);
 					}
 					catch (const std::exception& E) {
 
@@ -9641,7 +10330,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int old_hp = i->get_hp();
 						i->adjust_hp(val);
 						int new_hp = i->get_hp();
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus());
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),false);
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -9752,87 +10441,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-
-				else if (comp_substring("add_flag " + lowercase_name + " ", dummy_line, ("add_flag " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("add_flag " + lowercase_name + " ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg, true);
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-				else if (comp_substring(lowercase_name + " add_flag ", dummy_line, (lowercase_name + " add_flag ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " add_flag ").length();
-						std::string arg = line.substr(start_length);
-						used_command = true;
-
-						i->add_flag(arg, true);
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
-				else if (comp_substring("addf " + lowercase_name + " ", dummy_line, ("addf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("addf " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " addf ", dummy_line, (lowercase_name + " addf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " addf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-
-				else if (comp_substring("adf " + lowercase_name + " ", dummy_line, ("adf " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("adf " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
-				else if (comp_substring(lowercase_name + " adf ", dummy_line, (lowercase_name + " adf ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " adf ").length();
-						std::string arg = dummy_line.substr(start_length);
-
-						i->add_flag(arg, true);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-					}
 
 				else if (comp_substring(lowercase_name + " tf ", dummy_line, (lowercase_name + " tf ").length()))
 				{
@@ -13673,114 +14281,561 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 
 					}
+				}
+				else if (dummy_line == lowercase_name + " str_save" || dummy_line == "str_save " + lowercase_name)
+				{
+					int save = i->get_str_bonus();
+					std::string save_name = "str_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
 					}
-
-				else if (comp_substring("rmf " + lowercase_name + " ", dummy_line, ("rmf " + lowercase_name + " ").length()))
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " dex_save" || dummy_line == "dex_save " + lowercase_name)
+				{
+					int save = i->get_dex_bonus();
+					std::string save_name = "dex_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " con_save" || dummy_line == "con_save " + lowercase_name)
+				{
+					int save = i->get_con_bonus(creatures);
+					std::string save_name = "con_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " int_save" || dummy_line == "int_save " + lowercase_name)
+				{
+					int save = i->get_int_bonus();
+					std::string save_name = "int_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " wis_save" || dummy_line == "wis_save " + lowercase_name)
+				{
+					int save = i->get_wis_bonus();
+					std::string save_name = "wis_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (dummy_line == lowercase_name + " cha_save" || dummy_line == "cha_save " + lowercase_name)
+				{
+					int save = i->get_cha_bonus();
+					std::string save_name = "cha_save";
+					save += 1 + (rand() % 20);
+					std::string temp = save_name;
+					temp = replace_all(temp, "_", " ", false);
+					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
+					if (save >= save_dc)
+					{
+						turn_msg += "success)\n\n";
+						i->add_flag("_" + save_name + "_success", true);
+					}
+					else
+					{
+						turn_msg += "fail)\n\n";
+						i->add_flag("_" + save_name + "_failure", true);
+					}
+					}
+				else if (comp_substring("str_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = ("rmf " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_str_bonus();
+						std::string save_name = "str_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring("frm " + lowercase_name + " ", dummy_line, ("frm " + lowercase_name + " ").length()))
+				else if (comp_substring("dex_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = ("frm " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_dex_bonus();
+						std::string save_name = "dex_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+							if (i->has_evasion())
+								dmg = 0;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+							if (i->has_evasion())
+								dmg /= 2;
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring(lowercase_name + " rmf ", dummy_line, (lowercase_name + " rmf ").length()))
+				else if (comp_substring("con_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = (lowercase_name + " rmf ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_con_bonus(creatures);
+						std::string save_name = "con_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring(lowercase_name + " frm ", dummy_line, (lowercase_name + " frm ").length()))
+				else if (comp_substring("int_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = (lowercase_name + " frm ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_int_bonus();
+						std::string save_name = "int_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring("rmflag " + lowercase_name + " ", dummy_line, ("rmflag " + lowercase_name + " ").length()))
+				else if (comp_substring("wis_save " + lowercase_name + " ", dummy_line, ("wis_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = ("rmflag " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_wis_bonus();
+						std::string save_name = "wis_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring("flagrm " + lowercase_name + " ", dummy_line, ("flagrm " + lowercase_name + " ").length()))
+				else if (comp_substring("cha_save " + lowercase_name + " ", dummy_line, ("cha_save " + lowercase_name + " ").length()))
 				{
 					try {
-						size_t start_length = ("flagrm " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_cha_bonus();
+						std::string save_name = "cha_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring(lowercase_name + " rmflag ", dummy_line, (lowercase_name + " rmflag ").length()))
+				else if (comp_substring(lowercase_name + " str_save ", dummy_line, (lowercase_name + " str_save ").length()))
 				{
 					try {
-						size_t start_length = (lowercase_name + " rmflag ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_str_bonus();
+						std::string save_name = "str_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
-					}
-				else if (comp_substring(lowercase_name + " flagrm ", dummy_line, (lowercase_name + " flagrm ").length()))
+				else if (comp_substring(lowercase_name + " con_save ", dummy_line, (lowercase_name + " str_save ").length()))
 				{
 					try {
-						size_t start_length = (lowercase_name + " flagrm ").length();
-						std::string arg = original_dummy_line.substr(start_length);
+						int save = i->get_con_bonus(creatures);
+						std::string save_name = "con_save";
 
-						i->remove_flag(arg);
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
 						used_command = true;
 					}
-					catch (const std::exception& E) {
-
+					catch (const std::exception& E) {}
 					}
+				else if (comp_substring(lowercase_name + " dex_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_dex_bonus();
+						std::string save_name = "dex_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+							if (i->has_evasion())
+								dmg = 0;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+							if (i->has_evasion())
+								dmg /= 2;
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
 					}
+					catch (const std::exception& E) {}
+					}
+				else if (comp_substring(lowercase_name + " int_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_int_bonus();
+						std::string save_name = "int_save";
 
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+					}
+				else if (comp_substring(lowercase_name + " wis_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_wis_bonus();
+						std::string save_name = "wis_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+					}
+				else if (comp_substring(lowercase_name + " cha_save ", dummy_line, (lowercase_name + " str_save ").length()))
+				{
+					try {
+						int save = i->get_cha_bonus();
+						std::string save_name = "cha_save";
+
+						bool is_signed = false;
+						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+
+						bool saved = true;
+						save += 1 + (rand() % 20);
+						if (save >= save_dc)
+						{
+							saved = true;
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (success)\n\n";
+							save_name += "_success";
+							dmg /= 2;
+						}
+						else
+						{
+							std::string temp_name = save_name;
+							temp_name[3] = ' ';
+							turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp_name + " to halve " + std::to_string(dmg) + " damage and got a " + std::to_string(save) + " (fail)\n\n";
+							save_name += "_failure";
+						}
+						int old_hp = i->get_hp();
+						i->adjust_hp(-dmg);
+						int new_hp = i->get_hp();
+						turn_msg += get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), dmg, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),true);
+						i->add_flag("_" + save_name, true);
+						used_command = true;
+					}
+					catch (const std::exception& E) {}
+					}
+	
 				else if (
 					comp_substring("rf " + lowercase_name + " ", dummy_line, ("rf " + lowercase_name + " ").length())
 					||
@@ -13815,59 +14870,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 					}
 				}
-				else if (comp_substring("rflag " + lowercase_name + " ", dummy_line, ("rflag " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("rflag " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring("flagr " + lowercase_name + " ", dummy_line, ("flagr " + lowercase_name + " ").length()))
-				{
-					try {
-						size_t start_length = ("flagr " + lowercase_name + " ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " rflag ", dummy_line, (lowercase_name + " rflag ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " rflag ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-				else if (comp_substring(lowercase_name + " flagr ", dummy_line, (lowercase_name + " flagr ").length()))
-				{
-					try {
-						size_t start_length = (lowercase_name + " flagr ").length();
-						std::string arg = original_dummy_line.substr(start_length);
-
-						i->remove_flag(arg);
-						used_command = true;
-					}
-					catch (const std::exception& E) {
-
-					}
-				}
-
+				
 				else if (comp_substring(lowercase_name + " ra ", dummy_line, (lowercase_name + " ra ").length()))
 				{
 					try {
@@ -13929,61 +14932,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 
 
-				else if (comp_substring("hp all ", dummy_line, 7) ||
-					comp_substring("all hp ", dummy_line, 7) ||
-					comp_substring("health all ", dummy_line, 11) ||
-					comp_substring("all health ", dummy_line, 11))
-					{
-						try {
-							if (i->touched == false)
-							{
-								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-								if (i->get_max_hp() == -1)
-								{
-									i->set_max_hp(val, false);
-								}
-								i->set_hp(val, is_signed);
-								if (i->get_hp() == 0)
-								{
-									knocked_out_creature = &(*i);
-								}
-								i->touched = true;
-							}
-							
-							if (i == (--creatures.end()))
-								used_command = true;
-
-						}
-						catch (const std::exception& E) {
-							//std::cout << E.what() << std::endl;
-						}
-					}
-
-				else if (comp_substring("max_hp all ", dummy_line, 7) ||
-					comp_substring("all max_hp ", dummy_line, 7) ||
-					comp_substring("max_health all ", dummy_line, 11) ||
-					comp_substring("all max_health ", dummy_line, 11))
-					{
-						try {
-							if (i->touched == false)
-							{
-								bool is_signed = false;
-								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-								i->set_max_hp(val, is_signed);
-								i->touched = true;
-							}
-
-							if (i == (--creatures.end()))
-								used_command = true;
-
-						}
-						catch (const std::exception& E) {
-							//std::cout << E.what() << std::endl;
-						}
-					}
-
-
 				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
 						 comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
 						 comp_substring("health " + lowercase_name + " ", dummy_line, ("health " + lowercase_name + " ").length()) ||
@@ -14013,7 +14961,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							}
 							i->set_hp(val, is_signed);
 							int new_hp = i->get_hp();
-							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus());
+							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(),false);
 							used_command = true;
 							//break;
 						}
@@ -14235,31 +15183,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							break;
 						}
 					}
-					else if
-						(comp_substring("al " + lowercase_name + " ", dummy_line, ("al " + lowercase_name + " ").length()))
-					{
-							std::string new_alias = dummy_line.substr(("al " + lowercase_name + " ").length());
-							trim(new_alias);
-							if (name_is_unique(new_alias, creatures))
-							{
-								i->add_alias(new_alias);
-								used_command = true;
-								break;
-							}
-					}
-					else if
-						(comp_substring("as " + lowercase_name + " ", dummy_line, ("as " + lowercase_name + " ").length())
-						)
-						{
-							std::string new_alias = dummy_line.substr(("as " + lowercase_name + " ").length());
-							trim(new_alias);
-							if (name_is_unique(new_alias, creatures))
-							{
-								i->add_alias(new_alias);
-								used_command = true;
-								break;
-							}
-						}
 
 				//if (did_erase || used_command)
 					//break;

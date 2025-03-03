@@ -46,6 +46,12 @@ Any trait that can be added during character entry can be added or removed later
 Avoid accidentally adding two of the same traits during entry.
 For example: "character flags:flag1 flags:flag2" will cause an error. Instead, simply do "character flags:flag1,flag2"
 
+Saving throw bonuses can be initialized with "str:value", "dex:value", "con:value", "int:value", "wis:value", and "cha:value".
+This can be used to automate saving throws for certain characters - particularly useful for common "save for half" damage effects. 
+	The "evasion" and "avoidance" flags will automate the evasion/avoidance effects for saving throws.
+If no DEX save value is entered, the program will default to using the initiative modifier, since both key off of DEX.
+If a CON bonus is entered, the program can automate concentration saving throws.
+
 The order you add tracking features in doesn't matter. "ac:15 hp:64" will work just as well as "hp:64 ac:15".
 
 Characters can be removed with "rm [character]". This will delete the character entry.
@@ -73,11 +79,12 @@ Flags can be added using "flags:flag1,flag2,...,flagN".
 Flags are like special tags or traits that can be added to characters to signify important information about them.
 Like aliases, flags are separated here by commas and cannot contain spaces. They can otherwise be anything you want.
 Characters either have a flag or they don't. Flags are useful for tracking conditions, recharged abilities, and more.
+
 The "simple" flag has a minor special purpose that will be detailed later.
 The "concentration", "concentrating", "conc", "con", and "c" flags mark a character as concentrating.
 Concentrating creatures will roll concentration saves automatically when taking damage.
-It searches variables for the relevant save bonus, and uses +0 if none is found.
-If it can't find a bonus, it will tell you so you can add it yourself.
+
+The "evasion" and "avoidance" flags are used when rolling DEX saves to turn full damage into half damage, and half damage into no damage.
 
 The flags a character has will be displayed during turn tracking, except for "hidden" flags.
 A flag is made hidden if it starts with a '#'
@@ -472,6 +479,28 @@ if [character] [flag] {command}
 
 print [message]
 	-Print a message. Useful when writing scripts to automate complex behavior for certain creatures.
+
+printnum [value]
+	-Print a number, which can be a numeric literal, variable, or die roll.
+
+dc [num]
+save_dc [num]
+savedc [num]
+	-Sets the global Save DC for the next saving throw (and any subsequent saves until this value is changed)
+	-Default value is 10
+	-See next command(s) for automatically rolling saves.
+
+str_save [character] [dmg]
+dex_save [character] [dmg]
+con_save [character] [dmg]
+int_save [character] [dmg]
+wis_save [character] [dmg]
+cha_save [character] [dmg]
+	-Rolls a saving throw for the character. The DC is whatever was supplied by the "dc" command (default 10).
+	-Will use whatever entered modifiers are for the character, or +0 by default. DEX defaults to whatever initiative modifier is.
+	-Successes and failures are flagged as such, using temporary flags.
+	-If a damage value is supplied, it applies full damage on a failure and half damage on a success.
+	-If no damage value is supplied then no damage is applied, but success or failure are still reported.
 
 full display mode
 full display
