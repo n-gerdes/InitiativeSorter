@@ -731,6 +731,60 @@ public:
 			return false;
 	}
 
+	inline bool has_con_bonus()
+	{
+		return has_var("con_save") || has_var("con") || has_var("con_bonus") || has_var("con_save_bonus")
+			|| has_var("constitution") || has_var("constitution_save") || has_var("constitution_save_bonus")
+			|| has_var("constitution_saving_throw_bonus") || has_var("constitution_saving_throw");
+	}
+
+	inline int get_con_bonus(std::list<creature>& creatures)
+	{
+		if (has_con_bonus())
+		{
+			std::string
+			ref = "con";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "con_save";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "con_bonus";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "con_save_bonus";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "constitution";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "constitution_save";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "constitution_save_bonus";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "constitution_saving_throw";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+
+			ref = "constitution_saving_throw_bonus";
+			if (has_var(ref))
+				return get_var(ref, creatures);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
 	inline void set_reminder(const std::string& new_reminder)
 	{
 		reminder = new_reminder;
@@ -8206,7 +8260,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 std::string event_log = "";
 const static char LOG_HEADER_CHAR = 9;
 
-std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg)
+std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg, bool is_concentrating, int intended_dmg, int con_bonus, bool found_con_bonus)
 {
 	if (old_hp < 0)
 		return cur_msg;
@@ -8214,6 +8268,36 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 	int diff = old_hp - new_hp;
 	if (diff < 0)
 		diff = -diff;
+	std::string concentration_check_text = "";
+	if (intended_dmg > 0)
+	{
+		int dc = intended_dmg / 2;
+		if (dc < 10)
+			dc = 10;
+
+		int save = 1 + (rand() % 20) + con_bonus;
+		concentration_check_text = name + " was forced to make a concentration save (DC " + std::to_string(dc) + ")\n\t";
+		if (found_con_bonus)
+			concentration_check_text += "Found a CON Save bonus of " + std::to_string(con_bonus) + "\n\t";
+		concentration_check_text += name + " rolled a " + std::to_string(save);
+		
+		if (found_con_bonus)
+		{
+			if (save >= dc)
+			{
+				concentration_check_text += " (Success)\n";
+			}
+			else
+			{
+				concentration_check_text += " (Failure)\n";
+			}
+		}
+		else
+		{
+			concentration_check_text += " (but this is without accounting for CON Save bonus)\n";
+		}
+
+	}
 	if (new_hp > old_hp)
 	{
 		str += " recovered " + std::to_string(diff) + " hp.\n";
@@ -8224,8 +8308,12 @@ std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_
 	}
 	else
 	{
+		if (concentration_check_text.size() != 0)
+			str += concentration_check_text + "\n";
 		return cur_msg;
 	}
+	if (concentration_check_text.size() != 0)
+		str += concentration_check_text + "\n";
 	return str;
 }
 
@@ -8692,7 +8780,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		dummy_line = "";
 		bool complex_character_delay = false;
-		if ((current_creature->flags.size() != 0 || current_creature->variables.size() != 0 || current_creature->get_reminder(false).size()!=0) && new_turn && !current_creature->has_flag("simple"))
+		if ((current_creature->turn_start_file != "" || current_creature->turn_end_file != "" || current_creature->flags.size() != 0 || current_creature->variables.size() != 0 || current_creature->get_reminder(false).size() != 0) && new_turn && !current_creature->has_flag("simple"))
 		{
 			complex_character_delay = true;
 			
@@ -9105,7 +9193,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						{
 							knocked_out_creature = &(*i);
 						}
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->has_flag("concentrating") || i->has_flag("concentration"), val, i->get_con_bonus(creatures), i->has_con_bonus());
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -9509,7 +9597,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->has_flag("concentrating") || i->has_flag("concentration"), val, i->get_con_bonus(creatures), i->has_con_bonus());
 					}
 					catch (const std::exception& E) {
 
@@ -9532,7 +9620,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							knocked_out_creature = &(*i);
 						}
 						used_command = true;
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->has_flag("concentrating") || i->has_flag("concentration"), val, i->get_con_bonus(creatures), i->has_con_bonus());
 					}
 					catch (const std::exception& E) {
 
@@ -9548,7 +9636,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						int old_hp = i->get_hp();
 						i->adjust_hp(val);
 						int new_hp = i->get_hp();
-						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
+						turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->has_flag("concentrating") || i->has_flag("concentration"), val, i->get_con_bonus(creatures), i->has_con_bonus());
 						used_command = true;
 					}
 					catch (const std::exception& E) {
@@ -13920,7 +14008,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							}
 							i->set_hp(val, is_signed);
 							int new_hp = i->get_hp();
-							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg);
+							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->has_flag("concentrating")||i->has_flag("concentration"), val, i->get_con_bonus(creatures), i->has_con_bonus());
 							used_command = true;
 							//break;
 						}

@@ -73,7 +73,11 @@ Flags can be added using "flags:flag1,flag2,...,flagN".
 Flags are like special tags or traits that can be added to characters to signify important information about them.
 Like aliases, flags are separated here by commas and cannot contain spaces. They can otherwise be anything you want.
 Characters either have a flag or they don't. Flags are useful for tracking conditions, recharged abilities, and more.
-The "simple" flag has a minor special purpose that will be detailed later. No other flag has any special purpose.
+The "simple" flag has a minor special purpose that will be detailed later.
+The "concentration" and "concentrating" flags mark a character as concentrating.
+Concentrating creatures will roll concentration saves automatically when taking damage.
+It searches variables for the relevant save bonus, and uses +0 if none is found.
+If it can't find a bonus, it will tell you so you can add it yourself.
 
 The flags a character has will be displayed during turn tracking, except for "hidden" flags.
 A flag is made hidden if it starts with a '#'
