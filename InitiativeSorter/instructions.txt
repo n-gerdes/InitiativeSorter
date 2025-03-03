@@ -138,6 +138,9 @@ If you want to show or hide a hidden variable, the commands "show" and "hide" ca
 
 Variables can also be used for conditional file loading. If a query (like "==" or ">") is used instead of an assignment during a command and a file name is supplied, then it loads the file if and only if the conditions given are met.
 For example: "Boss::shields == 0 defeat.txt" will cause 'defeat.txt' to be called if the boss character has a 'shields' variable at 0.
+If you want it to use a command instead of loading a file, just put the command in braces (i.e., "boss::shields == 0 {boss hurt 50}").
+	Conditions and other if-statements can't be directly nested. Chain files together instead.
+
 A character's HP can also be referenced like a variable. For example:
 "Boss::HP = 1" will set the HP of "Boss" to just 1.
 AC can also be referenced via variable syntax.
@@ -458,6 +461,10 @@ recharge 0 [character] [flag]
 
 if [character] [flag] [filename]
 	-If the specified character has the specified flag, it will try to call the specified file. Note that "if-then" logic involving numeric variables is resolved very differently.
+
+if [character] [flag] {command}
+	-If the final argument is put inside curly braces then it will interpret it as a command instead of a file to load.
+		-Don't try to recursively nest commands this way, it doesn't work. Chain files together instead.
 
 print [message]
 	-Print a message. Useful when writing scripts to automate complex behavior for certain creatures.

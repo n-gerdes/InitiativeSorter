@@ -332,7 +332,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 const static int SHOW_ONE_NAME = 0;
 const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
-int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
+int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -1511,6 +1511,11 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| c == '/'
 			|| c == '|'
 			|| c == '\\'
+			|| c == '{'
+			|| c == '}'
+			|| c == '|'
+			|| c == '['
+			|| c == ']'
 		)
 			return false;
 	}
@@ -1924,8 +1929,9 @@ inline int parse_dice(std::string& input)
 }
 
 
-inline int get_number_arg(const std::string& dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor)
+inline int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor)
 {
+	trim(dummy_line);
 	is_signed = false;
 	size_t first_space = dummy_line.find(" ");
 	size_t second_space = dummy_line.find(" ", first_space + 1);
@@ -3166,46 +3172,70 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					sub.resize(space);
 					if (i->has_flag(sub))
 					{
-						sub = og_sub;
-						space = sub.find(" ");
-						sub = sub.substr(space);
-						trim(sub);
-						std::string filename = sub;
-
-						if (directory != "")
+						if (dummy_line.find("{") == std::string::npos)
 						{
-							filename = directory + "/" + filename;
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							std::string filename = sub;
+
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+									if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+										wd = directory;
+								}
+							}
+							std::ifstream new_file;
+							new_file.open(filename);
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+								return false;
+							}
+							else {
+								while (new_file.good() && !new_file.eof())
+								{
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+								}
+								ignore_initial_file_load = true;
+								new_file.close();
+								save_buffer();
+								return false;
+							}
 						}
 						else
 						{
-							if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+							sub = og_sub;
+							int index = sub.find("{");
+							sub = sub.substr(index);
+							if (sub[sub.size() - 1] == '}')
+								sub[sub.size() - 1] = ' ';
+							if (sub[0] == '{')
+								sub[0] = ' ';
+							trim(sub);
+							std::ifstream file;
+							bool dummy_taking_initiatives = true;
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false);
+							used_command = true;
+							if (success)
 							{
-								size_t backi = filename.size() - 1;
-								while (filename[backi] != '/' && filename[backi] != '\\')
-								{
-									--backi;
-								}
-								directory = filename;
-								directory.resize(backi);
-								if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-									wd = directory;
+								creatures.sort();
 							}
-						}
-						std::ifstream new_file;
-						new_file.open(filename);
-						if (!new_file.is_open())
-						{
-							std::cout << "Error: Could not open " << filename << std::endl;
-							//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-							return false;
-						}
-						else {
-							while (new_file.good() && !new_file.eof())
-							{
-								get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-							}
-							ignore_initial_file_load = true;
-							new_file.close();
 							save_buffer();
 							return false;
 						}
@@ -3224,46 +3254,70 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					sub.resize(space);
 					if (i->has_flag(sub))
 					{
-						sub = og_sub;
-						space = sub.find(" ");
-						sub = sub.substr(space);
-						trim(sub);
-						std::string filename = sub;
-
-						if (directory != "")
+						if (dummy_line.find("{") == std::string::npos)
 						{
-							filename = directory + "/" + filename;
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							std::string filename = sub;
+
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+									if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+										wd = directory;
+								}
+							}
+							std::ifstream new_file;
+							new_file.open(filename);
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+								return false;
+							}
+							else {
+								while (new_file.good() && !new_file.eof())
+								{
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+								}
+								ignore_initial_file_load = true;
+								new_file.close();
+								save_buffer();
+								return false;
+							}
 						}
 						else
 						{
-							if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+							sub = og_sub;
+							int index = sub.find("{");
+							sub = sub.substr(index);
+							if (sub[sub.size() - 1] == '}')
+								sub[sub.size() - 1] = ' ';
+							if (sub[0] == '{')
+								sub[0] = ' ';
+							trim(sub);
+							std::ifstream file;
+							bool dummy_taking_initiatives = true;
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false);
+							used_command = true;
+							if (success)
 							{
-								size_t backi = filename.size() - 1;
-								while (filename[backi] != '/' && filename[backi] != '\\')
-								{
-									--backi;
-								}
-								directory = filename;
-								directory.resize(backi);
-								if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-									wd = directory;
+								creatures.sort();
 							}
-						}
-						std::ifstream new_file;
-						new_file.open(filename);
-						if (!new_file.is_open())
-						{
-							std::cout << "Error: Could not open " << filename << std::endl;
-							//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-							return false;
-						}
-						else {
-							while (new_file.good() && !new_file.eof())
-							{
-								get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-							}
-							ignore_initial_file_load = true;
-							new_file.close();
 							save_buffer();
 							return false;
 						}
@@ -3381,7 +3435,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								//var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-							
+							used_command = true;
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -3729,9 +3790,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							bool is_signed = false;
 							int val = 1;
+							
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
-
+							if (stow != "")
+								var += stow;
 							std::string og_var = var;
 							
 							var.resize(space);
@@ -3748,359 +3811,576 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
-								
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+									
+									if (i->get_var(var, creatures) == val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) > val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
+								//CURRENT PLACE
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) >= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+									//std::cout << "SUB=\"" << sub << "\"" << std::endl;
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) < val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) <= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) != val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
@@ -4110,7 +4390,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							used_command = true;
 						}
 						catch (const std::exception& E) {
-
+							std::cout << E.what() << std::endl;
 						}
 					}
 					
@@ -4169,12 +4449,19 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						try {
+							used_command = true;
 							std::string var = dummy_line.substr(lowercase_name.length() + 1);
 							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
 								var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -4523,8 +4810,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							bool is_signed = false;
 							int val = 1;
+
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
+							if (stow != "")
+								var += stow;
 							std::string og_var = var; //Right before var is resized
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
@@ -4541,362 +4831,576 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) == val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) > val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) >= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) < val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) <= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) != val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
-
 
 							default: throw;
 							}
@@ -4960,13 +5464,20 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 					{
 						try {
+							used_command = true;
 							std::string var = dummy_line.substr(lowercase_name.length() + 1);
 							if (var.size() > lowercase_name.length() && var[lowercase_name.length()] == '=')
 								var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							
 							int SET_TYPE = VAR_SET;
-
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -5313,8 +5824,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 							bool is_signed = false;
 							int val = 1;
+
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
+							if (stow != "")
+								var += stow;
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
@@ -5330,362 +5844,576 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) == val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) > val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) >= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) < val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) <= val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
 
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								if (sub.find("{") == std::string::npos)
 								{
-
-								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								if (i->get_var(var, creatures) != val)
-								{
-									std::string filename = sub;
-
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::string filename = sub;
+
+										if (directory != "")
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 											{
-												--backi;
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+												if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+													wd = directory;
 											}
-											directory = filename;
-											directory.resize(backi);
-											if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
-												wd = directory;
 										}
-									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-										return false;
-									}
-									else {
-										while (new_file.good() && !new_file.eof())
+										std::ifstream new_file;
+										new_file.open(filename);
+										if (!new_file.is_open())
 										{
-											get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+											return false;
 										}
-										ignore_initial_file_load = true;
-										new_file.close();
-										save_buffer();
-										return false;
+										else {
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											ignore_initial_file_load = true;
+											new_file.close();
+											save_buffer();
+											return false;
+										}
+
 									}
 
 								}
+								else
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
+									{
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false);
+										if (success)
+										{
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
+										}
+									}
+								}
 								break;
 							}
-
 
 							default: throw;
 							}
@@ -9082,61 +9810,86 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						sub.resize(space);
 						if (i->has_flag(sub))
 						{
-							sub = og_sub;
-							space = sub.find(" ");
-							sub = sub.substr(space);
-							trim(sub);
-							std::string filename = sub;
-
-							std::string directory = wd;
-							if (directory != "")
+							if (dummy_line.find("{")==std::string::npos)
 							{
-								filename = directory + "/" + filename;
+								sub = og_sub;
+								space = sub.find(" ");
+								sub = sub.substr(space);
+								trim(sub);
+								std::string filename = sub;
+
+								std::string directory = wd;
+								if (directory != "")
+								{
+									filename = directory + "/" + filename;
+								}
+								else
+								{
+									if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+									{
+										size_t backi = filename.size() - 1;
+										while (filename[backi] != '/' && filename[backi] != '\\')
+										{
+											--backi;
+										}
+										directory = filename;
+										directory.resize(backi);
+									}
+								}
+								std::ifstream new_file;
+								new_file.open(filename);
+								used_command = true;
+								if (!new_file.is_open())
+								{
+									std::cout << "Error: Could not open " << filename << std::endl;
+									//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+								}
+								else {
+									bool taking_initiatives = false;
+									while (new_file.good() && !new_file.eof())
+									{
+										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+									}
+									new_file.close();
+									creatures.sort();
+									turn_count = current_creature->get_turn_count();
+									current_turn = 0;
+									for (auto i = creatures.begin(); i != creatures.end(); ++i)
+									{
+										if (i->get_name() == current_creature->get_name())
+										{
+
+											break;
+										}
+										++current_turn;
+									}
+									buffer_manipulation_state = STATE_NODO;
+									save_buffer();
+									file_load_disable = true;
+									continue;
+								}
 							}
 							else
 							{
-								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								sub = og_sub;
+								int index = sub.find("{");
+								sub = sub.substr(index);
+								if (sub[sub.size() - 1] == '}')
+									sub[sub.size() - 1] = ' ';
+								if (sub[0] == '{')
+									sub[0] = ' ';
+								trim(sub);
+								std::ifstream file;
+								bool dummy_taking_initiatives = true;
+								std::string filename = "";
+								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false);
+								used_command = true;
+								if (success)
 								{
-									size_t backi = filename.size() - 1;
-									while (filename[backi] != '/' && filename[backi] != '\\')
-									{
-										--backi;
-									}
-									directory = filename;
-									directory.resize(backi);
-								}
-							}
-							std::ifstream new_file;
-							new_file.open(filename);
-							used_command = true;
-							if (!new_file.is_open())
-							{
-								std::cout << "Error: Could not open " << filename << std::endl;
-								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-							}
-							else {
-								bool taking_initiatives = false;
-								while (new_file.good() && !new_file.eof())
-								{
-									get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-								}
-								new_file.close();
-								creatures.sort();
-								turn_count = current_creature->get_turn_count();
-								current_turn = 0;
-								for (auto i = creatures.begin(); i != creatures.end(); ++i)
-								{
-									if (i->get_name() == current_creature->get_name())
-									{
-
-										break;
-									}
-									++current_turn;
+									creatures.sort();
 								}
 								buffer_manipulation_state = STATE_NODO;
-								save_buffer();
-								file_load_disable = true;
-								continue;
+								used_command = true;
 							}
 						}
 						else
@@ -9159,61 +9912,89 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						sub.resize(space);
 						if (i->has_flag(sub))
 						{
-							sub = og_sub;
-							space = sub.find(" ");
-							sub = sub.substr(space);
-							trim(sub);
-							std::string filename = sub;
-
-							std::string directory = wd;
-							if (directory != "")
+							if (dummy_line.find("{") == std::string::npos)
 							{
-								filename = directory + "/" + filename;
+								sub = og_sub;
+								space = sub.find(" ");
+								sub = sub.substr(space);
+								trim(sub);
+								std::string filename = sub;
+
+								std::string directory = wd;
+								if (directory != "")
+								{
+									filename = directory + "/" + filename;
+								}
+								else
+								{
+									if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+									{
+										size_t backi = filename.size() - 1;
+										while (filename[backi] != '/' && filename[backi] != '\\')
+										{
+											--backi;
+										}
+										directory = filename;
+										directory.resize(backi);
+									}
+								}
+								std::ifstream new_file;
+								new_file.open(filename);
+								used_command = true;
+								if (!new_file.is_open())
+								{
+									std::cout << "Error: Could not open " << filename << std::endl;
+									//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+								}
+								else {
+									bool taking_initiatives = false;
+									while (new_file.good() && !new_file.eof())
+									{
+										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+									}
+									new_file.close();
+									creatures.sort();
+									turn_count = current_creature->get_turn_count();
+									current_turn = 0;
+									for (auto i = creatures.begin(); i != creatures.end(); ++i)
+									{
+										if (i->get_name() == current_creature->get_name())
+										{
+
+											break;
+										}
+										++current_turn;
+									}
+									buffer_manipulation_state = STATE_NODO;
+									save_buffer();
+									file_load_disable = true;
+									continue;
+								}
 							}
 							else
 							{
-								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								sub = og_sub;
+								int index = sub.find("{");
+								sub = sub.substr(index);
+								if (sub[sub.size() - 1] == '}')
+									sub[sub.size() - 1] = ' ';
+								if (sub[0] == '{')
+									sub[0] = ' ';
+								trim(sub);
+								std::ifstream file;
+								bool dummy_taking_initiatives = true;
+								std::string filename = "";
+								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false);
+								used_command = true;
+								if (success)
 								{
-									size_t backi = filename.size() - 1;
-									while (filename[backi] != '/' && filename[backi] != '\\')
-									{
-										--backi;
-									}
-									directory = filename;
-									directory.resize(backi);
-								}
-							}
-							std::ifstream new_file;
-							new_file.open(filename);
-							used_command = true;
-							if (!new_file.is_open())
-							{
-								std::cout << "Error: Could not open " << filename << std::endl;
-								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-							}
-							else {
-								bool taking_initiatives = false;
-								while (new_file.good() && !new_file.eof())
-								{
-									get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-								}
-								new_file.close();
-								creatures.sort();
-								turn_count = current_creature->get_turn_count();
-								current_turn = 0;
-								for (auto i = creatures.begin(); i != creatures.end(); ++i)
-								{
-									if (i->get_name() == current_creature->get_name())
-									{
-
-										break;
-									}
-									++current_turn;
+									creatures.sort();
 								}
 								buffer_manipulation_state = STATE_NODO;
-								save_buffer();
+								//save_buffer();
 								file_load_disable = true;
-								continue;
+								//continue;
+								used_command = true;
 							}
 						}
 						else
@@ -9252,7 +10033,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								//var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -9601,8 +10388,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 							bool is_signed = false;
 							int val = 1;
+
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
+							if (stow != "")
+								var += stow;
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
@@ -9619,73 +10409,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+								
+								if (sub.find("{") == std::string::npos)
 								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
 
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
+								else
 								{
-									std::string filename = sub;
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
+									{
 
-									
-									std::string directory = wd;
-									if (directory != "")
-									{
-										filename = directory + "/" + filename;
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -9693,73 +10519,110 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) >= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -9767,73 +10630,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) > val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -9841,73 +10740,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) <= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -9915,73 +10850,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) < val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -9990,73 +10961,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) != val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10133,7 +11140,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								//var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 							if (space == std::string::npos)
 							{
 								space = var.find(" != ");
@@ -10481,8 +11494,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 							bool is_signed = false;
 							int val = 1;
+
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
+							if (stow != "")
+								var += stow;
 							std::string og_var = var;
 							var.resize(space);
 							var = resolve_var_name(var, creatures, *i);
@@ -10499,73 +11515,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10573,73 +11625,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) >= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10647,73 +11735,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) > val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10721,73 +11845,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) <= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10795,73 +11955,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) < val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -10870,73 +12066,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) != val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11009,7 +12241,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								var[lowercase_name.length()] = ' ';
 							int space = std::string::npos;
 							int SET_TYPE = VAR_SET;
-
+							std::string stow = "";
+							if (var.find("{") != std::string::npos)
+							{
+								int code_index = var.find("{");
+								stow = var.substr(code_index);
+								var.resize(code_index);
+							}
 
 							if (space == std::string::npos)
 							{
@@ -11357,8 +12595,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 							bool is_signed = false;
 							int val = 1;
+
 							if ((SET_TYPE != VAR_INCREMENT) && (SET_TYPE != VAR_DECREMENT))
 								val = get_number_arg(var, is_signed, creatures, i->get_raw_ptr());
+							if (stow != "")
+								var += stow;
 							std::string og_var = var;
 							var.resize(space);
 							switch (SET_TYPE)
@@ -11374,73 +12615,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_EQUAL_TO: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) == val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) == val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) == val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11448,73 +12725,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) >= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) >= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) >= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11522,73 +12835,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_GREATER_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) > val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) > val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) > val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11596,73 +12945,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN_OR_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) <= val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) <= val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) <= val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11670,73 +13055,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_LESS_THAN: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) < val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) < val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) < val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
@@ -11745,73 +13166,109 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							case VAR_NOT_EQUAL: {
 								std::string sub = og_var;
 								size_t arg_index;
-								for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
-								{
 
+								if (sub.find("{") == std::string::npos)
+								{
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != ' '; --arg_index)
+									{
+
+									}
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
+									if (i->get_var(var, creatures) != val)
+									{
+										std::string filename = sub;
+
+
+										std::string directory = wd;
+										if (directory != "")
+										{
+											filename = directory + "/" + filename;
+										}
+										else
+										{
+											if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+											{
+												size_t backi = filename.size() - 1;
+												while (filename[backi] != '/' && filename[backi] != '\\')
+												{
+													--backi;
+												}
+												directory = filename;
+												directory.resize(backi);
+											}
+										}
+										std::ifstream new_file;
+										new_file.open(filename);
+										used_command = true;
+										if (!new_file.is_open())
+										{
+											std::cout << "Error: Could not open " << filename << std::endl;
+											//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+										}
+										else {
+											bool taking_initiatives = false;
+											while (new_file.good() && !new_file.eof())
+											{
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
+											}
+											new_file.close();
+											creatures.sort();
+											turn_count = current_creature->get_turn_count();
+											current_turn = 0;
+											for (auto i = creatures.begin(); i != creatures.end(); ++i)
+											{
+												if (i->get_name() == current_creature->get_name())
+												{
+
+													break;
+												}
+												++current_turn;
+											}
+											buffer_manipulation_state = STATE_NODO;
+											save_buffer();
+											file_load_disable = true;
+											continue;
+										}
+
+									}
 								}
-								std::string num = sub;
-								sub = sub.substr(arg_index);
-								num.resize(arg_index);
-								bool is_signed = false;
-								val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-								trim(sub);
-								std::cout << sub << " / " << val << std::endl;
-								if (i->get_var(var, creatures) != val)
+								else
 								{
-									std::string filename = sub;
-
-
-									std::string directory = wd;
-									if (directory != "")
+									for (arg_index = sub.size() - 1; arg_index != 0 && sub[arg_index] != '{'; --arg_index)
 									{
-										filename = directory + "/" + filename;
+
 									}
-									else
+									std::string num = sub;
+									sub = sub.substr(arg_index);
+									num.resize(arg_index);
+									bool is_signed = false;
+									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									if (sub[0] == '{')
+										sub[0] = ' ';
+									if (sub[sub.size() - 1] == '}')
+										sub[sub.size() - 1] = ' ';
+									trim(sub);
+
+									if (i->get_var(var, creatures) != val)
 									{
-										if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+										std::ifstream file;
+										bool dummy_taking_initiatives = true;
+										used_command = true;
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false);
+										if (success)
 										{
-											size_t backi = filename.size() - 1;
-											while (filename[backi] != '/' && filename[backi] != '\\')
-											{
-												--backi;
-											}
-											directory = filename;
-											directory.resize(backi);
+											creatures.sort();
+										}
+										else
+										{
+											//std::cout << "Error\n";
 										}
 									}
-									std::ifstream new_file;
-									new_file.open(filename);
-									used_command = true;
-									if (!new_file.is_open())
-									{
-										std::cout << "Error: Could not open " << filename << std::endl;
-										//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
-									}
-									else {
-										bool taking_initiatives = false;
-										while (new_file.good() && !new_file.eof())
-										{
-											get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false);
-										}
-										new_file.close();
-										creatures.sort();
-										turn_count = current_creature->get_turn_count();
-										current_turn = 0;
-										for (auto i = creatures.begin(); i != creatures.end(); ++i)
-										{
-											if (i->get_name() == current_creature->get_name())
-											{
-
-												break;
-											}
-											++current_turn;
-										}
-										buffer_manipulation_state = STATE_NODO;
-										save_buffer();
-										file_load_disable = true;
-										continue;
-									}
-
 								}
 
 								break;
