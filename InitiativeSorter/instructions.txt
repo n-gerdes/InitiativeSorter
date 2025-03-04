@@ -124,6 +124,9 @@ This is good organization, and makes it easier to keep them from getting mixed u
 For example: "party.txt" for one group or campaign will have different contents than the "party.txt" file of another.
 By separating them, you can keep the name consistent without mixing them up.
 
+The program's own directory is considered '.../:::' - which can't be mixed up with any actual directories or files since that combination of characters is an illegal folder/file name on every operating system.
+This way, no matter where the current working directory is, an absolute path relative to the program can always be written.
+
 There are also commands that can load files when certain conditions are met, such as if a character has a specific flag.
 For example, "[variable]>[amount] somefile.txt" will load somefile.txt if the given variable exceeds the amount given.
 More detail under "CHARACTER VARIABLES" and "COMMAND LIST"

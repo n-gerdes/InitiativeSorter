@@ -1,3 +1,4 @@
+#include <string>
 //////////////////////////////////////////////////////////////////// CONFIG VARIABLES ////////////////////////////////////////////////////////
 
 
@@ -25,6 +26,11 @@ const static int		CONSOLE_WIDTH = 112;
 
 //						When files are loaded it can be configured to read out what's happening as it does it in real time, or that feature can be disabled for faster loading.
 const static bool		DISPLAY_INFO_FROM_LOADED_FILES = false;
+
+
+const static
+std::string				BASE_DIRECTORY_PROXY = ".../:::"; //Directories starting with this will start at the program's own directory
+
 /*
 This may be some of the worst code I've ever written. 
 Originally it was intended to sort initiatives and nothing else, but over time it's become a tool that handles more and more, far beyond the original scope of what
@@ -47,7 +53,6 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 
 #include <iostream>
 #include <algorithm>
-#include <string>
 #include <vector>
 #include <list>
 #include <random>
@@ -338,7 +343,6 @@ const static int SHOW_ONE_NAME = 0;
 const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
 int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
-
 
 class creature
 {
@@ -2695,6 +2699,14 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "add_flag", "flag", true, false);
 }
 
+void process_filename(std::string& filename)
+{
+	if (starts_with(filename, BASE_DIRECTORY_PROXY + "/") && filename.size()>BASE_DIRECTORY_PROXY.size()+1)
+	{
+		filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
+	}
+}
+
 std::list<std::list<creature>> creatures_buffer;
 std::list<bool> new_round_buffer;
 std::list<std::string> turn_msg_buffer;
@@ -2876,6 +2888,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 	}
 	//takes_commands = true;
+	process_filename(directory);
 	bool added_creature = false;
 	bool using_file = file.is_open() && file.good();
 	if(!suppress_display)
@@ -2988,6 +3001,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	{
 		used_command = true;
 		std::string arg = original_dummy_line.substr(3);
+		if (starts_with(arg, BASE_DIRECTORY_PROXY + "/") && directory!="")
+		{
+			arg = arg.substr(BASE_DIRECTORY_PROXY.size() + 1);
+			wd = "";
+		}
 		wd += "/" + arg;
 		wd = replace_all(wd, "//", "/", false);
 		wd = replace_all(wd, "\\", "/", false);
@@ -3007,7 +3025,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	{
 		used_command = true;
 		if (!suppress_display)
-			std::cout << "Working Directory: " << wd << std::endl;
+		{
+			if (wd == "")
+				turn_msg = "Working Directory: " + BASE_DIRECTORY_PROXY + "\n\n";
+			else
+				turn_msg = "Working Directory: " + BASE_DIRECTORY_PROXY + "/" + wd + "\n\n";
+			std::cout << turn_msg;
+		}
 	}
 	else if (dummy_line == "dc")
 	{
@@ -3036,6 +3060,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		if (wd[0] == '/')
 			wd = wd.substr(1);
 		directory = wd;
+	}
+	else if (((dummy_line == "wd " + BASE_DIRECTORY_PROXY) || (dummy_line == "cd " + BASE_DIRECTORY_PROXY) || (dummy_line == "cd " + BASE_DIRECTORY_PROXY + "/") || (dummy_line == "wd " + BASE_DIRECTORY_PROXY + "/") || (dummy_line == "cd /" + BASE_DIRECTORY_PROXY + "/") || (dummy_line == "wd / " + BASE_DIRECTORY_PROXY + "/") || (dummy_line == "cd /" + BASE_DIRECTORY_PROXY) || (dummy_line == "wd /" + BASE_DIRECTORY_PROXY)) && directory != "")
+	{
+		used_command = true;
+		wd = "";
+		directory = "";
 	}
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		i->touched = false;
@@ -3550,6 +3580,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								}
 							}
 							std::ifstream new_file;
+							process_filename(filename);
 							new_file.open(filename);
 							if (!new_file.is_open())
 							{
@@ -3631,6 +3662,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								}
 							}
 							std::ifstream new_file;
+							process_filename(filename);
 							new_file.open(filename);
 							if (!new_file.is_open())
 							{
@@ -4201,6 +4233,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -4296,6 +4329,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -4394,6 +4428,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -4489,6 +4524,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -4584,6 +4620,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -4680,6 +4717,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5225,6 +5263,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5320,6 +5359,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5416,6 +5456,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5512,6 +5553,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5607,6 +5649,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -5703,6 +5746,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6242,6 +6286,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6337,6 +6382,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6433,6 +6479,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6529,6 +6576,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6624,6 +6672,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -6720,6 +6769,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										if (!new_file.is_open())
 										{
@@ -8578,6 +8628,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 			std::ifstream new_file;
+			process_filename(filename);
 			new_file.open(filename);
 			if (!new_file.is_open())
 			{
@@ -8619,6 +8670,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 			std::ifstream new_file;
+			process_filename(filename);
 			new_file.open(filename);
 			if (!new_file.is_open())
 			{
@@ -9412,6 +9464,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::string filename = current_creature->turn_start_file;
 			if (filename != "" && ((!file_load_disable) || initial_no_script_run_override ))
 			{
+				process_filename(filename);
 				initial_no_script_run_override = false;
 				std::ifstream new_file;
 				new_file.open(filename);
@@ -9549,6 +9602,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			used_command = true;
 			skip_command_checks = true;
 			std::string arg = original_dummy_line.substr(3);
+			if (starts_with(arg, BASE_DIRECTORY_PROXY+"/") && wd!="")
+			{
+				arg = arg.substr(BASE_DIRECTORY_PROXY.size()+1);
+				wd = "";
+			}
 			wd += "/" + arg;
 			wd = replace_all(wd, "//", "/", false);
 			if (wd[wd.size() - 1] == '/' || wd[wd.size() - 1] == '\\')
@@ -9596,9 +9654,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			else
 			{
 				if (wd == "")
-					turn_msg = "Working Directory: Base\n\n";
+					turn_msg = "Working Directory: " + BASE_DIRECTORY_PROXY + "\n\n";
 				else
-					turn_msg = "Working Directory: " + wd + "\n\n";
+					turn_msg = "Working Directory: " + BASE_DIRECTORY_PROXY + "/" + wd + "\n\n";
 			}
 		}
 		else if (dummy_line == "cd.." || dummy_line == "wd..")
@@ -9614,6 +9672,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (wd[0] == '/')
 				wd = wd.substr(1);
 			turn_msg = "Set working directory to \'" + wd + "\'\n\n";
+		}
+		else if (((dummy_line == "wd "+BASE_DIRECTORY_PROXY) || (dummy_line == "cd "+BASE_DIRECTORY_PROXY) || (dummy_line == "cd " + BASE_DIRECTORY_PROXY+"/") || (dummy_line == "wd " + BASE_DIRECTORY_PROXY+"/") || (dummy_line == "cd /" + BASE_DIRECTORY_PROXY + "/") || (dummy_line == "wd / " + BASE_DIRECTORY_PROXY+"/") || (dummy_line == "cd /" + BASE_DIRECTORY_PROXY) || (dummy_line == "wd /" + BASE_DIRECTORY_PROXY)) && wd != "")
+		{
+			used_command = true;
+			wd = "";
+			skip_command_checks = true;
+			turn_msg = "Reset working directory\n";
 		}
 		else if (dummy_line.size() > 5 && dummy_line[0] == 's' && dummy_line[1] == 'o' && dummy_line[2] == 'r' && dummy_line[3] == 't' && dummy_line[4] == ' ')
 		{
@@ -9682,6 +9747,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 			}
 			std::ifstream new_file;
+			process_filename(filename);
 			new_file.open(filename);
 			used_command = true;
 			if (!new_file.is_open())
@@ -9736,6 +9802,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 			}
 			std::ifstream new_file;
+			process_filename(filename);
 			new_file.open(filename);
 			used_command = true;
 			if (!new_file.is_open())
@@ -10600,6 +10667,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									}
 								}
 								std::ifstream new_file;
+								process_filename(filename);
 								new_file.open(filename);
 								used_command = true;
 								if (!new_file.is_open())
@@ -10702,6 +10770,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									}
 								}
 								std::ifstream new_file;
+								process_filename(filename);
 								new_file.open(filename);
 								used_command = true;
 								if (!new_file.is_open())
@@ -11213,6 +11282,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -11323,6 +11393,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -11434,6 +11505,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -11544,6 +11616,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -11654,6 +11727,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -11765,6 +11839,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12323,6 +12398,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12433,6 +12509,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12543,6 +12620,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12653,6 +12731,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12763,6 +12842,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -12874,6 +12954,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13427,6 +13508,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13537,6 +13619,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13647,6 +13730,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13757,6 +13841,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13867,6 +13952,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -13978,6 +14064,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											}
 										}
 										std::ifstream new_file;
+										process_filename(filename);
 										new_file.open(filename);
 										used_command = true;
 										if (!new_file.is_open())
@@ -15241,6 +15328,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				if (filename != "")
 				{
 					std::ifstream new_file;
+					process_filename(filename);
 					new_file.open(filename);
 					std::string line;
 					if (!new_file.is_open())
