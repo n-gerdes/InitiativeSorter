@@ -864,7 +864,7 @@ public:
 
 	inline int get_str_bonus()
 	{
-		return intelligence;
+		return str;
 	}
 
 	inline int get_dex_bonus()
@@ -9171,9 +9171,9 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 		turn_msg += "\tCON: +0 (note: no value was ever entered, will not fully automate concentration saves)\n";
 	}
 
-	disp_save("INT", i->get_str_bonus());
-	disp_save("WIS", i->get_str_bonus());
-	disp_save("CHA", i->get_str_bonus());
+	disp_save("INT", i->get_int_bonus());
+	disp_save("WIS", i->get_wis_bonus());
+	disp_save("CHA", i->get_cha_bonus());
 	turn_msg += "\n";
 	auto disp_recharge = [&](std::vector<std::string>& recharger, const std::string& dispname)
 		{
