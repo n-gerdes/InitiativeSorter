@@ -1,0 +1,2 @@
+Archer1 +5 hp:30 aliases:A1 flag:#enemy,#archer,#enemies,#archers ac:16 str:5 dex:7 wis:3 int:0 cha:1 start:monsters/scripts/veteran_archer.txt
+Archer1 reminder Resist nonmagical slashing, vulnerable to magic weapons/larger creatures\nSidearm Longsword: +5 to hit, 1d8 + 3

@@ -1,0 +1,2 @@
+Archer1 +3 ac:14 hp:16 aliases:A1 flag:#enemy,#archer,#enemies,#archers str:4 dex:5 wis:0 int:0 cha:0 con:1 start:monsters/scripts/archer_recruit.txt
+Archer1 reminder Resist nonmagical slashing, vulnerable to magic weapons/larger creatures\nSidearm Shortsword: +5 to hit, 1d6 + 3

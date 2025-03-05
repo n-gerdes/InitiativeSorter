@@ -1,0 +1,2 @@
+print rolling normally
+@current::d20 = 1d20

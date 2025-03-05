@@ -1,0 +1,15 @@
+vampire_lord +4 hp:229/229 ac:20 str:5 dex:9 con:4 int:8 wis:7 cha:9
+alias vampire v
+alias vampire vampire
+alias vampire lord
+alias vampire rothhall
+alias vampire baron
+alias vampire b
+alias vampire boss
+alias vampire vl
+alias vampire l
+alias vampire lamor
+alias vampire duke
+alias vampire count
+v.LR = 3
+nosferatu aliases:n,minion,m hp:127 ac:17 flags:vomit,surprised str:4 dex:7 con:4 int:2 wis:6 cha:3

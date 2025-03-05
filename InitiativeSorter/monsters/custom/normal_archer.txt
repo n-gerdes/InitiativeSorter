@@ -1,0 +1,2 @@
+Archer1 +3 ac:15 hp:22 aliases:A1 flag:#enemy,#archer,#enemies,#archers str:5 dex:6 con:1 wis:1 int:0 cha:0 start:monsters/scripts/heavy_archer.txt
+Archer1 reminder Resist nonmagical bludgeoning & slashing, vulnerable to magic weapons/larger creatures\nSidearm Longsword: +5 to hit, 1d8 + 3

@@ -1,0 +1,1 @@
+rats ac:16 hp:126 start:.../:::/monsters/scripts/giant_rat_swarm_start_turn.txt flags:#swarm,#enemy,#horde,#rats,#rat aliases:swarm,rat

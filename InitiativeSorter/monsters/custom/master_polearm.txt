@@ -1,0 +1,6 @@
+Lance1 +3 hp:52 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees ac:18 aliases:enemy1,minion1,guard1,hm1,melee1,knight1,p1,pk1,g1,pike1,l1 str:6 dex:4 con:5 int:3 wis:w cha:3 start:monsters/scripts/master_pike.txt
+Lance1 recharge1-6 reaction
+Lance1::Can_Parry=1
+Lance1::Can_Hold_The_Line=1
+Lance1 reminder Charging 10 ft in a straight line can add 5 dmg or force DC 14 STR vs pushed 10ft or prone
+Lance1 notes Plate armor, Lance

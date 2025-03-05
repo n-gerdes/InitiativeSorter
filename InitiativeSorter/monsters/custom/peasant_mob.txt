@@ -1,0 +1,1 @@
+mob +0 aliases:peasants,p,m,horde,h,peasant_mob,peasant_horde flags:horde,mob ac:10 hp:39 str:2 dex:0 con:0 int:0 wis:0 cha:0 start:monsters/scripts/peasant_mob.txt

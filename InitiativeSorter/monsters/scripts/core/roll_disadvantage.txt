@@ -1,0 +1,5 @@
+print Rolling with disadvantage
+@current::d20 = 1d20
+@current::d20_b = 1d20
+@current::d20_b < @current::d20 {@current::d20=@current::d20_b}
+rv @current::d20_b

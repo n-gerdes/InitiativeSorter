@@ -1,0 +1,5 @@
+Pike1 +3 hp:hp ac:18 flags:#enemy,#minion,#guard,#guards,#minions,#enemiesflags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees aliases:enemy1,minion1,guard1,hm1,melee1,knight1,p1,pk1,g1 str:3 dex:2 con:1 int:0 wis:0 cha:0 start:monsters/scripts/normal_polearm.txt
+Pike1 recharge1-6 reaction
+Pike1::Can_Parry=1
+Pike1::Can_Hold_The_Line=1
+Pike1 reminder 20 ft speed\nchainmail, shield, javelin

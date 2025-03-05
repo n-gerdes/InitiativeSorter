@@ -1,0 +1,12 @@
+//Set number of attacks
+@current::hp>=1 {@current::attacks=1}
+@current::hp>=14 {@current::attacks=2}
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d4=3
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt

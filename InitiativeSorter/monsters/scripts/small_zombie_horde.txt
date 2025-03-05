@@ -1,0 +1,7 @@
+@current::hp>=1 {@current::attacks=1}
+@current::hp>=67 {@current::attacks=2}
+
+@current::#atk_bonus=7
+//@current::#d4=6
+
+//ld core/roll_attacks.txt

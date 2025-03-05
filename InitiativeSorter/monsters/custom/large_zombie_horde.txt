@@ -1,0 +1,3 @@
+big -2 hp:202 flags:enemy,mob,zombies,undead,horde,mob,mass aliases:bh,big_horde,bighorde,horde,z,h,zh,bzh,zombies ac:16 str:7 con:6 dex:-2 wis:1 int:-4 cha:3 start:monsters/scripts/large_zombie_horde.txt
+big.attacks = 2
+reminder big Frightful Presence & Stench (DCs 20); 1 attack at 100 - 1 hp.

@@ -1,0 +1,4 @@
+Pike1 +4 hp:52 flags:#enemy,#minion,#guard,#guards,#minions,#enemies ac:18 aliases:enemy1,minion1,guard1,hm1,melee1,knight1,p1,pk1,g1 str:6 dex:4 con:5 int:3 wis:5 cha:3 start:monsters/scripts/master_greatsword.txt
+Pike1 recharge1-6 reaction
+Pike1::Can_Parry=1
+Pike1 note plate armor, greatsword

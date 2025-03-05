@@ -1,0 +1,28 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+print UNCHARGED ATTACK
+ld core/roll_attacks.txt
+print      
+print     
+print ATTACK WITH +5 CHARGE DAMAGE
+
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=8
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

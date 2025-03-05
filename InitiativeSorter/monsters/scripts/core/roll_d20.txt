@@ -1,0 +1,14 @@
+@current::adv=0
+if @current advantage {@current::adv=1}
+if @current adv {@current::adv=1}
+if @current disadvantage {@current::disadv=1}
+if @current disadv {@current::disadv=1}
+if @current dadv {@current::disadv=1}
+@current::_net_adv=@current::adv
+@current::_net_adv-=@current::disadv
+@current::_net_adv==1 roll_advantage.txt
+@current::_net_adv==0 roll_normal.txt
+@current::_net_adv==-1 roll_disadvantage.txt
+rv @current::_net_adv
+rv @current::adv
+rv @current::disadv

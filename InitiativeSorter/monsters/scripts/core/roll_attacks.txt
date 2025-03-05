@@ -1,0 +1,7 @@
+@current::attacks>0 atk_roll.txt
+@current::attacks--
+@current::attacks==-1 {rv @current:attacks}
+@current::attacks>0 roll_attacks.txt
+@current::attacks==0 {rv @current:attacks}
+@current::attacks==0 {rv @current::_d4Counter}
+@current::attacks==0 {rv @current::_d10Counter}

@@ -1,0 +1,2 @@
+h1 ac:18 hp:57 str:6 con:6 dex:1 int:-3 wis:0 cha:-2 start:monsters/scripts/enemy_warhorse.txt flags:#enemy,#enemies,#horse,#horses,#warhorses,#warhorse,#animal,#animals,#h,#wh aliases:horse1,warhorse1,wh1
+reminder h1 60 ft speed.\nIf charge 20 ft straight ahead:\nattack w/ advantage\nadd 3d6 dmg\ntarget must roll DC 15 STR or be knocked prone. If it fails the horse gets a bonus action attack.\nHorse can also use a bonus action to move up to 60 ft.\nPack Tactics.\nAdv on saves against prone.

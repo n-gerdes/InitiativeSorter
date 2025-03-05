@@ -1,0 +1,28 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=2
+
+//Data has been configured, now roll an attack.
+print vs NORMAL TARGET (NOT PLATE ARMOR)
+ld core/roll_attacks.txt
+print      
+print     
+print vs PLATE ARMOR TARGET
+
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=2
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=0
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

@@ -1,0 +1,12 @@
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d6=2
+@current::#dmg_bonus=4
+
+//Data has been configured, now roll an attack
+ld core/roll_attacks.txt
