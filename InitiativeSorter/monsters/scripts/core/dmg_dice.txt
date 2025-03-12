@@ -1,9 +1,9 @@
 //For each counter that hasn't reached its limit yet, add the appropriate die roll 
 print ROLLING DAMAGE		
-@current::_d4Counter<@current::d4 {@current::#dmg+=1d4}				
+@current::_d4Counter<@current::d4 {@current::#dmg+=1d4}		
 @current::_d6Counter<@current::d6 {@current::#dmg+=1d6}		
 @current::_d8Counter<@current::d8 {@current::#dmg+=1d8}		
-@current::_d10Counter<@current::d10 {@current::#dmg+=1d10} 			
+@current::_d10Counter<@current::d10 {@current::#dmg+=1d10}		
 @current::_d12Counter<@current::d12 {@current::#dmg+=1d12}		
 
 //Increment counters so it knows how many of each die has been rolled

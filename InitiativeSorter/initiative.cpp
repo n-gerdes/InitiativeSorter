@@ -3644,6 +3644,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							sub = og_sub;
 							int index = sub.find("{");
 							sub = sub.substr(index);
+							trim(sub);
 							if (sub[sub.size() - 1] == '}')
 								sub[sub.size() - 1] = ' ';
 							if (sub[0] == '{')
@@ -3728,6 +3729,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							sub = og_sub;
 							int index = sub.find("{");
 							sub = sub.substr(index);
+							trim(sub);
 							if (sub[sub.size() - 1] == '}')
 								sub[sub.size() - 1] = ' ';
 							if (sub[0] == '{')
@@ -4309,6 +4311,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -4406,6 +4409,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -4506,6 +4510,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -4603,6 +4608,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -4700,6 +4706,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -4798,6 +4805,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5345,6 +5353,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5442,6 +5451,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5540,6 +5550,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5638,6 +5649,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5735,6 +5747,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -5833,6 +5846,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6374,6 +6388,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6471,6 +6486,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6569,6 +6585,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6667,6 +6684,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6764,6 +6782,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -6862,6 +6881,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -10783,6 +10803,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = og_sub;
 								int index = sub.find("{");
 								sub = sub.substr(index);
+								trim(sub);
 								if (sub[sub.size() - 1] == '}')
 									sub[sub.size() - 1] = ' ';
 								if (sub[0] == '{')
@@ -10886,6 +10907,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								sub = og_sub;
 								int index = sub.find("{");
 								sub = sub.substr(index);
+								trim(sub);
 								if (sub[sub.size() - 1] == '}')
 									sub[sub.size() - 1] = ' ';
 								if (sub[0] == '{')
@@ -10902,7 +10924,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								}
 								buffer_manipulation_state = STATE_NODO;
 								//save_buffer();
-								file_load_disable = true;
+								
+								
+									file_load_disable = true;
+									// 
 								//continue;
 								used_command = true;
 							}
@@ -11407,6 +11432,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -11518,7 +11544,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
-									
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -11630,6 +11656,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -11741,6 +11768,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -11852,6 +11880,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -11964,6 +11993,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -12523,6 +12553,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -12634,6 +12665,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -12745,6 +12777,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -12856,6 +12889,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -12967,6 +13001,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -13079,6 +13114,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -13633,6 +13669,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -13744,6 +13781,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -13855,6 +13893,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -13966,6 +14005,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -14077,6 +14117,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -14189,6 +14230,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									num.resize(arg_index);
 									bool is_signed = false;
 									val = get_number_arg(num, is_signed, creatures, i->get_raw_ptr());
+									trim(sub);
 									if (sub[0] == '{')
 										sub[0] = ' ';
 									if (sub[sub.size() - 1] == '}')
@@ -15215,7 +15257,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						turn_count = 0;
 						move_turn = creatures.begin()->get_turn_count();
+						new_turn = true;
 						used_command = true;
+						file_load_disable = false;
 						creatures.sort();
 					}
 				}
@@ -15267,6 +15311,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					move_turn = i->get_turn_count();
 					i->add_alias("@current");
 					used_command = true;
+					new_turn = true;
+					file_load_disable = false;
 				}
 				else if (comp_substring("round ", dummy_line, 6))
 				{
@@ -15458,8 +15504,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			if (move_turn != current_turn)
 			{
-				new_turn = true;
 				current_creature->remove_alias("@current");
+				new_turn = true;
+				file_load_disable = false;
 			}
 			current_turn = move_turn;
 		}
