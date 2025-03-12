@@ -12,7 +12,8 @@ const static int		ALIASES_SHOWN = 2;
 const static bool		SHOW_INFO_EACH_TURN = true;
 
 //						How long the program forces the user to wait on a complex character's turn before it lets the turn advance.
-const static int		SECONDS_WAITED = 3;
+const static long 
+double					SECONDS_WAITED = 2.5;
 
 //						Determines if the "load" command should change the working directory to whatever the directory of the given file is.
 const static bool		LOAD_CHANGES_WORKING_DIRECTORY = false;
@@ -8998,7 +8999,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
+long long get_ms()
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
 
 
 
@@ -9605,15 +9609,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			complex_character_delay = true;
 			
-			long long start_time = time(NULL);
-			long long current_time = time(NULL);
+			long long start_time = get_ms();//time(NULL);
+			long long current_time = get_ms();//time(NULL);
 			
-			while (current_time < (start_time + SECONDS_WAITED) && dummy_line=="")
+			while (current_time < (start_time + static_cast<long long>(SECONDS_WAITED * 1000.0L)) && dummy_line=="")
 			{
 				std::cout << "This character seems complex - take the time (at least " << SECONDS_WAITED << " secs) to resolve this turn carefully." << std::endl;
 				std::getline(std::cin, dummy_line);
 				trim(dummy_line);
-				current_time = time(NULL);
+				current_time = get_ms();// time(NULL);
 			}
 
 		}
