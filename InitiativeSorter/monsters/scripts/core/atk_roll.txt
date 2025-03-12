@@ -1,22 +1,24 @@
 print ------------------------------------
 ld roll_d20.txt
+rf @current crit
+rf @current nat1
 @current::d20==20 {flag @current crit}
 @current::d20==1 {flag @current nat1}
 @current::#atk_roll = @current::#atk_bonus
 @current::#atk_roll += @current::d20
 @current::#dmg = @current::dmg_bonus
 rv @current::d20
-@current::_d10Counter=0
-@current::_d12Counter=0
 @current::_d4Counter=0
 @current::_d6Counter=0
 @current::_d8Counter=0
+@current::_d10Counter=0
+@current::_d12Counter=0
 if @current crit dmg_dice.txt
-@current::_d10Counter=0
-@current::_d12Counter=0
 @current::_d4Counter=0
 @current::_d6Counter=0
 @current::_d8Counter=0
+@current::_d10Counter=0
+@current::_d12Counter=0
 ld dmg_dice.txt
 print ATTACK
 printnum @current::#atk_roll

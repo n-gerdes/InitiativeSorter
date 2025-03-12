@@ -1,0 +1,2 @@
+spawn1 hp:112 ac:17 aliases:vs1,vampire_spawn1,vampirespawn,s1,minion1 flags:vomit,#spawn,#enemy,#enemies,#vampire,#vampires,#undead str:3 dex:6 con:3 int:0 wis:3 cha:1
+reminder spawn1 40 ft speed

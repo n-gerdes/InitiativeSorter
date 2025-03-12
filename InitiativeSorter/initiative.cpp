@@ -1,7 +1,6 @@
 #include <string>
 //////////////////////////////////////////////////////////////////// CONFIG VARIABLES ////////////////////////////////////////////////////////
 
-
 //						Maximum number of steps you can undo
 const static int		MAX_UNDO_STEPS = 20; 
 
@@ -32,6 +31,10 @@ const static
 std::string				BASE_DIRECTORY_PROXY = ".../:::"; //Directories starting with this will start at the program's own directory
 
 const static bool		WRITE_LOGS_TO_FILE = false; //Whether or not to write the ongoing log to a file.
+
+const static
+std::string				INITIAL_DIRECTORY = ""; //In case you want it to start someplace other than the program's own directory. The program's directory is still the "base" and the directory accessed with the base directory proxy.
+//Resetting the directory still resets it to the  normal base directory, regardless of the initial directory.
 
 /*
 This may be some of the worst code I've ever written. 
@@ -65,7 +68,7 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 #include <time.h>
 #include <map>
 
-std::string wd = ""; //Working directory to load files from
+std::string wd = INITIAL_DIRECTORY; //Working directory to load files from
 
 int save_dc = 10;
 
@@ -307,8 +310,63 @@ std::string replace_all(const std::string& original, const std::string& original
 	}
 }
 
+inline bool comp_substring(const std::string& first, const std::string& second, size_t chars_to_compare) {
+	for (index_t i = 0; i < chars_to_compare; ++i) {
+		if (first[i] != second[i])
+			return false;
+	}
+	return true;
+}
+
+inline bool comp_substring_not_case_sensitive(const std::string& first, const std::string& second, size_t chars_to_compare) {
+	for (index_t i = 0; i < chars_to_compare; ++i) {
+		if (std::tolower(first[i]) != std::tolower(second[i]))
+			return false;
+	}
+	return true;
+}
+
+inline void trim(std::string& str)
+{
+	size_t leading_spaces, trailing_spaces;
+	for (leading_spaces = 0; leading_spaces < str.length() && str[leading_spaces] == ' '; ++leading_spaces) {}
+	if (leading_spaces > 0)
+		str = str.substr(leading_spaces, str.length() - leading_spaces);
+
+	if (str.length() == 0)
+		return;
+
+	for (trailing_spaces = 0; str[str.length() - 1 - trailing_spaces] == ' ' && trailing_spaces < str.length(); ++trailing_spaces) {}
+	str = str.substr(0, str.length() - trailing_spaces);
+
+
+	auto double_spaces = str.find("  ");
+	while (double_spaces < str.length())
+	{
+		str = str.substr(0, double_spaces) + str.substr(double_spaces + 1);
+		double_spaces = str.find("  ");
+	}
+}
+
+//Lazy but cross-platform way to "clear" the screen
+inline void clear()
+{
+	for (int i = 0; i < 100; ++i)
+		std::cout << std::endl;
+}
+
+
+inline bool starts_with(const std::string& base, const std::string& beginning)
+{
+	return comp_substring_not_case_sensitive(base, beginning, beginning.size());;
+}
+
+
 std::string get_directory(std::string filename)
 {
+	if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+		filename = filename.substr(BASE_DIRECTORY_PROXY.size()+1);
+
 	if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 	{
 		size_t backi = filename.size() - 1;
@@ -1439,51 +1497,6 @@ public:
 
 std::string get_hp_change_turn_msg(const std::string& name, int old_hp, int new_hp, const std::string& cur_msg, bool is_concentrating, int intended_dmg, int con_bonus, bool found_con_bonus, creature* victim, bool is_adding_string_outside_function);
 
-inline bool comp_substring(const std::string& first, const std::string& second, size_t chars_to_compare) {
-	for (index_t i = 0; i < chars_to_compare; ++i) {
-		if (first[i] != second[i])
-			return false;
-	}
-	return true;
-}
-
-inline bool comp_substring_not_case_sensitive(const std::string& first, const std::string& second, size_t chars_to_compare) {
-	for (index_t i = 0; i < chars_to_compare; ++i) {
-		if (std::tolower(first[i]) != std::tolower(second[i]))
-			return false;
-	}
-	return true;
-}
-
-inline void trim(std::string& str)
-{
-	size_t leading_spaces, trailing_spaces;
-	for(leading_spaces = 0; leading_spaces < str.length() && str[leading_spaces] == ' '; ++leading_spaces){}
-	if (leading_spaces > 0)
-		str = str.substr(leading_spaces, str.length() - leading_spaces);
-
-	if (str.length() == 0)
-		return;
-
-	for (trailing_spaces = 0; str[str.length() - 1 - trailing_spaces] == ' ' && trailing_spaces < str.length(); ++trailing_spaces) {}
-	str = str.substr(0, str.length() - trailing_spaces);
-
-	
-	auto double_spaces = str.find("  ");
-	while (double_spaces < str.length())
-	{
-		str = str.substr(0, double_spaces) + str.substr(double_spaces + 1);
-		double_spaces = str.find("  ");
-	}
-}
-
-//Lazy but cross-platform way to "clear" the screen
-inline void clear()
-{
-	for (int i = 0; i < 100; ++i)
-		std::cout << std::endl;
-}
-
 bool name_is_unique(const std::string& name, const std::list<creature>& creatures)
 {
 	std::string lowerc = get_lowercase(name); //TODO: Finish adding comprehensive list of commands to this function for filtering.
@@ -2364,11 +2377,6 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		creatures.push_back(sorter[i]);
 	}
 	creatures.sort();
-}
-
-inline bool starts_with(const std::string& base, const std::string& beginning)
-{
-	return comp_substring_not_case_sensitive(base, beginning, beginning.size());;
 }
 
 std::string replace_beginning_if_match(const std::string& base, const std::string& original_beginning, const std::string& new_beginning)
@@ -9522,6 +9530,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::string filename = current_creature->turn_start_file;
 			if (filename != "" && ((!file_load_disable) || initial_no_script_run_override ))
 			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+				{
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size()+1);
+				}
 				std::string dir = get_directory(filename);
 				initial_no_script_run_override = false;
 				std::ifstream new_file;
@@ -9537,7 +9549,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					bool taking_initiatives = false;
 					while (new_file.good() && !new_file.eof())
 					{
-						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, get_directory(filename), false, turn_msg, suppress_display);
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, dir, false, turn_msg, suppress_display);
 					}
 					new_file.close();
 					creatures.sort();
@@ -15245,6 +15257,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					)
 				{
 					move_turn = i->get_turn_count();
+					i->add_alias("@current");
 					used_command = true;
 				}
 				else if (comp_substring("round ", dummy_line, 6))
@@ -15435,6 +15448,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (move_turn != -1)
 		{
+			if (move_turn != current_turn)
+			{
+				new_turn = true;
+				current_creature->remove_alias("@current");
+			}
 			current_turn = move_turn;
 		}
 

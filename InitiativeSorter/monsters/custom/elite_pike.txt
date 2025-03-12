@@ -1,4 +1,4 @@
-Pike1 +3 hp:45 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees ac:18 aliases:enemy1,minion1,guard1,hm1,melee1,knight1,p1,pk1,g1 str:5 dex:3 con:5 int:2 wis:2 cha:3 start:monsters/scripts/elite_pike.txt
+Pike1 +3 hp:45 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees ac:18 aliases:enemy1,minion1,guard1,hm1,melee1,knight1,p1,pk1,g1 str:5 dex:3 con:5 int:2 wis:2 cha:3 start:.../:::/monsters/scripts/elite_pike.txt
 Pike1 recharge1-6 reaction
 Pike1::Can_Parry=1
 Pike1::Can_Hold_The_Line=1

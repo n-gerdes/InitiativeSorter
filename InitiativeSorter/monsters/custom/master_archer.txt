@@ -1,2 +1,2 @@
-add master_archer1 hp:37 ac:17 flags:#archer,#archers,#enemy,#enemies aliases:a1,ma1,archer1 str:5 dex:7 con:3 wis:3 int:0 cha:1 start:scripts/master_archer.txt
+add master_archer1 hp:37 ac:17 flags:#archer,#archers,#enemy,#enemies aliases:a1,ma1,archer1 str:5 dex:7 con:3 wis:3 int:0 cha:1 start:.../:::/scripts/master_archer.txt
 Archer1 reminder Resist nonmagical bludgeoning & slashing, vulnerable to larger creatures\nSidearm Longsword: +5 to hit, 1d8 + 3
