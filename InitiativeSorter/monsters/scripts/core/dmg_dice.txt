@@ -1,4 +1,5 @@
-//For each counter that hasn't reached its limit yet, add the appropriate die roll 			
+//For each counter that hasn't reached its limit yet, add the appropriate die roll 
+print ROLLING DAMAGE		
 @current::_d4Counter<@current::d4 {@current::#dmg+=1d4}				
 @current::_d6Counter<@current::d6 {@current::#dmg+=1d6}		
 @current::_d8Counter<@current::d8 {@current::#dmg+=1d8}		

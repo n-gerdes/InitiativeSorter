@@ -8668,12 +8668,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
-			if (directory != "")
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
 			{
 				filename = directory + "/" + filename;
 			}
 			else
 			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
 				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 				{
 					size_t backi = filename.size() - 1;
@@ -8711,12 +8713,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
-			if (directory != "")
+			if (directory != "" && !starts_with(filename,BASE_DIRECTORY_PROXY+"/"))
 			{
 				filename = directory + "/" + filename;
 			}
 			else
 			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
 				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 				{
 					size_t backi = filename.size() - 1;
@@ -9799,12 +9803,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::string filename = line.substr(5, line.length() - 5);
 			std::string directory = wd;
-			if (directory != "")
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
 			{
 				filename = directory + "/" + filename;
 			}
 			else
 			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
 				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 				{
 					size_t backi = filename.size() - 1;
@@ -9854,12 +9860,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::string filename = line.substr(3, line.length() - 3);
 			std::string directory = wd;
-			if (directory != "")
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
 			{
 				filename = directory + "/" + filename;
 			}
 			else
 			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
 				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
 				{
 					size_t backi = filename.size() - 1;

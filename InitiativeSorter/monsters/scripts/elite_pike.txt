@@ -10,7 +10,7 @@
 
 //Data has been configured, now roll an attack.
 print UNCHARGED ATTACK
-ld core/roll_attacks.txt
+ld .../:::/monsters/scripts/core/roll_attacks.txt
 print      
 print     
 print ATTACK WITH +5 CHARGE DAMAGE
