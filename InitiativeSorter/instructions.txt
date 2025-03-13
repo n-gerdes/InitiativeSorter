@@ -132,6 +132,13 @@ For example, "[variable]>[amount] somefile.txt" will load somefile.txt if the gi
 More detail under "CHARACTER VARIABLES" and "COMMAND LIST"
 
 
+------------------------------------------------- DIRECTORY LINKS ----------------------------------------------------
+
+You can program a directory to have other directories "linked" to it.
+If other directories are linked to it, then files in linked directories can be loaded from the original directory as though they were in it.
+To create directory links, create a file called "LINKS.txt" or simply "LINKS", and put a different linked directory on each line.
+If you try to load a file from that directory that doesn't exist in that directory, it will search each of the linked directories.
+
 
 
 
