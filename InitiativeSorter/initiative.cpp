@@ -68,6 +68,7 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 #include <chrono>
 #include <time.h>
 #include <map>
+#include <filesystem>
 
 std::string wd = INITIAL_DIRECTORY; //Working directory to load files from
 
@@ -79,6 +80,7 @@ static int initial_round = 1; //Global variables are a bad practice
 static std::string initial_turn = ""; //Stores name of character whose turn will start
 void trim(std::string& str);
 bool simple_display = true; //Controls whether or not simple display mode is enabled.
+static std::string execution_dir = "";
 
 std::string get_lowercase(std::string str);
 
@@ -383,6 +385,13 @@ std::string get_directory(std::string filename)
 		return wd;
 }
 
+bool is_absolute_directory(const std::string& path)
+{
+	if (starts_with(path, "C:\\") || starts_with(path, "C:/") || starts_with(path, "/C:/") || starts_with(path, "/home/") || starts_with(path, "/usr/") || starts_with(path, "\\home\\") || starts_with(path, "\\usr\\"))
+		return true;
+	return false;
+}
+
 //Makes an existing string lowercase in-place
 inline void make_lowercase(std::string& str)
 {
@@ -405,6 +414,143 @@ const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
 int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
 
+inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool linked, bool override_error, int depth, bool override_add_path, std::string info, std::vector<std::string>& shown_dirs)
+{
+	try {
+		for (int i = 0; i < execution_dir.size(); ++i)
+		{
+			if (execution_dir[i] == '\\')
+				execution_dir[i] = '/';
+		}
+		if (!override_add_path && !override_error && !is_absolute_directory(dir))
+		{
+			dir = execution_dir + "/" + dir;
+		}
+
+		if (!override_error)
+		{
+			for (int i = 0; i < depth; ++i)
+			{
+				if (i == depth - 1)
+				{
+					std::cout << "|___";
+					turn_msg += "|___";
+				}
+				else
+				{
+					std::cout << "|   ";
+					turn_msg += "|   ";
+				}
+			}
+			std::cout << dir << std::endl;
+			turn_msg += dir + "\n";
+			++depth;
+		}
+		bool has_shown_linked_entries = false;
+		for (const auto& entry : std::filesystem::directory_iterator(dir))
+		{
+			std::string p = entry.path().string();
+			for (int i = 0; i < p.size(); ++i)
+			{
+				if (p[i] == '\\')
+					p[i] = '/';
+			}
+			for (int i = 0; i < depth; ++i)
+			{
+				if (i == depth - 1)
+				{
+					std::cout << "|---";
+					turn_msg += "|---";
+				}
+				else
+				{
+					std::cout << "|   ";
+					turn_msg += "|   ";
+				}
+			}
+			
+			std::string printed = p.substr(dir.size());
+			if (printed[0] == '/')
+				printed = printed.substr(1);
+
+			std::cout << printed << std::endl;
+			turn_msg += printed + "\n";
+			
+			std::string localf = p;
+			std::string localdir = get_directory(p);
+			localf = localf.substr(localdir.size());
+			if (recursive)
+			{
+				ls(p, turn_msg, recursive, linked,true, depth+1,false,"",shown_dirs);
+			}
+			if (localf == "/LINKS" || localf == "/LINKS.txt" && !has_shown_linked_entries && linked)
+			{
+				std::ifstream links;
+				links.open(p);
+				if (links.is_open())
+				{
+					has_shown_linked_entries = true;
+					bool show_errs = false;
+					while (links.good() && !links.eof())
+					{
+						std::string line;
+						std::getline(links, line);
+						std::string errorline = line;
+						if (starts_with(line, BASE_DIRECTORY_PROXY + "/"))
+						{
+							line = line.substr(BASE_DIRECTORY_PROXY.size() + 1);
+							//ls(line, turn_msg, recursive, linked, !show_errs, depth + 1, true, errorline);
+						}
+						else
+						{
+							if (!is_absolute_directory(line))
+							{
+								line = localdir + "/" + line;
+							}
+							
+							ls(line, turn_msg, recursive, linked, !show_errs, depth+1,true,errorline,shown_dirs);
+						}
+					}
+				}
+			}
+		}
+		if (!override_error)
+		{
+			turn_msg += "\n";
+			std::cout << std::endl;
+		}
+	}
+	catch (const std::exception& E)
+	{
+		if (!override_error)
+		{
+			for (int i = 0; i < depth; ++i)
+			{
+				if (i == depth - 1)
+				{
+					std::cout << "|---";
+					turn_msg += "|---";
+				}
+				else
+				{
+					std::cout << "|   ";
+					turn_msg += "|   ";
+				}
+			}
+			std::cout << "Invalid directory: " << execution_dir << "/" << dir << std::endl;
+			turn_msg += "Invalid directory: " + execution_dir + "/" + dir + "\n";
+			std::cout << "Errorline: " << info << std::endl;
+		}
+		
+	}
+}
+
+inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool linked)
+{
+	std::vector<std::string> shown_dirs;
+	ls(dir, turn_msg, recursive, linked, false,0,false,"",shown_dirs);
+}
+ 
 class creature
 {
 	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
@@ -1694,6 +1840,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "wis_save"
 			|| lowerc == "cha_save"
 			|| lowerc == "skip"
+			|| lowerc == "ls"
 		) 
 			return false;
 
@@ -2836,7 +2983,7 @@ inline std::string resolve_var_name(const std::string& var, std::list<creature>&
 
 //If the given file does not exist, this function looks for a "LINKS.txt" file in the same directory and searches it for alternative directories to find the file in
 //LINKS.txt contains a list of alternate directories to search if a file isn't found in that directory itself.
-inline void search_links(std::string& filename)
+inline bool search_links(std::string& filename)
 {
 	replace_all(filename, "\\", "/", false);
 	replace_all(filename, "//", "/",false);
@@ -2846,6 +2993,7 @@ inline void search_links(std::string& filename)
 	if (test.is_open())
 	{
 		test.close();
+		return true;
 	}
 	else
 	{
@@ -2861,6 +3009,8 @@ inline void search_links(std::string& filename)
 			{
 				std::string line;
 				std::getline(links, line);
+				bool is_absolute_dir = is_absolute_directory(line);
+
 				if (starts_with(line, BASE_DIRECTORY_PROXY + "/"))
 				{
 					line = line.substr(BASE_DIRECTORY_PROXY.size() + 1);
@@ -2882,9 +3032,12 @@ inline void search_links(std::string& filename)
 						line = line.substr(1);
 					if (line[line.size() - 1] == '/' || line[line.size() - 1] == '\\')
 						line.resize(line.size() - 1);
+					if(!is_absolute_dir)
+						line = dir + "/" + line;
 				}
 				dirs.push_back(line); //Line is "processed" at this point to use consistent formatting, and neither begins nor ends in a slash.
 			}
+			links.close();
 			//Now that I have a complete list of alternative directories to check, I need to get the raw filename and then check each of those directories for it.
 			//The first match I find - if any - is to be inserted into the original filename variable.
 			//If I don't find a match then no modification is necessary, the original file-opening code will record an error.
@@ -2899,10 +3052,23 @@ inline void search_links(std::string& filename)
 				{
 					test.close();
 					filename = newf;
-					links.close();
-					return;
+					return true;
 				}
 			}
+
+			//If it gets to here then no match was found in any linked directories.
+			//That means it's time to search recursively linked directories
+			for (int i = 0; i < dirs.size(); ++i)
+			{
+				std::string newf = dirs[i] + "/" + raw_filename;
+				if (search_links(newf))
+				{
+					filename = newf;
+					return true;
+				}
+			}
+
+			return false; //If recursively linked directories don't have it either then it does not exist in this file tree; report that result.
 		}
 	}
 }
@@ -3181,6 +3347,26 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		used_command = true;
 		wd = "";
 		directory = "";
+	}
+	else if (dummy_line == "ls")
+	{
+		used_command = true;
+		ls(directory, turn_msg,false,false);
+	}
+	else if (dummy_line == "ls -r" || dummy_line=="ls r" || dummy_line == "ls-r")
+	{
+		used_command = true;
+		ls(directory, turn_msg, true, false);
+	}
+	else if (dummy_line == "ls -l" || dummy_line == "ls l" || dummy_line=="ls-l")
+	{
+		used_command = true;
+		ls(directory, turn_msg, false, true);
+	}
+	else if (dummy_line == "ls-lr" || dummy_line == "ls-rl" || dummy_line == "ls -l -r" || dummy_line == "ls -r -l" || dummy_line == "ls -lr" || dummy_line == "ls -rl" || dummy_line == "ls l r" || dummy_line == "ls r l" || dummy_line == "ls lr" || dummy_line == "ls rl")
+	{
+		used_command = true;
+		ls(directory, turn_msg, true, true);
 	}
 	for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		i->touched = false;
@@ -9884,6 +10070,30 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			used_command = true;
 			skip_command_checks = true;
 		}
+		else if (dummy_line == "ls")
+		{
+			used_command = true;
+			ls(wd, turn_msg, false, false);
+			skip_command_checks = true;
+		}
+		else if (dummy_line == "ls -r" || dummy_line == "ls r" || dummy_line=="ls-r")
+		{
+			used_command = true;
+			ls(wd, turn_msg, true, false);
+			skip_command_checks = true;
+		}
+		else if (dummy_line == "ls -l" || dummy_line == "ls l" || dummy_line=="ls-l")
+		{
+			used_command = true;
+			ls(wd, turn_msg, false, true);
+			skip_command_checks = true;
+		}
+		else if (dummy_line == "ls-lr" || dummy_line=="ls-rl" || dummy_line == "ls -l -r" || dummy_line == "ls -r -l" || dummy_line == "ls -lr" || dummy_line == "ls -rl" || dummy_line == "ls l r" || dummy_line == "ls r l" || dummy_line == "ls lr" || dummy_line == "ls rl")
+		{
+			used_command = true;
+			ls(wd, turn_msg, true, true);
+			skip_command_checks = true;
+		}
 		else
 		{
 			while (creatures_buffer_iterator != creatures_buffer.begin())
@@ -15667,7 +15877,30 @@ int main(int argc, char** args)
 {
 	if (argc > 2)
 		std::cout << "Invalid console arguments. Continuing as normal." << std::endl;
-	
+	execution_dir = args[0];
+	execution_dir = get_directory(execution_dir);
+	for (int i = 0; i < execution_dir.size(); ++i)
+	{
+		if (execution_dir[i] == '\\')
+			execution_dir[i] = '/';
+	}
+	std::ifstream redirect;
+	redirect.open(execution_dir + "/REDIRECT.txt");
+	if (!redirect.is_open())
+		redirect.open(execution_dir + "/REDIRECT");
+	if (redirect.is_open())
+	{
+		std::string line;
+		std::getline(redirect, line);
+		execution_dir = line;
+		for (int i = 0; i < execution_dir.size(); ++i)
+		{
+			if (execution_dir[i] == '\\')
+				execution_dir[i] = '/';
+		}
+		redirect.close();
+	}
+	std::cout << "Execution directory: " << execution_dir << std::endl;
 	srand(time(NULL)); //Ready the RNG
 	std::list<creature> creatures; //Create a list to hold the creature data in
 
