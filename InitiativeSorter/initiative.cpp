@@ -883,13 +883,14 @@ public:
 					return 9;
 				return 0;
 			};
+		int power = 1;
 		while (index >= 0)
 		{
 			char c = name[index];
 			if (is_digit(c))
 			{
-				val *= 10;
-				val += char_to_digit(c);
+				val += power * char_to_digit(c);
+				power *= 10;
 			}
 			--index;
 		}
@@ -2747,13 +2748,19 @@ void command_replacement(std::string& dummy_line)
 		dummy_line = "reset @all";
 		return;
 	}
+
+	if (starts_with(dummy_line, "monster ") && dummy_line.size()>8)
+	{
+		dummy_line = "ld " + BASE_DIRECTORY_PROXY + "/monsters/" + dummy_line.substr(8);
+		
+	}
+
 	
 	if (!starts_with(dummy_line, "ld .") && !starts_with(dummy_line,"load ."))
 	{
 		dummy_line = replace_all(dummy_line, " .", ".", false);
 		dummy_line = replace_all(dummy_line, ". ", ".", false);
 	}
-	
 	dummy_line = replace_first(dummy_line, "falg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
@@ -2939,7 +2946,8 @@ inline void sort(std::list<creature>& creatures, const std::string& name)
 			{
 				creature* left = c[i];
 				creature* right = c[i + 1];
-				if (left->get_name() > right->get_name())
+				
+				if ((left->get_name_digits() > right->get_name_digits()) || (   (left->get_name_digits()==right->get_name_digits() && left->get_name()>right->get_name()) ))
 				{
 					c[i] = right;
 					c[i + 1] = left;
@@ -9000,7 +9008,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
-			std::string filename = line.substr(5, line.length() - 5);
+			std::string filename = dummy_line.substr(5, dummy_line.length() - 5);
 			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
@@ -9044,9 +9052,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				return false;
 			}
 		}
-		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
+		else if (takes_commands && (comp_substring("ld ", dummy_line, 3)))
 		{
-			std::string filename = line.substr(3, line.length() - 3);
+			std::string filename = dummy_line.substr(3, dummy_line.length() - 3);
 			if (directory != "" && !starts_with(filename,BASE_DIRECTORY_PROXY+"/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
@@ -10184,7 +10192,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
-			std::string filename = line.substr(5, line.length() - 5);
+			std::string filename = dummy_line.substr(5, dummy_line.length() - 5);
 			std::string directory = wd;
 			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
@@ -10242,7 +10250,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		else if ((comp_substring("ld ", dummy_line, 3)))
 		{
-			std::string filename = line.substr(3, line.length() - 3);
+			std::string filename = dummy_line.substr(3, dummy_line.length() - 3);
 			std::string directory = wd;
 			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
