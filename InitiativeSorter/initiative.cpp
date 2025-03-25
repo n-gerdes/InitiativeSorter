@@ -416,6 +416,22 @@ int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>&
 
 inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool linked, bool override_error, int depth, bool override_add_path, std::string info, std::vector<std::string>& shown_dirs)
 {
+	for (int i = 0; i < dir.size(); ++i)
+	{
+		if (dir[i] == '\\')
+			dir[i] = '/';
+	}
+	char pipe_char = '|';
+	char line_char = '-';
+	std::string blank_pipe = "    ";
+	blank_pipe[0] = pipe_char;
+	std::string line = "    ";
+	line[0] = pipe_char;
+	std::string empty = "    ";
+	for (int i = 1; i < line.size(); ++i)
+	{
+		line[i] = line_char;
+	}
 	try {
 		for (int i = 0; i < execution_dir.size(); ++i)
 		{
@@ -433,13 +449,13 @@ inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool link
 			{
 				if (i == depth - 1)
 				{
-					std::cout << "|___";
-					turn_msg += "|___";
+					std::cout << line;
+					turn_msg += line;
 				}
 				else
 				{
-					std::cout << "|   ";
-					turn_msg += "|   ";
+					std::cout << blank_pipe;
+					turn_msg += blank_pipe;
 				}
 			}
 			std::cout << dir << std::endl;
@@ -459,13 +475,13 @@ inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool link
 			{
 				if (i == depth - 1)
 				{
-					std::cout << "|---";
-					turn_msg += "|---";
+					std::cout << line;
+					turn_msg += line;
 				}
 				else
 				{
-					std::cout << "|   ";
-					turn_msg += "|   ";
+					std::cout << blank_pipe;
+					turn_msg += blank_pipe;
 				}
 			}
 			
@@ -528,13 +544,13 @@ inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool link
 			{
 				if (i == depth - 1)
 				{
-					std::cout << "|---";
-					turn_msg += "|---";
+					std::cout << line;
+					turn_msg += line;
 				}
 				else
 				{
-					std::cout << "|   ";
-					turn_msg += "|   ";
+					std::cout << blank_pipe;
+					turn_msg += blank_pipe;
 				}
 			}
 			std::cout << "Invalid directory: " << execution_dir << "/" << dir << std::endl;
@@ -1841,6 +1857,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "cha_save"
 			|| lowerc == "skip"
 			|| lowerc == "ls"
+			|| lowerc == "repeat"
 		) 
 			return false;
 
@@ -2720,9 +2737,24 @@ void command_replacement(std::string& dummy_line)
 		dummy_line = "simple display";
 		return;
 	}
-
-	dummy_line = replace_all(dummy_line, " .", ".", false);
-	dummy_line = replace_all(dummy_line, ". ", ".", false);
+	if (lc == "reset all")
+	{
+		dummy_line = "reset @all";
+		return;
+	}
+	if (lc == "reset")
+	{
+		dummy_line = "reset @all";
+		return;
+	}
+	
+	if (!starts_with(dummy_line, "ld .") && !starts_with(dummy_line,"load ."))
+	{
+		dummy_line = replace_all(dummy_line, " .", ".", false);
+		dummy_line = replace_all(dummy_line, ". ", ".", false);
+	}
+	
+	dummy_line = replace_first(dummy_line, "falg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tfalg", "tf", true,false);
@@ -8969,7 +9001,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = line.substr(5, line.length() - 5);
-			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
 			}
@@ -9015,7 +9047,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		else if (takes_commands && (comp_substring("ld ", lowercase, 3)))
 		{
 			std::string filename = line.substr(3, line.length() - 3);
-			if (directory != "" && !starts_with(filename,BASE_DIRECTORY_PROXY+"/"))
+			if (directory != "" && !starts_with(filename,BASE_DIRECTORY_PROXY+"/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
 			}
@@ -9615,6 +9647,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	wd_buffer.clear();
 	save_dc_buffer.clear();
 	save_buffer(); //To initialize the state buffers so they have a place to begin.
+	bool used_repeat_command = false;
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
 	{
 		clear();
@@ -9694,7 +9727,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 			turn_msg = "";
 		}
-		else if (SHOW_INFO_EACH_TURN)
+		else if (SHOW_INFO_EACH_TURN && !used_repeat_command)
 		{
 			std::cout << get_info(current_creature_2, current_turn, current_round, true) << std::endl;
 		}
@@ -9719,7 +9752,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			{
 				std::cout << "  ----> ";
 				current_creature = &(*i);
-				if (current_creature->get_name() != previous_turn_creature_name)
+				if ((current_creature->get_name()!=previous_turn_creature_name))
 				{
 					new_turn = true;
 				}
@@ -9790,7 +9823,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::cout << "\tREMINDER: " << current_creature->get_reminder(true) << std::endl;
 		}
-		if (new_turn)
+		if (new_turn || used_repeat_command)
 		{
 			current_creature->add_alias("@current");
 			
@@ -9834,12 +9867,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		
 		//std::cout << "FULLY REPLACED: " << dummy_line << std::endl;
 		bool used_command = false;
-
-		if (new_turn)
+		if (new_turn || used_repeat_command)
 		{
 			std::string filename = current_creature->turn_start_file;
-			if (filename != "" && ((!file_load_disable) || initial_no_script_run_override ))
+			if (filename != "" && ((!file_load_disable) || initial_no_script_run_override || used_repeat_command ))
 			{
+				used_repeat_command = false;
 				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
 				{
 					filename = filename.substr(BASE_DIRECTORY_PROXY.size()+1);
@@ -9925,6 +9958,18 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		//std::string lowercase_current_creature_name = get_lowercase(current_creature->get_name());
 		std::string keep_name = "";
 		bool skip_command_checks = false;
+		used_repeat_command = false;
+		if (dummy_line == "repeat")
+		{
+			used_command = true;
+			used_repeat_command = true;
+			skip_command_checks = true;
+			dummy_line = "pause";
+		}
+		else
+		{
+			used_repeat_command = false;
+		}
 		if (dummy_line == "quit" || dummy_line == "end" || dummy_line == "stop" || dummy_line == "terminate" || dummy_line == "finish" || dummy_line == "leave" || dummy_line == "close")
 			return;
 		else if (dummy_line == "undo" || dummy_line == "u")
@@ -10141,7 +10186,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::string filename = line.substr(5, line.length() - 5);
 			std::string directory = wd;
-			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
 			}
@@ -10199,7 +10244,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::string filename = line.substr(3, line.length() - 3);
 			std::string directory = wd;
-			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
 			{
 				filename = directory + "/" + filename;
 			}

@@ -545,6 +545,10 @@ terminate
 done
 	-Ends the program. Remember to save state if you wish to return to it later!
 
+
+repeat
+	-Will repeat the current turn. The current creature's regeneration (if any) is (re)applied, and its start script (if it has one) is re-executed.
+
 Commands given here follow the format of "command [character]", but nearly all of them accept "[character] command" as well.
 For example, "spider clone 5" is equivalent to "clone spider 5".
 
