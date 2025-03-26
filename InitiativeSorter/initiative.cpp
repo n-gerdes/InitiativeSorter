@@ -1859,6 +1859,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "skip"
 			|| lowerc == "ls"
 			|| lowerc == "repeat"
+			|| lowerc == "monster"
 		) 
 			return false;
 
@@ -7361,12 +7362,16 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				if (rmc->has_alias(removal_name))
 				{
+					rmc->remove_alias("@current");
 					creatures.erase(rmc);
 					rmc = creatures.begin();
+					rmc->remove_alias("@current");
 				}
 				else
 				{
+					rmc->remove_alias("@current");
 					++rmc;
+					rmc->remove_alias("@current");
 				}
 			}
 			save_buffer();
@@ -7386,12 +7391,16 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				if (!(rmc->has_alias(keep_name)))
 				{
+					rmc->remove_alias("@current");
 					creatures.erase(rmc);
 					rmc = creatures.begin();
+					rmc->remove_alias("@current");
 				}
 				else
 				{
+					rmc->remove_alias("@current");
 					++rmc;
+					rmc->remove_alias("@current");
 				}
 			}
 			save_buffer();
@@ -7528,6 +7537,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					int save = i->get_dex_bonus();
 					std::string save_name = "dex_save";
 					save += 1 + (rand() % 20);
+					if (i->has_flag("danger_sense"))
+					{
+						int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+						if (reroll > save)
+							save = reroll;
+					}
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7665,6 +7680,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						if (i->has_flag("danger_sense"))
+						{
+							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+							if (reroll > save)
+								save = reroll;
+						}
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7920,6 +7941,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						if (i->has_flag("danger_sense"))
+						{
+							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+							if (reroll > save)
+								save = reroll;
+						}
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -10380,11 +10407,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (  !(i->has_alias(lowercase_name)) )
 						{
+							i->remove_flag("@current");
 							creatures.erase(i);
 							i = creatures.begin();
 						}
 						else
 						{
+							i->remove_flag("@current");
 							i->touched = true;
 							++i;
 						}
@@ -10393,8 +10422,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (i->has_alias(lowercase_name))
 						{
+							i->remove_flag("@current");
 							creatures.erase(i);
 							i = creatures.begin();
+							i->remove_flag("@current");
 						}
 						else
 						{
@@ -10404,6 +10435,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 				i = creatures.begin();
 				next = i;
+				i->add_alias("@current");
 				++next;
 				used_command = true;
 				did_erase = true;
@@ -14915,6 +14947,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_dex_bonus();
 					std::string save_name = "dex_save";
 					save += 1 + (rand() % 20);
+					if (i->has_flag("danger_sense"))
+					{
+						int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+						if (reroll > save)
+							save = reroll;
+					}
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15052,6 +15090,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						if (i->has_flag("danger_sense"))
+						{
+							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+							if (reroll > save)
+								save = reroll;
+						}
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15307,6 +15351,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						if (i->has_flag("danger_sense"))
+						{
+							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
+							if (reroll > save)
+								save = reroll;
+						}
 						if (save >= save_dc)
 						{
 							saved = true;
