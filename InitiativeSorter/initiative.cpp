@@ -2450,6 +2450,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		return;
 	std::vector<creature> sorter;
 	base->touched = true;
+	base->remove_alias("@current");
 	for (int i = 0; i < count; ++i)
 	{
 		creature copy(*base);
@@ -3266,6 +3267,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				}
 			}
 			
+		};
+
+	auto cleanup_current = [&]()
+		{
+			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			{
+				i->remove_alias("@current");
+			};
 		};
 
 	
@@ -9230,12 +9239,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							dex = modifier;
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
+						cleanup_current();
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
 						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
+						cleanup_current();
 					}
 				}
 				catch (const std::exception& E)
@@ -9284,6 +9295,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							dex = modifier;
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
+						cleanup_current();
 
 					}
 					catch (const std::exception& E)
@@ -9311,6 +9323,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 				added_creature = true;
+				cleanup_current();
 			}
 			else
 			{
@@ -9614,6 +9627,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	std::string previous_turn_creature_name = "";
 	creature* knocked_out_creature = nullptr;
 	std::string turn_msg = "";
+	auto cleanup_current = [&]()
+		{
+			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			{
+				i->remove_alias("@current");
+			}
+		};
 	if (initial_turn != "")
 	{
 		int init_turn_setter = 0;
@@ -9860,6 +9880,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		if (new_turn || used_repeat_command)
 		{
+			cleanup_current();
 			current_creature->add_alias("@current");
 			
 			auto flag_marker = current_creature->get_flags().begin();
@@ -10407,13 +10428,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (  !(i->has_alias(lowercase_name)) )
 						{
-							i->remove_flag("@current");
+							i->remove_alias("@current");
 							creatures.erase(i);
 							i = creatures.begin();
 						}
 						else
 						{
-							i->remove_flag("@current");
+							i->remove_alias("@current");
 							i->touched = true;
 							++i;
 						}
@@ -10422,10 +10443,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (i->has_alias(lowercase_name))
 						{
-							i->remove_flag("@current");
+							i->remove_alias("@current");
 							creatures.erase(i);
 							i = creatures.begin();
-							i->remove_flag("@current");
+							i->remove_alias("@current");
 						}
 						else
 						{
@@ -15946,6 +15967,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		if (skip)
 		{
 			move_turn = current_turn + 1;
+			current_creature->remove_alias("@current");
 			skip = false;
 		}
 
