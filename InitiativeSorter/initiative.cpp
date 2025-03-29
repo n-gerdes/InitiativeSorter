@@ -364,6 +364,22 @@ inline bool starts_with(const std::string& base, const std::string& beginning)
 	return comp_substring_not_case_sensitive(base, beginning, beginning.size());;
 }
 
+inline bool ends_with(const std::string& base, const std::string& ending)
+{
+	if (base.size() < ending.size())
+		return false;
+	else 
+	{
+		int base_i = base.size() - 1;
+		for (int ending_i = ending.size() - 1; ending_i  >= 0; --ending_i)
+		{
+			if (base[base_i] != ending[ending_i])
+				return false;
+			--base_i;
+		}
+		return true;
+	}
+}
 
 std::string get_directory(std::string filename)
 {
@@ -813,6 +829,8 @@ public:
 			return wis;
 		else if (var_name == "#cha")
 			return cha;
+		else if (var_name == "#regen" || var_name == "regen")
+			return regen;
 		else if (variables.count(var_name) == 0)
 		{
 			if (variables.count("#" + var_name) == 0)
@@ -961,6 +979,8 @@ public:
 			wis = value;
 		else if (var_name == "cha" || var_name == "#cha")
 			cha = value;
+		else if (var_name == "regen" || var_name == "#regen")
+			regen = value;
 		else
 		{
 			if (variables.count(var_name) != 0)
@@ -1018,6 +1038,11 @@ public:
 		else if (var_name == "cha" || var_name == "#cha")
 		{
 			cha = 0;
+		}
+		else if (var_name == "regen" || var_name == "#regen")
+		{
+			regen = 0;
+			temp_disable_regen = false;
 		}
 		else if (variables.count(var_name) != 0)
 		{
@@ -2753,7 +2778,27 @@ void command_replacement(std::string& dummy_line)
 
 	if (starts_with(dummy_line, "monster ") && dummy_line.size()>8)
 	{
-		dummy_line = "ld " + BASE_DIRECTORY_PROXY + "/monsters/" + dummy_line.substr(8);
+		std::string monster_name = dummy_line.substr(8);
+		std::ifstream temp;
+		temp.open("monsters/"+monster_name);
+		bool exists = false;
+		if (temp.is_open())
+		{
+			temp.close();
+			exists = true;
+		}
+		if (!exists && !ends_with(dummy_line,".txt"))
+		{
+			temp.open("monsters/" + monster_name + ".txt");
+			if (temp.is_open())
+			{
+				temp.close();
+				exists = true;
+				monster_name += ".txt";
+			}
+		}
+		dummy_line = "ld " + BASE_DIRECTORY_PROXY + "/monsters/" + monster_name;
+		
 		
 	}
 
