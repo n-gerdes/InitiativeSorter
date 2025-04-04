@@ -13,7 +13,7 @@ const static bool		SHOW_INFO_EACH_TURN = true;
 
 //						How long the program forces the user to wait on a complex character's turn before it lets the turn advance.
 const static long 
-double					SECONDS_WAITED = 2.5;
+double					SECONDS_WAITED = 2.25;
 
 //						Determines if the "load" command should change the working directory to whatever the directory of the given file is.
 const static bool		LOAD_CHANGES_WORKING_DIRECTORY = false;
@@ -81,6 +81,11 @@ static std::string initial_turn = ""; //Stores name of character whose turn will
 void trim(std::string& str);
 bool simple_display = true; //Controls whether or not simple display mode is enabled.
 static std::string execution_dir = "";
+
+void err_here()
+{
+	int x = 1;
+}
 
 std::string get_lowercase(std::string str);
 
@@ -1885,6 +1890,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "ls"
 			|| lowerc == "repeat"
 			|| lowerc == "monster"
+			|| lowerc == "print_tab"
+			|| lowerc == "printtab"
 		) 
 			return false;
 
@@ -2475,7 +2482,10 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		return;
 	std::vector<creature> sorter;
 	base->touched = true;
-	base->remove_alias("@current");
+	bool was_cur = base->has_alias("@current");
+	if(was_cur)
+		base->remove_alias("@current");
+
 	for (int i = 0; i < count; ++i)
 	{
 		creature copy(*base);
@@ -2571,6 +2581,8 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		creatures.push_back(sorter[i]);
 	}
 	creatures.sort();
+	if (was_cur)
+		base->add_alias("@current");
 }
 
 std::string replace_beginning_if_match(const std::string& base, const std::string& original_beginning, const std::string& new_beginning)
@@ -2776,18 +2788,29 @@ void command_replacement(std::string& dummy_line)
 		return;
 	}
 
+	int monster_name_index = -1;
+
 	if (starts_with(dummy_line, "monster ") && dummy_line.size()>8)
 	{
-		std::string monster_name = dummy_line.substr(8);
+		monster_name_index = 8;
+	}
+	else if (starts_with(dummy_line, "add monster") && dummy_line.size() > 12)
+	{
+		monster_name_index = 12;
+	}
+
+	if (monster_name_index != -1)
+	{
+		std::string monster_name = dummy_line.substr(monster_name_index);
 		std::ifstream temp;
-		temp.open("monsters/"+monster_name);
+		temp.open("monsters/" + monster_name);
 		bool exists = false;
 		if (temp.is_open())
 		{
 			temp.close();
 			exists = true;
 		}
-		if (!exists && !ends_with(dummy_line,".txt"))
+		if (!exists && !ends_with(dummy_line, ".txt"))
 		{
 			temp.open("monsters/" + monster_name + ".txt");
 			if (temp.is_open())
@@ -2798,8 +2821,6 @@ void command_replacement(std::string& dummy_line)
 			}
 		}
 		dummy_line = "ld " + BASE_DIRECTORY_PROXY + "/monsters/" + monster_name;
-		
-		
 	}
 
 	
@@ -2840,6 +2861,8 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "print_num", "printnum", true, false);
 	dummy_line = replace_first(dummy_line, "save_dc", "dc", true, false);
 	dummy_line = replace_first(dummy_line, "savedc", "dc", true, false);
+
+	dummy_line = replace_first(dummy_line, "print_tab", "printtab", true, false);
 
 	dummy_line = replace_first(dummy_line, "buffer", "temp_hp", true, false);
 	dummy_line = replace_first(dummy_line, "thp", "temp_hp", true, false);
@@ -7377,10 +7400,24 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 		else if (dummy_line.size()>6 && comp_substring(dummy_line, "print ", 6))
 		{
-			std::cout << line.substr(6);
+			std::cout << line.substr(6) << std::endl;
 			used_command = true;
 			turn_msg += line.substr(6);
 			turn_msg += "\n";
+			return false;
+		}
+		else if (dummy_line == "print")
+		{
+			std::cout << std::endl;
+			used_command = true;
+			turn_msg += "\n";
+			return false;
+		}
+		else if (dummy_line == "printtab")
+		{
+			std::cout << "\t";
+			used_command = true;
+			turn_msg += "\t";
 			return false;
 		}
 		else if (dummy_line.size() > 6 && comp_substring(dummy_line, "printnum ", 6))
@@ -7416,16 +7453,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				if (rmc->has_alias(removal_name))
 				{
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 					creatures.erase(rmc);
 					rmc = creatures.begin();
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 				}
 				else
 				{
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 					++rmc;
-					rmc->remove_alias("@current");
 				}
 			}
 			save_buffer();
@@ -7445,16 +7481,16 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			{
 				if (!(rmc->has_alias(keep_name)))
 				{
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 					creatures.erase(rmc);
 					rmc = creatures.begin();
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 				}
 				else
 				{
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 					++rmc;
-					rmc->remove_alias("@current");
+					//rmc->remove_alias("@current"); ////////
 				}
 			}
 			save_buffer();
@@ -9208,7 +9244,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				std::string new_name = args.substr(delimeter + 1);
 				if (!name_is_unique(new_name, creatures))
 				{
-					std::cout << "Names must be unique and cannot be shared with commands!\n";
+					std::cout << "Names must be unique and cannot be shared with commands! (" << line << ")" << std::endl;
+					err_here();
 					return false;
 				}
 				//std::cout << original << " / " << new_name << std::endl;
@@ -9270,7 +9307,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				name = line.substr(0, space_index);
 				if (!name_is_unique(name, creatures))
 				{
-					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
+					std::cout << "Names must be unique and cannot be shared with commands! (" << line << ")" << std::endl;
+					err_here();
 					return false;
 				}
 				initiative_string = lowercase.substr(space_index + 1, lowercase.length() - (name.length() + 1));
@@ -9284,14 +9322,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							dex = modifier;
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
-						cleanup_current();
+						//cleanup_current();
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
 						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
-						cleanup_current();
+						//cleanup_current();
 					}
 				}
 				catch (const std::exception& E)
@@ -9317,7 +9355,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					name = line.substr(0, first_space_index);
 					if (!name_is_unique(name, creatures))
 					{
-						std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
+						std::cout << "Names must be unique and cannot be shared with commands! (" << line << ")" << std::endl;
+						err_here();
 						return false;
 					}
 					initiative_string = lowercase.substr(first_space_index + 1, second_space_index - first_space_index - 1);
@@ -9340,7 +9379,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							dex = modifier;
 						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 						added_creature = true;
-						cleanup_current();
+						//cleanup_current();
 
 					}
 					catch (const std::exception& E)
@@ -9362,13 +9401,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				name = line.substr(0, end);
 				if (!name_is_unique(name, creatures))
 				{
-					std::cout << "Names must be unique and cannot be shared with commands!" << std::endl;
+					std::cout << "Names must be unique and cannot be shared with commands! (" << line << ")" << std::endl;
+					err_here();
 					return false;
 				}
 
 				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
 				added_creature = true;
-				cleanup_current();
+				//cleanup_current();
 			}
 			else
 			{
@@ -10240,6 +10280,20 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			ls(wd, turn_msg, true, true);
 			skip_command_checks = true;
 		}
+		else if (dummy_line == "print")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			std::cout << std::endl;
+			turn_msg += "\n";
+		}
+		else if (dummy_line == "printtab")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			std::cout << "\t";
+			turn_msg += "\t";
+			}
 		else
 		{
 			while (creatures_buffer_iterator != creatures_buffer.begin())
@@ -10473,13 +10527,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (  !(i->has_alias(lowercase_name)) )
 						{
-							i->remove_alias("@current");
+							//i->remove_alias("@current"); ////////
 							creatures.erase(i);
 							i = creatures.begin();
 						}
 						else
 						{
-							i->remove_alias("@current");
+							//i->remove_alias("@current"); ////////
 							i->touched = true;
 							++i;
 						}
@@ -10488,10 +10542,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					{
 						if (i->has_alias(lowercase_name))
 						{
-							i->remove_alias("@current");
+							//i->remove_alias("@current"); ////////
 							creatures.erase(i);
 							i = creatures.begin();
-							i->remove_alias("@current");
+							//i->remove_alias("@current"); ////////
 						}
 						else
 						{
@@ -15993,7 +16047,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						}
 					}
 				}
-				current_creature->remove_alias("@current");
+				//current_creature->remove_alias("@current"); ////////
 				++current_turn;
 				new_turn = true;
 				file_load_disable = false;
@@ -16012,7 +16066,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		if (skip)
 		{
 			move_turn = current_turn + 1;
-			current_creature->remove_alias("@current");
+			//current_creature->remove_alias("@current"); ////////
 			skip = false;
 		}
 
@@ -16020,7 +16074,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			if (move_turn != current_turn)
 			{
-				current_creature->remove_alias("@current");
+				//current_creature->remove_alias("@current"); ////////
 				new_turn = true;
 				file_load_disable = false;
 			}
@@ -16142,3 +16196,4 @@ int main(int argc, char** args)
 	std::getline(std::cin, line);
 	return 0;
 }
+

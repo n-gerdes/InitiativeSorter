@@ -498,6 +498,10 @@ print [message]
 printnum [value]
 	-Print a number, which can be a numeric literal, variable, or die roll.
 
+print_tab
+printtab
+	-Prints a tab, which will offset the next message printed on the screen. Useful for formatting.
+
 dc [num]
 save_dc [num]
 savedc [num]
