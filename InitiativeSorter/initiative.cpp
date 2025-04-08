@@ -1,6 +1,9 @@
 #include <string>
 //////////////////////////////////////////////////////////////////// CONFIG VARIABLES ////////////////////////////////////////////////////////
 
+
+enum class color_setting { DARK, LIGHT, DEFAULT };color_setting			COLOR_SCHEME = color_setting::DARK; //Added option for light mode, as a joke. 'DEFAULT' mode disables all text coloring.
+
 //						Maximum number of steps you can undo
 const static int		MAX_UNDO_STEPS = 20; 
 
@@ -81,6 +84,60 @@ static std::string initial_turn = ""; //Stores name of character whose turn will
 void trim(std::string& str);
 bool simple_display = true; //Controls whether or not simple display mode is enabled.
 static std::string execution_dir = "";
+
+//Lazy but cross-platform way to "clear" the screen
+inline void clear()
+{
+	for (int i = 0; i < 100; ++i)
+		std::cout << std::endl;
+}
+
+const static std::string CONSOLE_DEFAULT = "\033[0;0m";
+
+enum class color : int 
+{DEFAULT=0,BLACK=1,RED = 2,GREEN = 3,YELLOW = 4,BLUE = 5,MAGENTA = 6,CYAN = 7,LIGHT_GRAY = 8,DARK_GRAY = 9,LIGHT_RED = 10,LIGHT_GREEN = 11,
+LIGHT_YELLOW = 12,LIGHT_BLUE = 13,LIGHT_MAGENTA = 14,LIGHT_CYAN = 15,WHITE=16};
+inline std::string get_formatting(color text, color background)
+{
+	const static std::vector<int> fg_colors = {39,30,31,32,33,34,35,36,37,90,91,92,93,94,95,96,97};
+	const static std::vector<int> bg_colors = {49,40,41,42,43,44,45,46,47,100,101,102,103,104,105,106,107};
+
+	std::string txt_color = std::to_string(fg_colors[*reinterpret_cast<int*>(&text)]);
+	std::string bg_color = std::to_string(bg_colors[*reinterpret_cast<int*>(&background)]);
+
+	return "\033[0;" + txt_color + ";" + bg_color + "m";
+}
+
+std::string highlight_formatting = "";
+std::string basic_formatting = "";
+
+inline void set_default_colormode()
+{
+	std::cout << CONSOLE_DEFAULT;
+
+	highlight_formatting = get_formatting(color::CYAN, color::DEFAULT);
+	basic_formatting = get_formatting(color::DEFAULT, color::DEFAULT);
+
+	std::cout << basic_formatting;
+}
+
+inline void set_darkmode()
+{
+	std::cout << CONSOLE_DEFAULT;
+
+	highlight_formatting = get_formatting(color::CYAN, color::BLACK);
+	basic_formatting = get_formatting(color::LIGHT_YELLOW, color::BLACK);
+
+	std::cout << basic_formatting;
+}
+
+inline void set_lightmode()
+{
+	std::cout << CONSOLE_DEFAULT;
+	highlight_formatting = get_formatting(color::BLUE, color::WHITE);
+	basic_formatting = get_formatting(color::BLACK, color::WHITE);
+	std::cout << basic_formatting;
+}
 
 void err_here()
 {
@@ -355,14 +412,6 @@ inline void trim(std::string& str)
 		double_spaces = str.find("  ");
 	}
 }
-
-//Lazy but cross-platform way to "clear" the screen
-inline void clear()
-{
-	for (int i = 0; i < 100; ++i)
-		std::cout << std::endl;
-}
-
 
 inline bool starts_with(const std::string& base, const std::string& beginning)
 {
@@ -10120,8 +10169,12 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			i->touched = false;
+			std::cout << basic_formatting;
+			bool should_set_highlight_formatting = false;
 			if (current_turn == turn_count)
 			{
+				should_set_highlight_formatting = true;
+				std::cout << highlight_formatting;
 				std::cout << "  ----> ";
 				current_creature = &(*i);
 				if ((current_creature->get_name()!=previous_turn_creature_name))
@@ -10141,6 +10194,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						regenerated_hp = new_hp - old_hp;
 					}
 
+					std::cout << basic_formatting;
 					if (new_round2)
 					{
 						event_log += "It is now " + current_creature->get_name() + "\'s turn\n";
@@ -10157,7 +10211,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 			}
 			std::string linedisp = "";
-
+			if (should_set_highlight_formatting)
+				std::cout << highlight_formatting;
 			linedisp += i->get_display_names();
 			if(!simple_display)
 				linedisp += " [" + std::to_string(i->get_initiative()) + "]";
@@ -10199,7 +10254,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				checking_on_deck = true;
 				checking_on_deck_b = true;
 			}
-
+			
 			if (linedisp.size() > CONSOLE_WIDTH)
 				linedisp.resize(CONSOLE_WIDTH);
 			std::cout << linedisp;
@@ -10207,6 +10262,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			
 			std::cout << print_variables(i->get_raw_ptr(), false);
 			i->set_turn_count(turn_count);
+			std::cout << basic_formatting;
 			++turn_count;
 		}
 		turn_msg = "";
@@ -16509,6 +16565,20 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 int main(int argc, char** args)
 {
+	std::cout << CONSOLE_DEFAULT;
+	if (COLOR_SCHEME == color_setting::LIGHT)
+	{
+		set_lightmode();
+	}
+	else if (COLOR_SCHEME == color_setting::DARK)
+	{
+		set_darkmode();
+	}
+	else
+	{
+		//set_default_colormode();
+	}
+	clear();
 	if (argc > 2)
 		std::cout << "Invalid console arguments. Continuing as normal." << std::endl;
 	execution_dir = args[0];
