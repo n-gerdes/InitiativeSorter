@@ -15,7 +15,7 @@ const static bool		SHOW_INFO_EACH_TURN = true;
 const static long 
 double					SECONDS_WAITED = 2.25;
 
-//						Determines if the "load" command should change the working directory to whatever the directory of the given file is.
+//						Determines if the "load" command should change the working directory to whateveader the directory of the given file is.
 const static bool		LOAD_CHANGES_WORKING_DIRECTORY = false;
 //						This behavior only functions during initial character entry - not while running combat, even if this setting is enabled.
 
@@ -386,6 +386,31 @@ inline bool ends_with(const std::string& base, const std::string& ending)
 	}
 }
 
+inline void print_line(const std::string& line, std::string& turn_msg)
+{
+	std::string ln;
+	char c = ln[0];
+	int line_length = 0;
+	for (int i = 0; i < line.size(); ++i)
+	{
+		if (line_length >= CONSOLE_WIDTH)
+		{
+			line_length = 0;
+			ln += "\n";
+		}
+		
+		if (line[i] == '\n')
+		{
+			line_length = 0;
+		}
+
+		ln += line[i];
+		++line_length;
+	}
+	std::cout << ln << std::endl;
+	turn_msg += ln + "\n";
+}
+
 std::string get_directory(std::string filename)
 {
 	if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
@@ -434,6 +459,12 @@ const static int SHOW_ONE_NAME = 0;
 const static int SHOW_SOME_NAMES = 1;
 const static int SHOW_ALL_NAMES = 2;
 int get_number_arg(std::string dummy_line, bool& is_signed, std::list<creature>& creatures, creature* executor);
+
+inline void make_readable(std::string& line)
+{
+	line = replace_all(line, "“", "\"", false);
+	line = replace_all(line, "”", "\"", false);
+}
 
 inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool linked, bool override_error, int depth, bool override_add_path, std::string info, std::vector<std::string>& shown_dirs)
 {
@@ -612,6 +643,11 @@ public:
 	bool has_con = false;
 
 	int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0;
+
+	inline bool has_magic_resistance()
+	{
+		return has_flag("magic_resistance");
+	}
 
 	inline void reset_flags()
 	{
@@ -1390,6 +1426,18 @@ public:
 		return false;
 	}
 
+	inline bool has_flag_case_insensitive(const std::string& flag)
+	{
+		for (auto i = flags.begin(); i != flags.end(); ++i)
+		{
+			if (get_lowercase(*i) == get_lowercase(flag))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	inline void remove_flag(const std::string& flag)
 	{
 		std::string lowerc = get_lowercase(flag);
@@ -1892,6 +1940,8 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "monster"
 			|| lowerc == "print_tab"
 			|| lowerc == "printtab"
+			|| lowerc == "read"
+			|| lowerc == "clone-1"
 		) 
 			return false;
 
@@ -2993,6 +3043,38 @@ std::list<bool>::iterator display_mode_buffer_iterator;
 std::list<std::string>::iterator wd_buffer_iterator;
 std::list<int>::iterator save_dc_buffer_iterator;
 
+inline void prompt_magic_resistance(bool has_magic_resistance, int& save, bool& rolled_magic_res_adv, int svmod)
+{
+	if (has_magic_resistance)
+	{
+		std::string input = "";
+		while (input != "y" && input != "n")
+		{
+			std::cout << "Is the save magical (Y/N)? " << std::endl;
+			std::cout << "\t";
+			std::getline(std::cin, input);
+
+			input[0] = std::tolower(input[0]);
+		}
+
+		if (input == "y")
+		{
+			int roll2 = svmod + 1 + (rand() % 20);
+			if (roll2 > save)
+				save = roll2;
+			rolled_magic_res_adv = true;
+		}
+		else
+		{
+			rolled_magic_res_adv = false;
+		}
+	}
+	else
+	{
+		rolled_magic_res_adv = false;
+	}
+}
+
 //Sorts the initiatives of the given creatures after sorting them by name
 inline void sort(std::list<creature>& creatures, const std::string& name)
 {
@@ -3189,6 +3271,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	auto save_buffer = [&]() -> void
 		{
 			//std::cout << "SAVING BUFFER\n";
+			if (!taking_intiatives)
+				return;
 			if (get_creature_buffer_manipulation_state == STATE_NODO && initial_execution)
 			{
 				creatures_buffer.push_front(creatures);
@@ -3701,6 +3785,36 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
+
+				else if (comp_substring("clone-1 " + lowercase_name + " ", dummy_line, ("clone-1 " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr()) - 1;
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+						i->touched = true;
+						i = creatures.begin();
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
+				else if (comp_substring(lowercase_name + " clone-1 ", dummy_line, (lowercase_name + " clone-1 ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr()) - 1;
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+						i->touched = true;
+						i = creatures.begin();
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
+
 				else if (dummy_line == ("clone " + lowercase_name))
 				{
 					clone_character(lowercase_name, 1, creatures, i->get_raw_ptr());
@@ -7606,8 +7720,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " str_save" || dummy_line == "str_save " + lowercase_name)
 				{
 					int save = i->get_str_bonus();
+					int svmod = save;
 					std::string save_name = "str_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7625,9 +7742,12 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " dex_save" || dummy_line == "dex_save " + lowercase_name)
 				{
 					int save = i->get_dex_bonus();
+					int svmod = save;
 					std::string save_name = "dex_save";
 					save += 1 + (rand() % 20);
-					if (i->has_flag("danger_sense"))
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+					if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 					{
 						int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 						if (reroll > save)
@@ -7650,8 +7770,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " con_save" || dummy_line == "con_save " + lowercase_name)
 				{
 					int save = i->get_con_bonus(creatures);
+					int svmod = save;
 					std::string save_name = "con_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7669,8 +7792,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " int_save" || dummy_line == "int_save " + lowercase_name)
 				{
 					int save = i->get_int_bonus();
+					int svmod = save;
 					std::string save_name = "int_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7688,8 +7814,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " wis_save" || dummy_line == "wis_save " + lowercase_name)
 				{
 					int save = i->get_wis_bonus();
+					int svmod = save;
 					std::string save_name = "wis_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7707,8 +7836,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				else if (dummy_line == lowercase_name + " cha_save" || dummy_line == "cha_save " + lowercase_name)
 				{
 					int save = i->get_cha_bonus();
+					int svmod = save;
 					std::string save_name = "cha_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -7727,6 +7859,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_str_bonus();
+						int svmod = save;
 						std::string save_name = "str_save";
 
 						bool is_signed = false;
@@ -7734,6 +7867,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7763,6 +7898,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_dex_bonus();
+						int svmod = save;
 						std::string save_name = "dex_save";
 
 						bool is_signed = false;
@@ -7770,7 +7906,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
-						if (i->has_flag("danger_sense"))
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+						if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 						{
 							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 							if (reroll > save)
@@ -7809,6 +7947,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_con_bonus(creatures);
+						int svmod = save;
 						std::string save_name = "con_save";
 
 						bool is_signed = false;
@@ -7816,6 +7955,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7844,6 +7985,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_int_bonus();
+						int svmod = save;
 						std::string save_name = "int_save";
 
 						bool is_signed = false;
@@ -7851,6 +7993,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7880,6 +8024,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_wis_bonus();
+						int svmod = save;
 						std::string save_name = "wis_save";
 
 						bool is_signed = false;
@@ -7887,6 +8032,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7916,6 +8063,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_cha_bonus();
+						int svmod = save;
 						std::string save_name = "cha_save";
 
 						bool is_signed = false;
@@ -7923,6 +8071,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7952,6 +8102,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_str_bonus();
+						int svmod = save;
 						std::string save_name = "str_save";
 
 						bool is_signed = false;
@@ -7959,6 +8110,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -7988,6 +8141,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_con_bonus(creatures);
+						int svmod = save;
 						std::string save_name = "con_save";
 
 						bool is_signed = false;
@@ -7995,6 +8149,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -8025,13 +8181,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					try {
 						int save = i->get_dex_bonus();
 						std::string save_name = "dex_save";
-
+						int svmod = save;
 						bool is_signed = false;
 						int dmg = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
-						if (i->has_flag("danger_sense"))
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+						if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 						{
 							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 							if (reroll > save)
@@ -8070,6 +8228,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_int_bonus();
+						int svmod = save;
 						std::string save_name = "int_save";
 
 						bool is_signed = false;
@@ -8077,6 +8236,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -8106,6 +8267,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_wis_bonus();
+						int svmod = save;
 						std::string save_name = "wis_save";
 
 						bool is_signed = false;
@@ -8113,6 +8275,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -8142,6 +8306,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					try {
 						int save = i->get_cha_bonus();
+						int svmod = save;
 						std::string save_name = "cha_save";
 
 						bool is_signed = false;
@@ -8149,6 +8314,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -9123,6 +9290,57 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		{
 			creatures.clear();
 		}
+		else if (takes_commands && (comp_substring("read ", lowercase, 5)))
+		{
+			std::string filename = dummy_line.substr(5, dummy_line.length() - 5);
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
+			{
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+					if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+						wd = directory;
+				}
+			}
+			std::ifstream new_file;
+			process_filename(filename);
+			dir_fix(filename);
+			search_links(filename);
+			new_file.open(filename);
+			if (!new_file.is_open())
+			{
+				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+				return false;
+			}
+			else {
+				while (new_file.good() && !new_file.eof())
+				{
+					std::string line;
+					std::getline(new_file, line);
+					make_readable(line);
+					print_line(line, turn_msg);
+				}
+				std::cout << std::endl;
+				turn_msg += "\n";
+				//ignore_initial_file_load = true;
+				new_file.close();
+				save_buffer();
+				return false;
+			}
+		}
 		else if (takes_commands && (comp_substring("load ", lowercase, 5)))
 		{
 			std::string filename = dummy_line.substr(5, dummy_line.length() - 5);
@@ -9823,7 +10041,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 
 		//END UNDO/REDO BUFFER STUFF
+		std::string on_deck = "";
+		bool checking_on_deck = false;
+		bool checking_on_deck_b = false;
 		new_round2 = false;
+		bool found_next_pc = false;
+		bool found_on_deck = false;
+		std::string next_pc = "";
 		if (new_round)
 		{
 			if (!first)
@@ -9944,8 +10168,29 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			{
 				linedisp += " | FLAGS: " + i->get_flag_list((current_turn == turn_count && new_turn), true, !simple_display, true);
 			}
-			if(current_turn==turn_count)
+			if (checking_on_deck && !found_on_deck && checking_on_deck_b)
+			{
+				if (i->has_flag_case_insensitive("pc"))
+				{
+					found_on_deck = true;
+					on_deck = i->get_name();
+				}
+				checking_on_deck_b = false;
+			}
+			if (checking_on_deck && !found_next_pc)
+			{
+				if (i->has_flag_case_insensitive("pc"))
+				{
+					found_next_pc = true;
+					next_pc = i->get_name();
+				}
+			}
+			if (current_turn == turn_count)
+			{
 				linedisp += " <---------------------------";
+				checking_on_deck = true;
+				checking_on_deck_b = true;
+			}
 
 			if (linedisp.size() > CONSOLE_WIDTH)
 				linedisp.resize(CONSOLE_WIDTH);
@@ -10005,6 +10250,27 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			std::cout << "\t" << current_creature->get_name() << " HAS 0 HP!" << std::endl;
 		}
+
+		if (!found_next_pc)
+		{
+			for (auto i = creatures.begin(); i != creatures.end(); ++i)
+			{
+				//std::cout << "SCANNING: " << i->get_name() << std::endl;
+				if (i->has_flag_case_insensitive("pc"))
+				{
+					next_pc = i->get_name();
+					break;
+				}
+			}
+		}
+
+		if (!found_on_deck && checking_on_deck_b)
+		{
+			if (creatures.begin()->has_flag_case_insensitive("pc"))
+			{
+				on_deck = creatures.begin()->get_name();
+			}
+		}
 		
 		//std::cout << "FULLY REPLACED: " << dummy_line << std::endl;
 		bool used_command = false;
@@ -10062,6 +10328,14 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		dummy_line = "";
 		bool complex_character_delay = false;
+		if (on_deck != "")
+		{
+			std::cout << "ON DECK: " << on_deck << std::endl;
+		}
+		if (next_pc != "")
+		{
+			std::cout << "NEXT PC: " << next_pc << std::endl;
+		}
 		if ((current_creature->turn_start_file != "" || current_creature->turn_end_file != "" || current_creature->flags.size() != 0 || current_creature->variables.size() != 0 || current_creature->get_reminder(false).size() != 0) && new_turn && !current_creature->has_flag("simple"))
 		{
 			complex_character_delay = true;
@@ -10336,6 +10610,56 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			skip_command_checks = true;
 			used_command = true;
+		}
+		else if ((comp_substring("read ", dummy_line, 5)))
+		{
+			std::string filename = dummy_line.substr(5, dummy_line.length() - 5);
+			std::string directory = wd;
+			if (directory != "" && !starts_with(filename, BASE_DIRECTORY_PROXY + "/") && !is_absolute_directory(filename))
+			{
+				filename = directory + "/" + filename;
+			}
+			else
+			{
+				if (starts_with(filename, BASE_DIRECTORY_PROXY + "/"))
+					filename = filename.substr(BASE_DIRECTORY_PROXY.size() + 1);
+				if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+				{
+					size_t backi = filename.size() - 1;
+					while (filename[backi] != '/' && filename[backi] != '\\')
+					{
+						--backi;
+					}
+					directory = filename;
+					directory.resize(backi);
+				}
+			}
+			std::ifstream new_file;
+			process_filename(filename);
+			search_links(filename);
+			new_file.open(filename);
+			used_command = true;
+			if (!new_file.is_open())
+			{
+				std::cout << "Error: Could not open " << filename << std::endl;
+				//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+			}
+			else {
+				bool taking_initiatives = false;
+				while (new_file.good() && !new_file.eof())
+				{
+					std::string line;
+					std::getline(new_file, line);
+					make_readable(line);
+					print_line(line, turn_msg);
+				}
+				std::cout << std::endl;
+				turn_msg += "\n";
+				new_file.close();
+				buffer_manipulation_state = STATE_NODO;
+				save_buffer();
+				continue;
+			}
 		}
 		else if ((comp_substring("load ", dummy_line, 5)))
 		{
@@ -11056,6 +11380,30 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					}
 				}
 
+				else if (comp_substring("clone-1 " + lowercase_name + " ", dummy_line, ("clone-1 " + lowercase_name + " ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr()) - 1;
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
+				else if (comp_substring(lowercase_name + " clone-1 ", dummy_line, (lowercase_name + " clone-1 ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int clones = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr()) - 1;
+						clone_character(lowercase_name, clones, creatures, i->get_raw_ptr());
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+					}
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
@@ -15048,6 +15396,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_str_bonus();
 					std::string save_name = "str_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_str_bonus();
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15067,7 +15418,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_dex_bonus();
 					std::string save_name = "dex_save";
 					save += 1 + (rand() % 20);
-					if (i->has_flag("danger_sense"))
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_dex_bonus();
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+					if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 					{
 						int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 						if (reroll > save)
@@ -15092,6 +15446,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_con_bonus(creatures);
 					std::string save_name = "con_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_con_bonus(creatures);
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15111,6 +15468,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_int_bonus();
 					std::string save_name = "int_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_int_bonus();
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15130,6 +15490,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_wis_bonus();
 					std::string save_name = "wis_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_wis_bonus();
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15149,6 +15512,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					int save = i->get_cha_bonus();
 					std::string save_name = "cha_save";
 					save += 1 + (rand() % 20);
+					bool rolled_magic_res_adv = false;
+					int svmod = i->get_cha_bonus();
+					prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 					std::string temp = save_name;
 					temp = replace_all(temp, "_", " ", false);
 					turn_msg += i->get_name() + " rolled a DC " + std::to_string(save_dc) + " " + temp + " and got a " + std::to_string(save) + " (";
@@ -15167,6 +15533,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_str_bonus();
+						int svmod = save;
 						std::string save_name = "str_save";
 
 						bool is_signed = false;
@@ -15174,6 +15541,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15203,6 +15572,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_dex_bonus();
+						int svmod = save;
 						std::string save_name = "dex_save";
 
 						bool is_signed = false;
@@ -15210,7 +15580,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
-						if (i->has_flag("danger_sense"))
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+						if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 						{
 							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 							if (reroll > save)
@@ -15249,6 +15621,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_con_bonus(creatures);
+						int svmod = save;
 						std::string save_name = "con_save";
 
 						bool is_signed = false;
@@ -15256,6 +15629,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15284,6 +15659,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_int_bonus();
+						int svmod = save;
 						std::string save_name = "int_save";
 
 						bool is_signed = false;
@@ -15291,6 +15667,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15320,6 +15698,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_wis_bonus();
+						int svmod = save;
 						std::string save_name = "wis_save";
 
 						bool is_signed = false;
@@ -15327,6 +15706,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15356,6 +15737,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_cha_bonus();
+						int svmod = save;
 						std::string save_name = "cha_save";
 
 						bool is_signed = false;
@@ -15363,6 +15745,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15392,6 +15776,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_str_bonus();
+						int svmod = save;
 						std::string save_name = "str_save";
 
 						bool is_signed = false;
@@ -15399,6 +15784,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15428,6 +15815,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_con_bonus(creatures);
+						int svmod = save;
 						std::string save_name = "con_save";
 
 						bool is_signed = false;
@@ -15435,6 +15823,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15464,6 +15854,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_dex_bonus();
+						int svmod = save;
 						std::string save_name = "dex_save";
 
 						bool is_signed = false;
@@ -15471,7 +15862,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
-						if (i->has_flag("danger_sense"))
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
+						if (i->has_flag("danger_sense") && !rolled_magic_res_adv)
 						{
 							int reroll = 1 + (rand() % 20) + i->get_dex_bonus();
 							if (reroll > save)
@@ -15510,6 +15903,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_int_bonus();
+						int svmod = save;
 						std::string save_name = "int_save";
 
 						bool is_signed = false;
@@ -15517,6 +15911,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15546,6 +15942,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_wis_bonus();
+						int svmod = save;
 						std::string save_name = "wis_save";
 
 						bool is_signed = false;
@@ -15553,6 +15950,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;
@@ -15582,6 +15981,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					try {
 						int save = i->get_cha_bonus();
+						int svmod = save;
 						std::string save_name = "cha_save";
 
 						bool is_signed = false;
@@ -15589,6 +15989,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 						bool saved = true;
 						save += 1 + (rand() % 20);
+						bool rolled_magic_res_adv = false;
+						prompt_magic_resistance(i->has_magic_resistance(), save, rolled_magic_res_adv, svmod);
 						if (save >= save_dc)
 						{
 							saved = true;

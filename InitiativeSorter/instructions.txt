@@ -45,10 +45,13 @@ Simply use "regen:amount" during the character entry.
 Any trait that can be added during character entry can be added or removed later with commands.
 Avoid accidentally adding two of the same traits during entry.
 For example: "character flags:flag1 flags:flag2" will cause an error. Instead, simply do "character flags:flag1,flag2"
+These flags can be used to identify groups of characters, or to give them certain pre-set properties in the tracker.
 
 Saving throw bonuses can be initialized with "str:value", "dex:value", "con:value", "int:value", "wis:value", and "cha:value".
-This can be used to automate saving throws for certain characters - particularly useful for common "save for half" damage effects. 
+This can be used to automate saving throws for certain characters - particularly useful for common "save for half" damage effects.
 	The "evasion" and "avoidance" flags will automate the evasion/avoidance effects for saving throws.
+	The "magic_resistance" flag will cause it to prompt you to ask whether a save is from magic or not before rolling it, and then roll with advantage if it is.
+	The "danger_sense" flag will cause DEX saves to be rolled at advantage.
 If no DEX save value is entered, the program will default to using the initiative modifier, since both key off of DEX.
 If a CON bonus is entered, the program can automate concentration saving throws.
 
@@ -79,6 +82,7 @@ No two characters can have the same name or alias.
 
 Flags can be added using "flags:flag1,flag2,...,flagN".
 Flags are like special tags or traits that can be added to characters to signify important information about them.
+They can be used to organize groups of creatures, or to add special features that are tracked automatically (i.e., evasion, magic resistance, etc).
 Like aliases, flags are separated here by commas and cannot contain spaces. They can otherwise be anything you want.
 Characters either have a flag or they don't. Flags are useful for tracking conditions, recharged abilities, and more.
 
@@ -87,6 +91,19 @@ The "concentration", "concentrating", "conc", "con", and "c" flags mark a charac
 Concentrating creatures will roll concentration saves automatically when taking damage.
 
 The "evasion" and "avoidance" flags are used when rolling DEX saves to turn full damage into half damage, and half damage into no damage.
+
+"danger_sense" causes a creature to roll its Dexterity saving throws at advantage.
+"magic_resistance" asks you whether or not a saving throw is from magic before rolling it, and then rolls it at advantage if it is.
+
+Although not hardcoded into the initiative sorter's c++ code, the script used to automate monster attacks uses the following flags:
+"extra_crit"
+"extracrit"
+"balor"
+"brutal_crit"
+"brutal_crits"
+"brutal_critical"
+"brutal_criticals"
+If a creature has any one of these flags, then it rolls triple the damage dice when it scores a critical hit instead of double. Multiple flags do not stack.
 
 The flags a character has will be displayed during turn tracking, except for "hidden" flags.
 A flag is made hidden if it starts with a '#'
@@ -497,6 +514,9 @@ print [message]
 
 printnum [value]
 	-Print a number, which can be a numeric literal, variable, or die roll.
+
+read [file]
+	-Print out the entire contents of a file into the console.
 
 print_tab
 printtab
