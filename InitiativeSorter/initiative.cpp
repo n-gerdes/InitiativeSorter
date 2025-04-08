@@ -784,7 +784,7 @@ public:
 	{
 		make_lowercase(var_name);
 		trim(var_name);
-		if (var_name.size() > 2 && var_name[0] == '[' && var_name[var_name.size() - 1] == ']' && var_name != "[ac]" && var_name != "[hp]" && var_name!="[max_hp]")
+		if (var_name.size() > 2 && var_name[0] == '[' && var_name[var_name.size() - 1] == ']' && var_name != "[ac]" && var_name != "[hp]" && var_name != "[max_hp]")
 		{
 			var_name = var_name.substr(1);
 			var_name.resize(var_name.size() - 1);
@@ -870,8 +870,12 @@ public:
 			return wis;
 		else if (var_name == "#cha")
 			return cha;
-		else if (var_name == "#regen" || var_name == "regen")
+		else if (var_name == "#regen" || var_name == "regen" || var_name == "regeneration" || var_name == "#regeneration")
 			return regen;
+		else if (var_name == "#initiative" || var_name == "initiative")
+			return get_initiative();
+		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod")
+			return get_initiative_modifier();
 		else if (variables.count(var_name) == 0)
 		{
 			if (variables.count("#" + var_name) == 0)
@@ -1020,8 +1024,12 @@ public:
 			wis = value;
 		else if (var_name == "cha" || var_name == "#cha")
 			cha = value;
-		else if (var_name == "regen" || var_name == "#regen")
+		else if (var_name == "regen" || var_name == "#regen" || var_name == "regeneration" || var_name == "#regeneration")
 			regen = value;
+		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod")
+			modifier = value;
+		else if (var_name == "#initiative" || var_name == "initiative")
+			set_initiative(value);
 		else
 		{
 			if (variables.count(var_name) != 0)
