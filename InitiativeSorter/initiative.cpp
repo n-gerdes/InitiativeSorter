@@ -874,7 +874,7 @@ public:
 			return regen;
 		else if (var_name == "#initiative" || var_name == "initiative")
 			return get_initiative();
-		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod")
+		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod" || var_name == "initiative_mod" || var_name == "#initiative_mod")
 			return get_initiative_modifier();
 		else if (variables.count(var_name) == 0)
 		{
@@ -1026,7 +1026,7 @@ public:
 			cha = value;
 		else if (var_name == "regen" || var_name == "#regen" || var_name == "regeneration" || var_name == "#regeneration")
 			regen = value;
-		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod")
+		else if (var_name == "#initiative_modifier" || var_name == "initiative_modifier" || var_name == "init_modifier" || var_name == "#init_modifier" || var_name == "init_mod" || var_name == "#init_mod" || var_name == "initiative_mod" || var_name == "#initiative_mod")
 			modifier = value;
 		else if (var_name == "#initiative" || var_name == "initiative")
 			set_initiative(value);
