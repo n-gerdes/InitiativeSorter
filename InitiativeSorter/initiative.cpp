@@ -85,11 +85,18 @@ void trim(std::string& str);
 bool simple_display = true; //Controls whether or not simple display mode is enabled.
 static std::string execution_dir = "";
 
-//Lazy but cross-platform way to "clear" the screen
+//Now uses system commands to clear the screen, but still uses a newline flood as a fallback in case it doesn't work.
 inline void clear()
 {
 	for (int i = 0; i < 100; ++i)
 		std::cout << std::endl;
+#ifdef _WIN32
+	system("cls");
+#endif
+
+#if defined(__linux__) || defined(__unix__) || defined(__unix) || defined(__APPLE__) || defined(__MACH__)
+	system("clear");
+#endif
 }
 
 const static std::string CONSOLE_DEFAULT = "\033[0;0m";
