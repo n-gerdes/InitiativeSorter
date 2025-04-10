@@ -10011,6 +10011,7 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 
 inline void track_initiatives(std::list<creature>& creatures, std::string& dummy_line, bool ignore_initial_file_load, bool& initial_no_script_run_override)
 {
+	bool did_reset = false;
 	//std::sort(creatures.begin(), creatures.end());
 	bool suppress_display = !DISPLAY_INFO_FROM_LOADED_FILES;
 	std::string logfile_name = "log_" + std::to_string(time(NULL)) + ".txt";
@@ -10141,9 +10142,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		bool found_on_deck = false;
 		std::string next_pc = "";
 
-		if (current_turn >= creatures.size())
+		if (current_turn >= creatures.size() || did_reset)
 			current_turn = 0;
-
+		did_reset = false;
 		if (new_round)
 		{
 			if (!first)
@@ -10955,6 +10956,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				i->variables.clear();
 				i->temp_disable_regen = false;
 				current_round = 1;
+				current_turn = 0;
+				move_turn = 0;
+				did_reset = true;
+				used_command = true;
 				if (i == (--creatures.end()))
 				{
 					turn_count = 0;
@@ -10963,6 +10968,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					used_command = true;
 					file_load_disable = false;
 					creatures.sort();
+					current_turn = 0;
+					initial_turn = creatures.begin()->get_name();
 				}
 			}
 
