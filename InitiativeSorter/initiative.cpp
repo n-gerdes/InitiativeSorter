@@ -2130,6 +2130,10 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 				out << i->get_name() << " max_hp " << i->get_max_hp() << std::endl;
 			}
 
+			if (i->get_temp_hp() != 0)
+			{
+				out << i->get_name() << " thp " << i->get_temp_hp() << std::endl;
+			}
 			for (auto alias_iterator = i->aliases.begin(); alias_iterator != i->aliases.end(); ++alias_iterator)
 			{
 				if ((*alias_iterator)[0]!='@')
@@ -2733,190 +2737,191 @@ std::string replace_beginning_if_match(const std::string& base, const std::strin
 
 void command_replacement(std::string& dummy_line)
 {
-	std::string lc = get_lowercase(dummy_line);
-	if (lc == "full display mode")
 	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "simple display mode")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "complex display")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "max display")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "display full")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "display max")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "hide")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "hide all")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "hideall")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "min display")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "display min")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "sdisplay")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "displays")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "fdisplay")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "displayf")
-	{
-		dummy_line = "full display";
-		return;
-	}
+		std::string lc = get_lowercase(dummy_line);
+		if (lc == "full display mode")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "simple display mode")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "complex display")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "max display")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "display full")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "display max")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "hide")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "hide all")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "hideall")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "min display")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "display min")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "sdisplay")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "displays")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "fdisplay")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "displayf")
+		{
+			dummy_line = "full display";
+			return;
+		}
 
 
-	if (lc == "showall")
-	{
-		dummy_line = "full display";
-		return;
+		if (lc == "showall")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "show")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "show all")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "complex disp")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "max disp")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "disp full")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "fulldisp")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "maxdisp")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "disp max")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "min disp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "disp min")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "mindisp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "dispmin")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "sdisp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "disps")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "simpdisp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "fdisp")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "dispf")
+		{
+			dummy_line = "full display";
+			return;
+		}
+		if (lc == "simple disp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "simpledisp")
+		{
+			dummy_line = "simple display";
+			return;
+		}
+		if (lc == "reset all")
+		{
+			dummy_line = "reset @all";
+			return;
+		}
 	}
-	if (lc == "show")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "show all")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "complex disp")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "max disp")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "disp full")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "fulldisp")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "maxdisp")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "disp max")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "min disp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "disp min")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "mindisp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "dispmin")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "sdisp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "disps")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "simpdisp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "fdisp")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "dispf")
-	{
-		dummy_line = "full display";
-		return;
-	}
-	if (lc == "simple disp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "simpledisp")
-	{
-		dummy_line = "simple display";
-		return;
-	}
-	if (lc == "reset all")
-	{
-		dummy_line = "reset @all";
-		return;
-	}
-
 	int monster_name_index = -1;
 
 	if (starts_with(dummy_line, "monster ") && dummy_line.size()>8)
@@ -5487,7 +5492,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						used_command = true;
 					}
 					catch (const std::exception& E) {}
-					}
+				}
 
 
 				else if (comp_substring(lowercase_name + ".", dummy_line, (lowercase_name + ".").length()))
@@ -7590,7 +7595,10 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	if (takes_commands && !used_command) //In hindsight this is an awful way to parse commands.
 	{
 		std::string dummy_line = line;
+		std::string& original_dummy_line = line;
 		make_lowercase(dummy_line);
+		command_replacement(dummy_line);
+		trim(dummy_line);
 		std::string removal_name = "";
 		std::string keep_name = "";
 		bool start_over = false;
@@ -7730,7 +7738,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			return false;
 		}
 
-		std::string& original_dummy_line = line;
+		
 		bool did_erase = false;
 		//remove_executor_tags(creatures);
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
@@ -8718,27 +8726,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
-				else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length()))
+				else if (comp_substring("temp_hp " + lowercase_name + " ", dummy_line, ("temp_hp " + lowercase_name + " ").length())
+					|| comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length())
+					)
 				{
 					bool is_signed = false;
 					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 				
-					if (val < 0)
-					{
-						if (!suppress_display)
-							std::cout << "Temp HP must be a non-negative number." << std::endl;
-					}
-					else
-					{
-						i->set_temp_hp(val, is_signed);
-						used_command = true;
-					}
-				}
-				else if (comp_substring(lowercase_name + " temp_hp ", dummy_line, (lowercase_name + " temp_hp ").length()))
-				{
-					bool is_signed = false;
-					int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-
 					if (val < 0)
 					{
 						if (!suppress_display)
