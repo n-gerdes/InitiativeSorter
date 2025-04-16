@@ -426,6 +426,9 @@ reminder [character] [reminder text]
 	-Giving no text will simply clear the character of any note text.
 	-Text can be anything.
 
+restore [character]
+	-If a character's maximum hit points has decreased, this restores them back to their peak.
+
 note [character] [note text]
 notes [character] [note text]
 	-Sets a character's note text. This is only displayed in a character's full information readout.

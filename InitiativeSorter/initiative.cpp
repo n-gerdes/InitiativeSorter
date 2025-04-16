@@ -677,7 +677,7 @@ inline void ls(std::string dir, std::string& turn_msg, bool recursive, bool link
  
 class creature
 {
-	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac=-1;
+	int initiative, modifier, hp, max_hp, turn_count, temp_hp, regen, ac = -1;
 	
 	std::string name, reminder, note;
 public:
@@ -698,7 +698,7 @@ public:
 
 	bool has_con = false;
 
-	int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0;
+	int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0, peak_max_hp = -1;
 
 	inline bool has_magic_resistance()
 	{
@@ -1556,7 +1556,12 @@ public:
 		has_con(has_con), str(str), dex(dex), con(con), intelligence(intelligence), wis(wis), cha(cha), entered_dex(entered_dex)
 	{
 		if (hp > max_hp)
+		{
 			hp = max_hp;
+		}
+
+		if (max_hp > 0)
+			peak_max_hp = max_hp;
 
 		if (max_hp != -1 && hp < 0)
 			hp = 0;
@@ -1782,7 +1787,15 @@ public:
 				hp = new_max_hp;
 			if (hp == -1)
 				hp = max_hp;
-		}	
+		}
+		if (max_hp > peak_max_hp)
+			peak_max_hp = max_hp;
+	}
+
+	inline void restore_max_hp()
+	{
+		if((peak_max_hp > 0) && (peak_max_hp>max_hp))
+			max_hp = peak_max_hp;
 	}
 
 	inline void set_turn_count(int tc)
@@ -2006,6 +2019,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "printtab"
 			|| lowerc == "read"
 			|| lowerc == "clone-1"
+			|| lowerc == "restore"
 		) 
 			return false;
 
@@ -2109,6 +2123,12 @@ inline void save_state(const std::string& filename, std::list<creature>& creatur
 			line += "\n";
 
 			out << line;
+
+			if (i->peak_max_hp > i->get_max_hp())
+			{
+				out << i->get_name() << " max_hp " << i->peak_max_hp << std::endl;
+				out << i->get_name() << " max_hp " << i->get_max_hp() << std::endl;
+			}
 
 			for (auto alias_iterator = i->aliases.begin(); alias_iterator != i->aliases.end(); ++alias_iterator)
 			{
@@ -3678,6 +3698,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				if (dummy_line.find(lowercase_name) == std::string::npos)
 				{
 					continue;
+				}
+				else if ((dummy_line == "restore " + lowercase_name) || (dummy_line == lowercase_name + " restore"))
+				{
+					used_command = true;
+					i->restore_max_hp();
 				}
 				else if (comp_substring(lowercase_name + " recharge0 ", dummy_line, (lowercase_name + " recharge0 ").length())
 					|| comp_substring(lowercase_name + " recharge 0 ", dummy_line, (lowercase_name + " recharge 0 ").length())
@@ -7751,7 +7776,64 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 					}
 				}
+				else if (comp_substring("hp " + lowercase_name + " ", dummy_line, ("hp " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " hp ", dummy_line, (lowercase_name + " hp ").length()) ||
+					comp_substring("health " + lowercase_name + " ", dummy_line, ("health " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " health ", dummy_line, (lowercase_name + " health ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int old_hp = i->get_hp();
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+						try {
+							size_t slash_index = dummy_line.find("/");
+							if (slash_index != std::string::npos)
+							{
+								try {
+									int max_hp = std::stoi(dummy_line.substr(slash_index + 1));
+									i->set_max_hp(max_hp, false);
+								}
+								catch (const std::exception& e)
+								{
+									std::cout << "Could not parse new Max HP - only changing current HP\n";
+								}
 
+							}
+							else if (i->get_max_hp() == -1)
+							{
+								i->set_max_hp(val, false);
+							}
+							i->set_hp(val, is_signed);
+							int new_hp = i->get_hp();
+							turn_msg = get_hp_change_turn_msg(i->get_name(), old_hp, new_hp, turn_msg, i->is_concentrating(), val, i->get_con_bonus(creatures), i->has_con_bonus(), i->get_raw_ptr(), false);
+							used_command = true;
+							//break;
+						}
+						catch (const std::exception& E) {
+
+						}
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
+				else if (comp_substring("max_hp " + lowercase_name + " ", dummy_line, ("max_hp " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " max_hp ", dummy_line, (lowercase_name + " max_hp ").length()) ||
+					comp_substring("max_health " + lowercase_name + " ", dummy_line, ("max_health " + lowercase_name + " ").length()) ||
+					comp_substring(lowercase_name + " max_health ", dummy_line, (lowercase_name + " max_health ").length()))
+				{
+					try {
+						bool is_signed = false;
+						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
+						i->set_max_hp(val, is_signed);
+						if (i->get_hp() == -1)
+							i->set_hp(val, false);
+						used_command = true;
+					}
+					catch (const std::exception& E) {
+
+					}
+				}
 				else if (comp_substring("ac " + lowercase_name + " ", dummy_line, ("ac " + lowercase_name + " ").length()))
 				{
 					try {
@@ -8516,6 +8598,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					{
 						i->add_alias(new_alias);
 					}
+					used_command = true;
 				}
 
 				else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
@@ -11046,6 +11129,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					catch (const std::exception& E) {
 					
 					}
+				}
+				else if ((dummy_line == "restore " + lowercase_name) || (dummy_line == lowercase_name + " restore"))
+				{
+					used_command = true;
+					i->restore_max_hp();
 				}
 				else if (comp_substring("hurt all ", dummy_line, 9) ||
 						 comp_substring("dmg all ", dummy_line, 8) ||
