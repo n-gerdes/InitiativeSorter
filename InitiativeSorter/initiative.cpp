@@ -38,7 +38,7 @@ const static bool		WRITE_LOGS_TO_FILE = false; //Whether or not to write the ong
 
 const static
 std::string				INITIAL_DIRECTORY = ""; //In case you want it to start someplace other than the program's own directory. The program's directory is still the "base" and the directory accessed with the base directory proxy.
-//Resetting the directory still resets it to the  normal base directory, regardless of the initial directory.
+//Resetting the directory still resets it to the normal base directory, regardless of the initial directory.
 
 /*
 This may be some of the worst code I've ever written. 
@@ -47,7 +47,7 @@ it was intended to do.
 At first it started small - just tracking turns and hit points. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? 
 Just a quick'n'dirty hack to add a couple small features. And for a short term micro-project, comments would just be a waste of time.
 But after one more week I realized I needed just a few more features to make it more useful, so I added a just few commands to rearrange initiatives.
-It was then that I should have overhauled the code...but surely this time it would be the last change.
+It was then that I should have overhauled the code...but surely this time it would be the last change
 
 That was almost two years ago. Time and time again, I kept adding "just a little more", hack after hack, week by week, slowly growing it like a tumor.
 Now it's far too late.
@@ -72,10 +72,17 @@ So beware, reader - only suffering lies ahead. Continue if you dare...
 #include <time.h>
 #include <map>
 #include <filesystem>
+#include <map>
 
 std::string wd = INITIAL_DIRECTORY; //Working directory to load files from
 
 int save_dc = 10;
+
+long long int turn_start_time = 0;
+long long int last_turn_start_time = 0;
+long long int running_combat_time = 0;
+
+std::map<std::string, int> turn_lengths;
 
 const static bool PRINT_DEBUG = false;
 typedef size_t index_t;
@@ -97,6 +104,100 @@ inline void clear()
 #if defined(__linux__) || defined(__unix__) || defined(__unix) || defined(__APPLE__) || defined(__MACH__)
 	if (FULL_CLEAR)system("clear");
 #endif
+}
+
+inline std::string get_time_formatting(long long int t)
+{
+	std::string time = "";
+	long long int seconds = t / 1000;
+	long long int minutes = seconds / 60;
+	long long int hours = minutes / 60;
+
+	minutes -= 60 * hours;
+
+	seconds -= (60 * 60 * hours);
+	seconds -= (60 * minutes);
+
+	if (hours > 0)
+	{
+		if (hours == 1)
+		{
+			time = "1 hr";
+		}
+		else
+		{
+			time = std::to_string(hours) + " hrs";
+		}
+		
+		if (minutes > 0 || seconds > 0)
+			time += ", ";
+	}
+
+	if (minutes > 0)
+	{
+		if (minutes == 1)
+		{
+			time += "1 min";
+		}
+		else
+		{
+			time += std::to_string(minutes) + " mins";
+		}
+		if (seconds > 0)
+		{
+			time += ", ";
+		}
+	}
+
+	if (seconds > 0)
+	{
+		if (seconds == 1)
+		{
+			time += "1 sec";
+		}
+		else
+		{
+			time += std::to_string(seconds) + " secs";
+		}
+	}
+
+	if (time.size() == 0)
+	{
+		time = "0 secs";
+	}
+	return time;
+}
+
+inline long long int get_turn_time(const std::string& name)
+{
+	if (turn_lengths.count(name) == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return turn_lengths.at(name);
+	}
+}
+
+inline void increase_turn_time(const std::string& name, long long int duration)
+{
+	if (name.size() == 0)
+		return;
+	if (turn_lengths.count(name) == 0)
+	{
+		turn_lengths.emplace(name, duration);
+	}
+	else
+	{
+		turn_lengths[name] += duration;
+	}
+}
+
+inline void reset_timers()
+{
+	running_combat_time = 0;
+	turn_lengths.clear();
 }
 
 const static std::string CONSOLE_DEFAULT = "\033[0;0m";
@@ -697,7 +798,7 @@ public:
 	std::vector<std::string> recharge6;
 
 	bool has_con = false;
-
+	long long int total_turn_time = 0;
 	int str = 0, dex = 0, con = 0, intelligence = 0, wis = 0, cha = 0, peak_max_hp = -1;
 
 	inline bool has_magic_resistance()
@@ -2020,6 +2121,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "read"
 			|| lowerc == "clone-1"
 			|| lowerc == "restore"
+			|| lowerc == "time"
 		) 
 			return false;
 
@@ -7596,9 +7698,9 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 	{
 		std::string dummy_line = line;
 		std::string& original_dummy_line = line;
-		make_lowercase(dummy_line);
-		command_replacement(dummy_line);
-		trim(dummy_line);
+		make_lowercase(dummy_line); //Added this line to make command substitution work with loaded files on 4/16/2025
+		command_replacement(dummy_line); //Added this line to make command substitution work with loaded files on 4/16/2025
+		trim(dummy_line); //Added this line to make command substitution work with loaded files on 4/16/2025
 		std::string removal_name = "";
 		std::string keep_name = "";
 		bool start_over = false;
@@ -7627,6 +7729,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 		}
 		else if (dummy_line == "reset" || dummy_line == "clear")
 		{
+			reset_timers();
 			removal_name = "@all";
 		}
 		else if (dummy_line.size() > 3 && comp_substring(dummy_line, "dc ", 3))
@@ -9833,7 +9936,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-long long get_ms()
+long long int get_ms()
 {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
@@ -10082,7 +10185,9 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 	}
 	if (i->get_note(false) != "")
 		turn_msg += "\n\tNotes:  " + (i->get_note(true)) + "\n";
+	turn_msg += "Real-World Total Turn Time: " + get_time_formatting(get_turn_time(i->get_name()))  + "\n";
 	turn_msg += "\n";
+	
 	return turn_msg;
 }
 
@@ -10129,6 +10234,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	bool file_load_disable = ignore_initial_file_load;
 	
 	bool new_turn = true;
+	long long int delta_time = 0;
+	creature* current_creature = nullptr;
 	auto save_buffer = [&]() -> void
 		{
 			//std::cout << "SAVING BUFFER\n";
@@ -10174,6 +10281,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	display_mode_buffer.clear();
 	wd_buffer.clear();
 	save_dc_buffer.clear();
+	turn_start_time = get_ms();
+	last_turn_start_time = turn_start_time;
 	save_buffer(); //To initialize the state buffers so they have a place to begin.
 	bool used_repeat_command = false;
 	while (true) //Terminated only by an explicit command to do so, which returns the funtion.
@@ -10181,7 +10290,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		clear();
 		//BEGIN UNDO/REDO BUFFER STUFF
 		
-		
+		last_turn_start_time = turn_start_time;
+		turn_start_time = get_ms();
+
+		delta_time = turn_start_time - last_turn_start_time;
+		running_combat_time += delta_time;
 		//Check buffer state and manipulate accordingly
 		if (buffer_manipulation_state == STATE_NODO)
 		{
@@ -10240,7 +10353,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		}
 		std::cout << "Round " << current_round << std::endl << std::endl << std::endl;
 		int turn_count = 0; //Used to track the turn counts of each creature
-		creature* current_creature = nullptr;
+		if (current_creature != nullptr)
+			increase_turn_time(current_creature->get_name(), delta_time);
+		current_creature = nullptr;
 		int regenerated_hp = 0;
 
 		creature* current_creature_2 = nullptr;
@@ -10992,6 +11107,24 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			skip_command_checks = true;
 			used_command = true;
 		}
+		else if (dummy_line == "time")
+		{
+			skip_command_checks = true;
+			used_command = true;
+			turn_msg = "Total Combat Time: " + get_time_formatting(running_combat_time);
+			turn_msg += "\n";
+			for (auto j = creatures.begin(); j != creatures.end(); ++j)
+			{
+				turn_msg += "\t";
+				turn_msg += j->get_name() + ": ";
+				long long int time = get_turn_time(j->get_name());
+				turn_msg += get_time_formatting(time);
+				turn_msg += " (";
+				long double percentage = (static_cast<long double>(time) / static_cast<long double>(running_combat_time)) * 100.0L;
+				turn_msg += std::to_string(percentage);
+				turn_msg += "%)\n";
+			}
+		}
 		
 		if (keep_name != "")
 		{
@@ -11037,6 +11170,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				move_turn = 0;
 				did_reset = true;
 				used_command = true;
+				reset_timers();
 				if (i == (--creatures.end()))
 				{
 					turn_count = 0;
@@ -16476,8 +16610,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						std::string sub = dummy_line.substr(6, dummy_line.length() - 6);
 						int val = std::stoi(sub);
-						if (val < 1) {
+						if (val <= 1) {
 							val = 1;
+							reset_timers();
 						}
 						current_round = val;
 						used_command = true;
