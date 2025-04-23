@@ -34,7 +34,7 @@ const static bool		DISPLAY_INFO_FROM_LOADED_FILES = false;
 const static
 std::string				BASE_DIRECTORY_PROXY = ".../:::"; //Directories starting with this will start at the program's own directory
 
-const static bool		WRITE_LOGS_TO_FILE = false; //Whether or not to write the ongoing log to a file.
+const static bool		WRITE_LOGS_TO_FILE = true; //Whether or not to write the ongoing log to a file.
 
 const static
 std::string				INITIAL_DIRECTORY = ""; //In case you want it to start someplace other than the program's own directory. The program's directory is still the "base" and the directory accessed with the base directory proxy.
@@ -10196,7 +10196,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	bool did_reset = false;
 	//std::sort(creatures.begin(), creatures.end());
 	bool suppress_display = !DISPLAY_INFO_FROM_LOADED_FILES;
-	std::string logfile_name = "log_" + std::to_string(time(NULL)) + ".txt";
+	std::string logfile_name = "logs/log_" + std::to_string(time(NULL)) + ".txt";
 	creatures.sort();
 	int current_turn = 0;
 	size_t current_round = initial_round;
