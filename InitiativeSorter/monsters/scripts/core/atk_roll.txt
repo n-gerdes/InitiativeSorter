@@ -8,17 +8,54 @@ rf @current nat1
 @current::#atk_roll += @current::d20
 @current::#dmg = @current::dmg_bonus
 rv @current::d20
+
+@current::_crit_counter=0
+if @current extra_crit {@current::_crit_counter=1}
+if @current extracrit {@current::_crit_counter=1}
+if @current balor {@current::_crit_counter=1}
+if @current brutal_crit {@current::_crit_counter=1}
+if @current brutal_critical {@current::_crit_counter=1}
+if @current brutal_crits {@current::_crit_counter=1}
+if @current brutal_criticals {@current::_crit_counter=1}
+if @current force_crit {@current flag crit}
+if @current crit {@current::_crit_counter += 1}
+
 @current::_d4Counter=0
 @current::_d6Counter=0
 @current::_d8Counter=0
 @current::_d10Counter=0
 @current::_d12Counter=0
+@current::_secondary_d4Counter=0
+@current::_secondary_d6Counter=0
+@current::_secondary_d8Counter=0
+@current::_secondary_d10Counter=0
+@current::_secondary_d12Counter=0
 if @current crit dmg_dice.txt
+
 @current::_d4Counter=0
 @current::_d6Counter=0
 @current::_d8Counter=0
 @current::_d10Counter=0
 @current::_d12Counter=0
+@current::_secondary_d4Counter=0
+@current::_secondary_d6Counter=0
+@current::_secondary_d8Counter=0
+@current::_secondary_d10Counter=0
+@current::_secondary_d12Counter=0
+@current::_crit_counter==2 dmg_dice.txt
+
+@current::_d4Counter=0
+@current::_d6Counter=0
+@current::_d8Counter=0
+@current::_d10Counter=0
+@current::_d12Counter=0
+
+@current::_secondary_d4Counter=0
+@current::_secondary_d6Counter=0
+@current::_secondary_d8Counter=0
+@current::_secondary_d10Counter=0
+@current::_secondary_d12Counter=0
+
 ld dmg_dice.txt
 print ATTACK
 printnum @current::#atk_roll
@@ -27,6 +64,9 @@ if @current nat1 {print nat1}
 print       
 print DAMAGE
 printnum @current::#dmg
+@current::#secondary_dmg>0 {print plus:}
+@current::#secondary_dmg>0 {printnum @current::#secondary_dmg}
+@current::#secondary_dmg>0 print_secondary_dmg_type.txt
 rf @current crit
 rf @current nat1
 rv @current d20
@@ -35,5 +75,15 @@ rv @current::_d4Counter
 rv @current::_d8Counter
 rv @current::_d6Counter
 rv @current::_d12Counter
+
+rv @current::_crit_counter
+
+rv @current::_secondary_d10Counter
+rv @current::_secondary_d4Counter
+rv @current::_secondary_d8Counter
+rv @current::_secondary_d6Counter
+rv @current::_secondary_d12Counter
+
 rv @current::#dmg
+rv @current::#secondary_dmg
 rv @current:atk_roll

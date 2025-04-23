@@ -1,0 +1,1 @@
+add imp1 aliases:i1 flags:#devil,#devils,#fiend,#fiends,#imp,#imps,#enemy,#enemies,#magic_resistance ac:13 hp:10 str:-2 dex:3 con:1 int:0 wis:1 cha:2 +3 start:.../:::/monsters/scripts/imp.txt

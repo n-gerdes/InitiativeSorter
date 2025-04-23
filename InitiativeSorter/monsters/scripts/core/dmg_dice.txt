@@ -3,7 +3,13 @@
 @current::_d6Counter<@current::d6 {@current::#dmg+=1d6}		
 @current::_d8Counter<@current::d8 {@current::#dmg+=1d8}		
 @current::_d10Counter<@current::d10 {@current::#dmg+=1d10}		
-@current::_d12Counter<@current::d12 {@current::#dmg+=1d12}		
+@current::_d12Counter<@current::d12 {@current::#dmg+=1d12}
+
+@current::_secondary_d4Counter<@current::secondary_d4 {@current::#secondary_dmg+=1d4}		
+@current::_secondary_d6Counter<@current::secondary_d6 {@current::#secondary_dmg+=1d6}		
+@current::_secondary_d8Counter<@current::secondary_d8 {@current::#secondary_dmg+=1d8}		
+@current::_secondary_d10Counter<@current::secondary_d10 {@current::#secondary_dmg+=1d10}		
+@current::_secondary_d12Counter<@current::secondary_d12 {@current::#secondary_dmg+=1d12}		
 
 //Increment counters so it knows how many of each die has been rolled
 @current::_d4Counter++
@@ -12,6 +18,12 @@
 @current::_d10Counter++
 @current::_d12Counter++
 
+@current::_secondary_d4Counter++
+@current::_secondary_d6Counter++
+@current::_secondary_d8Counter++
+@current::_secondary_d10Counter++
+@current::_secondary_d12Counter++
+
 //If there are any remaining dice left to roll, it has to check that and continue rolling until they run out
 @current::_temp=0
 @current::_d4Counter<@current::d4 {++@current::_temp}
@@ -19,5 +31,12 @@
 @current::_d8Counter<@current::d8 {++@current::_temp}
 @current::_d10Counter<@current::d10 {++@current::_temp}
 @current::_d12Counter<@current::d12 {++@current::_temp}
+
+@current::_secondary_d4Counter<@current::secondary_d4 {++@current::_temp}
+@current::_secondary_d6Counter<@current::secondary_d6 {++@current::_temp}
+@current::_secondary_d8Counter<@current::secondary_d8 {++@current::_temp}
+@current::_secondary_d10Counter<@current::secondary_d10 {++@current::_temp}
+@current::_secondary_d12Counter<@current::secondary_d12 {++@current::_temp}
+
 @current::_temp>0 dmg_dice.txt
 rv @current::_temp

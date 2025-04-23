@@ -1,0 +1,1 @@
+troll1 ac:15 hp:84 str:4 dex:1 con:5 int:-2 wis:-1 cha:-2 flags:#enemy,#enemies,#troll,#trolls aliases:t1,troll_1,t_1 start:.../:::/monsters/scripts/troll.txt regen:10
