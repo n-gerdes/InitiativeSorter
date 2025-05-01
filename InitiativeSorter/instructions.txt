@@ -432,6 +432,13 @@ restore [character]
 time
 	-Display information about how much time each turn has taken, as well as combat overall.
 
+reset time
+reset timer
+reset timers
+reset clock
+reset clocks
+	-Resets the real-world turn time counters.
+
 note [character] [note text]
 notes [character] [note text]
 	-Sets a character's note text. This is only displayed in a character's full information readout.

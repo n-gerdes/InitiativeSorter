@@ -2011,6 +2011,11 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "rename"
 			|| lowerc == "reroll"
 			|| lowerc == "reset"
+			|| lowerc == "reset time"
+			|| lowerc == "reset timer"
+			|| lowerc == "reset timers"
+			|| lowerc == "reset clock"
+			|| lowerc == "reset clocks"
 			|| lowerc == "kill"
 			|| lowerc == "die"
 			|| lowerc == "rm"
@@ -2118,6 +2123,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "monster"
 			|| lowerc == "print_tab"
 			|| lowerc == "printtab"
+			|| lowerc == "printab"
 			|| lowerc == "read"
 			|| lowerc == "clone-1"
 			|| lowerc == "restore"
@@ -3099,6 +3105,7 @@ void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "savedc", "dc", true, false);
 
 	dummy_line = replace_first(dummy_line, "print_tab", "printtab", true, false);
+	dummy_line = replace_first(dummy_line, "printab", "printtab", true, false);
 
 	dummy_line = replace_first(dummy_line, "buffer", "temp_hp", true, false);
 	dummy_line = replace_first(dummy_line, "thp", "temp_hp", true, false);
@@ -3483,7 +3490,7 @@ inline bool search_links(std::string& filename)
 
 
 //Process command/add a creature, and return whether or not a creature was added.
-inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory, bool initial_execution, std::string& turn_msg, bool suppress_display, int& current_turn, creature*& current_creature)
+inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives, std::string& line, std::ifstream& file, bool takes_commands, bool info_already_in_line, bool may_expect_add_keyword, const std::string& filename, bool& ignore_initial_file_load, std::string directory, bool initial_execution, std::string& turn_msg, bool suppress_display, int& current_turn, creature*& current_creature, size_t& current_round)
 {
 	auto save_buffer = [&]() -> void
 		{
@@ -3979,6 +3986,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					used_command = true;
 				}
 
+				
+
 				else if (comp_substring("clone " + lowercase_name + " ", dummy_line, ("clone " + lowercase_name + " ").length()))
 				{
 					try {
@@ -4347,7 +4356,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							else {
 								while (new_file.good() && !new_file.eof())
 								{
-									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 								}
 								ignore_initial_file_load = true;
 								new_file.close();
@@ -4368,7 +4377,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							trim(sub);
 							std::ifstream file;
 							bool dummy_taking_initiatives = true;
-							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 							used_command = true;
 							if (success)
 							{
@@ -4433,7 +4442,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							else {
 								while (new_file.good() && !new_file.eof())
 								{
-									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 								}
 								ignore_initial_file_load = true;
 								new_file.close();
@@ -4454,7 +4463,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 							trim(sub);
 							std::ifstream file;
 							bool dummy_taking_initiatives = true;
-							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 							used_command = true;
 							if (success)
 							{
@@ -5007,7 +5016,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5041,7 +5050,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -5106,7 +5115,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5140,7 +5149,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -5208,7 +5217,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5241,7 +5250,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -5307,7 +5316,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5341,7 +5350,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -5406,7 +5415,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5440,7 +5449,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -5506,7 +5515,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -5540,7 +5549,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6055,7 +6064,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6089,7 +6098,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6154,7 +6163,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6188,7 +6197,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6254,7 +6263,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6288,7 +6297,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6354,7 +6363,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6388,7 +6397,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6453,7 +6462,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6487,7 +6496,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -6553,7 +6562,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -6587,7 +6596,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7096,7 +7105,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7130,7 +7139,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7195,7 +7204,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7229,7 +7238,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7295,7 +7304,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7329,7 +7338,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7395,7 +7404,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7429,7 +7438,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7494,7 +7503,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7528,7 +7537,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -7594,7 +7603,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										else {
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											ignore_initial_file_load = true;
 											new_file.close();
@@ -7628,7 +7637,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -8629,6 +8638,35 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					catch (const std::exception& E) {}
 				}
 
+				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
+				{
+					int roll = 1 + (rand() % 20);
+					i->set_initiative(roll + (i->get_initiative_modifier()));
+					i->touched = true;
+					if (i == (--creatures.end()))
+					{
+						used_command = true;
+						creatures.sort();
+					}
+				}
+				else if (
+					comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()) ||
+					comp_substring(lowercase_name + " reroll ", dummy_line, (lowercase_name + " reroll ").length()))
+					{
+						try {
+							if (!i->touched)
+							{
+								int roll = 1 + (rand() % 20);
+								i->set_initiative(roll + (i->get_initiative_modifier()));
+								creatures.sort();
+								used_command = true;
+								i->touched = true;
+							}
+						}
+						catch (const std::exception& E) {
+
+						}
+					}
 
 				else if (comp_substring("start " + lowercase_name + " ", dummy_line, ("start " + lowercase_name + " ").length()))
 				{
@@ -8710,6 +8748,18 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						i->add_alias(new_alias);
 					}
 					used_command = true;
+				}
+				else if (
+					comp_substring(lowercase_name + " alias ", dummy_line, (lowercase_name + " alias ").length())
+					)
+					{
+						std::string new_alias = dummy_line.substr((lowercase_name + " alias ").length());
+						trim(new_alias);
+						if (name_is_unique(new_alias, creatures))
+						{
+							i->add_alias(new_alias);
+						}
+						used_command = true;
 				}
 
 				else if (comp_substring(lowercase_name + " rf ", dummy_line, (lowercase_name + " rf ").length()))
@@ -9649,7 +9699,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
@@ -9696,7 +9746,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			else {
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+					get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 				}
 				ignore_initial_file_load = true;
 				new_file.close();
@@ -9754,6 +9804,18 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			try
 			{
 				initial_round = std::stoi(args);
+				if (initial_round < 1)
+					initial_round = 1;
+				current_round = initial_round;
+				if (initial_round == 1)
+				{ 
+					creatures.sort();
+					initial_turn = creatures.begin()->get_name();
+					current_turn = 0;
+					current_creature = &(*creatures.begin());
+					reset_timers();
+				}
+				used_command = true;
 			}
 			catch (const std::exception& E)
 			{
@@ -9786,6 +9848,18 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				initial_turn = args;
 				current_turn = t_val;
 			}
+		}
+		else if (takes_commands && (
+
+			lowercase == "reset time"
+			|| lowercase == "reset timer"
+			|| lowercase == "reset timers"
+			|| lowercase == "reset clock"
+			|| lowercase == "reset clocks"
+			))
+		{
+			used_command = true;
+			reset_timers();
 		}
 		else
 		{
@@ -10289,7 +10363,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 	{
 		clear();
 		//BEGIN UNDO/REDO BUFFER STUFF
-		
 		last_turn_start_time = turn_start_time;
 		turn_start_time = get_ms();
 
@@ -10596,7 +10669,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					bool taking_initiatives = false;
 					while (new_file.good() && !new_file.eof())
 					{
-						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, dir, false, turn_msg, suppress_display, current_turn, current_creature);
+						get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, dir, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 					}
 					new_file.close();
 					creatures.sort();
@@ -10994,7 +11067,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				bool taking_initiatives = false;
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 				}
 				new_file.close();
 				creatures.sort();
@@ -11052,7 +11125,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				bool taking_initiatives = false;
 				while (new_file.good() && !new_file.eof())
 				{
-					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+					get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 				}
 				new_file.close();
 				creatures.sort();
@@ -11997,7 +12070,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									bool taking_initiatives = false;
 									while (new_file.good() && !new_file.eof())
 									{
-										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 									}
 									new_file.close();
 									creatures.sort();
@@ -12032,7 +12105,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								std::ifstream file;
 								bool dummy_taking_initiatives = true;
 								std::string filename = "";
-								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 								used_command = true;
 								if (success)
 								{
@@ -12102,7 +12175,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 									bool taking_initiatives = false;
 									while (new_file.good() && !new_file.eof())
 									{
-										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+										get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 									}
 									new_file.close();
 									creatures.sort();
@@ -12137,7 +12210,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 								std::ifstream file;
 								bool dummy_taking_initiatives = true;
 								std::string filename = "";
-								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+								bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 								used_command = true;
 								if (success)
 								{
@@ -12619,7 +12692,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -12665,7 +12738,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -12732,7 +12805,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -12778,7 +12851,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -12845,7 +12918,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -12891,7 +12964,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -12958,7 +13031,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -13004,7 +13077,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -13071,7 +13144,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -13117,7 +13190,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -13185,7 +13258,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -13231,7 +13304,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -13746,7 +13819,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -13792,7 +13865,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -13859,7 +13932,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -13905,7 +13978,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -13972,7 +14045,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -14018,7 +14091,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -14085,7 +14158,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -14131,7 +14204,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -14198,7 +14271,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -14244,7 +14317,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -14312,7 +14385,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -14358,7 +14431,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -14868,7 +14941,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -14914,7 +14987,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -14981,7 +15054,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -15027,7 +15100,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -15094,7 +15167,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -15140,7 +15213,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -15207,7 +15280,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -15253,7 +15326,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -15320,7 +15393,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -15366,7 +15439,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -15434,7 +15507,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 											bool taking_initiatives = false;
 											while (new_file.good() && !new_file.eof())
 											{
-												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature);
+												get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 											}
 											new_file.close();
 											creatures.sort();
@@ -15480,7 +15553,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 										std::ifstream file;
 										bool dummy_taking_initiatives = true;
 										used_command = true;
-										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+										bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 										if (success)
 										{
 											creatures.sort();
@@ -16525,17 +16598,18 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					i->set_name(new_name);
 					used_command = true;
 				}
-				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all") && !i->touched)
+				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
 				{
 					int roll = 1 + (rand() % 20);
 					i->set_initiative(roll + (i->get_initiative_modifier()));
 					i->touched = true;
+					i = creatures.begin();
 					if (i == (--creatures.end()))
 					{
 						used_command = true;
 						creatures.sort();
 					}
-					}
+				}
 				else if (
 					comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()) ||
 					comp_substring(lowercase_name + " reroll ", dummy_line, (lowercase_name + " reroll ").length()))
@@ -16548,6 +16622,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							creatures.sort();
 							used_command = true;
 							i->touched = true;
+							i = creatures.begin();
 						}
 					}
 					catch (const std::exception& E) {
@@ -16613,6 +16688,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (val <= 1) {
 							val = 1;
 							reset_timers();
+							current_turn = 0;
+							initial_turn = creatures.begin()->get_name();
 						}
 						current_round = val;
 						used_command = true;
@@ -16621,6 +16698,17 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 					}
 				}
+				else if (
+					dummy_line == "reset time"
+					|| dummy_line == "reset timer"
+					|| dummy_line == "reset timers"
+					|| dummy_line == "reset clock"
+					|| dummy_line == "reset clocks"
+					)
+					{
+						used_command = true;
+						reset_timers();
+					}
 				else if (dummy_line == "i " + lowercase_name || dummy_line == lowercase_name+" i")
 				{
 					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round, false);
@@ -16727,7 +16815,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 			if (success)
 			{
 				creatures.sort();
@@ -16742,7 +16830,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::ifstream file;
 			bool dummy_taking_initiatives = true;
 			used_command = true;
-			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 			if (success)
 			{
 				creatures.sort();
@@ -16775,7 +16863,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						bool taking_initiatives = false;
 						while (new_file.good() && !new_file.eof())
 						{
-							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature);
+							get_creature(creatures, taking_initiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round);
 						}
 						new_file.close();
 						creatures.sort();
@@ -16844,7 +16932,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 int main(int argc, char** args)
 {
-	std::cout << CONSOLE_DEFAULT;
 	if (COLOR_SCHEME == color_setting::LIGHT)
 	{
 		set_lightmode();
@@ -16938,10 +17025,11 @@ int main(int argc, char** args)
 	bool ignore_initial_file_load = false;
 	std::string dummy_turn_msg = "";
 	int dummy_current_turn;
+	size_t dummy_current_round;
 	creature* dummmy_current_creature = nullptr;
 	while (taking_intiatives) //Allow user to enter initiatives
 	{
-		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename, ignore_initial_file_load, wd, true, dummy_turn_msg, false, dummy_current_turn, dummmy_current_creature);
+		get_creature(creatures, taking_intiatives, line, file, true, false, true, filename, ignore_initial_file_load, wd, true, dummy_turn_msg, false, dummy_current_turn, dummmy_current_creature, dummy_current_round);
 	}
 	bool initial_no_script_run_override = true;
 	//If it gets here then the user has entered 'stop' or 'done' or 'end', so it's ready to move to tracking mode
@@ -16957,4 +17045,3 @@ int main(int argc, char** args)
 	std::getline(std::cin, line);
 	return 0;
 }
-
