@@ -1,0 +1,30 @@
+print STOMACH ACID DAMAGE (2d4)
+printnum 2d4
+print
+print CONSTRICT (focus on one target at a time)
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d6=1
+@current::#dmg_bonus=1
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print
+print On bite hit: Grapple if target isn't already grappled.
+printtab
+print *Can't grapple anyone else - only enough room in mouth for one!
+print If hit while already grappling and stomach is empty: Frog swallows.
+printtab
+print No longer grappled; instead swallowed.
+printtab
+print Blinded, restrained, total cover
+printtab
+print Take 2d4 acid damage when frog's turn starts.
+printtab
+print Can only swallow one at a time!

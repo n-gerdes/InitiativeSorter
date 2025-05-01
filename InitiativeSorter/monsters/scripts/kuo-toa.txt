@@ -1,0 +1,26 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=1
+
+//Data has been configured, now roll an attack.
+print Spear
+ld core/roll_attacks.txt
+print *ALT: Net (range 5/15)
+printtab
+print On hit: no damage, but target is restrained.
+printtab
+printtab
+print Speed 0, attacks against have advanage, 
+printtab
+printtab
+print restrained attacks at disadvanage, disadv on DEX saves.
+printtab
+print Net can be removed with DC 10 Strength check
+printtab
+print Net 10 AC/5 HP (attack does not hurt target)

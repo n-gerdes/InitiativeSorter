@@ -1,0 +1,2 @@
+add reef_shark1 aliases:rs1,rfs,1rf1,reef1,shark1,sh1,rfsh1 flags:#reef_shark,#rshark,#rsharks,#r_sharks,#reef_sharks,#shark,#sharks,#enemy,#enemies,#beast,#beasts,#animal,#animals ac:12 hp:22 str:2 dex:1 +1 con:1 int:-5 wis:0 cha:-3 start:.../:::/monsters/scripts/hunter_shark.txt
+reminder hunter_shark1 40ft.\nBlindsight 30ft.

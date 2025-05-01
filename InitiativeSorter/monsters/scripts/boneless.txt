@@ -1,0 +1,29 @@
+print SLAMS
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print
+print CRUSHING EMBRACE
+printtab
+print Target is blinded and suffocating.
+printtab
+print Target must succeed on DC 13 STR Save at start of Boneless' Turns
+printtab
+print or take 1d4 + 3 bludgeoning:
+printtab
+printnum 1d4+3
+printtab
+print
+print If target moves, boneless comes with.
+printtab
+print Removing it requires an action to make a DC 13 STR Check, or when it dies.

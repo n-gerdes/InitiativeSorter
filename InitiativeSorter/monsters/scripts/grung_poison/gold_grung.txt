@@ -1,0 +1,4 @@
+print
+print This grung is gold; poisoned target is charmed and can speak Grung.
+printtab
+print They can't attack the grung while charmed.

@@ -1,0 +1,33 @@
+print Only one attack, but advantage against grappled targets.
+print     Strat: Grapple with Pseudopod, and then use Bite on subsequent turns with advantage
+print     
+print Pseudopod
+
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=3
+
+ld core/roll_attacks.txt
+print Pseudopod grapples on a hit (Escape DC 13 w/ DISADVANTAGE)
+print  
+print         
+print Bite
+
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d8=1
+@current::#secondary_d8=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

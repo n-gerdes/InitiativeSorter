@@ -1,0 +1,33 @@
+print Bonus Action reveal true form - she is now horrifying.
+print When creatures see her when their turns start, they can avert their eyes or look at her
+printtab 
+print If averted, they have disadvantage on attacks vs her.
+printtab
+print If they see her, DC 11 Wisdom vs Frightened for 1 minute.
+printtab
+printtab
+print Can repeat at end of turn, with disadvantage if line of sight.
+printtab
+printtab Immune if succeed.
+print
+print Can use Claw OR Death Glare
+print
+print Death Glare: One frightened target who is mutually visible rolls DC 11 WIS save vs drop to 0 HP.
+print
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=2
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+print Claws
+ld core/roll_attacks.txt
+print & DC 11 CON Save to halve poison damage:
+printnum 3d6
+print      
+print     

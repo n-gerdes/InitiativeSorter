@@ -1,0 +1,2 @@
+quickling1 aliases:q1,quicking1 ac:16 hp:10 str:-3 dex:6 con:1 int:0 wis:1 cha:-2 +6 start:.../:::/monsters/scripts/quickling.txt flags:#evasion,#enemy,#enemies,#quickling,#quicklings
+reminder quicking1 120ft movement.\nAttacks against it have disadvantage unless restrained.

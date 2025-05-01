@@ -1,0 +1,3 @@
+swarm_of_bats1 ac:12 hp:22 aliases:bat_swarm1,bats_swarm1,bats1,bat1,swarm_bats1,bswarm1,swarm_bat1,sbats1 flags:#simple,#no_heal,#swarm_of_bats,#swarms_of_bats,#bats,#beast,#beasts,#animal,#animals,#enemy,#enemies,#swarm,#swarms start:.../:::/monsters/scripts/swarm_of_bats.txt
+reminder swarm_of_bats1 Fly 30ft.\nBlindsight 60ft (unless deafened)
+note swarm_of_bats1 Immune to conditions except blinded/deafened\nResist BPS (even magical)\nHit dice: 5d8

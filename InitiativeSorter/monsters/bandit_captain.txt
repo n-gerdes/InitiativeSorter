@@ -1,0 +1,2 @@
+bandit_captain1 aliases:captain1,bc1,capt1,cap1,bcap1 ac:15 hp:65 str:4 dex:5 +3 con:2 int:2 wis:2 cha:2 start:.../:::/monsters/scripts/bandit_captain.txt flags:#enemy,#enemies,#bandit,#bandits,#captain,#captains,#bandit_captain,#bandit_captains
+bandit_captain1 recharge1-6 parry

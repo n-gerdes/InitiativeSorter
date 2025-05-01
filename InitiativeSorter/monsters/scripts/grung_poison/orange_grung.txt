@@ -1,0 +1,6 @@
+print
+print This grung is orange; poisoned target is Frightened of its allies.
+printtab
+print So they have disadvantage on all attacks while they can see their allies, 
+printtab
+print and cannot approach them.

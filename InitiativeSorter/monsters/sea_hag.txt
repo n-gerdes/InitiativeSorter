@@ -1,0 +1,2 @@
+sea_hag1 aliases:hag1,sea1,sh1,h1 flags:#hag,#hags,#sea_hag,#sea_hags,#enemy,#enemies ac:14 hp:52 str:3 dex:1 con:3 int:1 wis:1 cha:1 start:.../:::/monsters/scripts/sea_hag.txt
+reminder sea_hag1 speed 30ft., swim 40ft.

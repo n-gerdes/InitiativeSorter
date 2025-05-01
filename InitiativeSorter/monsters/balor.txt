@@ -1,0 +1,2 @@
+balor flags:#enemy,#enemies,#fiend,#demon,#demons,#fiends,#balor,#boss,#magic_resistance start:.../:::/monsters/scripts/balor.txt aliases:b ac:19 hp:262 +2 str:14 dex:2 con:12 wis:9 cha:12
+reminder balor 40ft walk., 80ft fly.

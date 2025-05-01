@@ -1,0 +1,4 @@
+kuo_toa1 aliases:kt1,k1,kuotoa1,kuto1 ac:13 hp:18 str:1 dex:0 +0 con:0 int:0 wis:0 cha:-1 start:.../:::/monsters/scripts/kuo-toa.txt flags:#enemy,#enemies,#kuotoa,#kuo-toa,#kuo_toa,shield
+reminder kuo_toa1 30ft., 30ft swim\nSticky Shield Reaction when melee attack misses it!
+recharge1-6 kuo_toa1 shield
+note kuo_toa1 Sticky Shield: if melee misses kuo-toa, attacker rolls DC 11 STR Save or it's stuck.\nIf attacker does not let go, count as grappled and can't use that weapon.\nDC 11 STR check as action can free weapon.

@@ -1,0 +1,2 @@
+print
+print This grung is blue; poisoned target must shout or act loudly at the start and end of its turns (can't stealth).

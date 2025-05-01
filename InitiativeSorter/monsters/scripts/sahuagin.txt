@@ -1,0 +1,30 @@
+print Remember Blood Frenzy - advantage on attacks vs wounded targets!
+print It's not applied automatically here, give the #adv flag and 'repeat' if necessary.
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=1
+@current::#d8=0
+
+//Data has been configured, now roll an attack.
+print FIRST ATTACK: Bite or Claws
+ld core/roll_attacks.txt
+
+print
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d4=0
+@current::#dmg_bonus=1
+@current::#d8=1
+
+//Data has been configured, now roll an attack.
+print SECOND ATTACK: Spear
+ld core/roll_attacks.txt

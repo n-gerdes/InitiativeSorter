@@ -95,7 +95,12 @@ The "evasion" and "avoidance" flags are used when rolling DEX saves to turn full
 "danger_sense" causes a creature to roll its Dexterity saving throws at advantage.
 "magic_resistance" asks you whether or not a saving throw is from magic before rolling it, and then rolls it at advantage if it is.
 
+"no_heal"
+"noheal"
+	-Prevent a creature from regaining hit points, though directly setting its HP allows it to go up again.
+
 Although not hardcoded into the initiative sorter's c++ code, the script used to automate monster attacks uses the following flags:
+
 "extra_crit"
 "extracrit"
 "balor"
@@ -104,6 +109,12 @@ Although not hardcoded into the initiative sorter's c++ code, the script used to
 "brutal_critical"
 "brutal_criticals"
 If a creature has any one of these flags, then it rolls triple the damage dice when it scores a critical hit instead of double. Multiple flags do not stack.
+
+"halve_damage"
+"halve_dmg"
+"half_damage"
+"half_dmg"
+If a creature has either of these two flags, the damage it deals with automated scripts is automatically halved.
 
 The flags a character has will be displayed during turn tracking, except for "hidden" flags.
 A flag is made hidden if it starts with a '#'

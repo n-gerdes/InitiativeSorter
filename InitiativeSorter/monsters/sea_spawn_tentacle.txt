@@ -1,0 +1,1 @@
+sea_spawn_tentacle1 aliases:tentacle1,tentacles1,sea_spawn_tentacles1,sst1,t1,st1 ac:11 hp:32 str:2 -1 dex:-1 con:2 int:-2 wis:+0 cha:-1 start:.../:::/monsters/scripts/sea_spawn_quills.txt flags:#sea_spawn,#tentacle,#tentacles,#sea_spawn_tentacle,#sea_spawn_tentacles,#monster,#monsters,#enemy,#enemies,#spawn,#tentacle_spawn,#spawn_tentacle

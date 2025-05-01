@@ -1,0 +1,1 @@
+rust_monster1 aliases:rm1,rust1 ac:14 hp:27 +1 str:1 dex:1 con:1 int:-4 wis:+1 cha:-2 start:.../:::/monsters/scripts/rust_monster.txt flags:#enemy,#monster,#rustmonster,#rust,#rust_monster,#rust_monsters,#rustmonsters,#enemies

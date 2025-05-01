@@ -1,0 +1,2 @@
+roper1 aliases:r1 ac:20 hp:93 str:4 dex:-1 -1 con:3 int:-2 wis:3 cha:-2 start:.../:::/monsters/scripts/roper.txt flags:#enemy,#enemies,#roper,#ropers
+reminder roper1 speed 10ft., climb 10ft.

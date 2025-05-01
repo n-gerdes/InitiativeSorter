@@ -1,0 +1,2 @@
+nightmare1 aliases:nm1,n1 ac:13 hp:68 str:4 +2 dex:2 con:3 int:0 wis:+1 cha:2 start:.../:::/monsters/scripts/nightmare.txt flags:#nightmare,#nightmares,#horse,#horses,#secondary_fire_dmg
+reminder nightmare1 60ft speed, 90ft fly.

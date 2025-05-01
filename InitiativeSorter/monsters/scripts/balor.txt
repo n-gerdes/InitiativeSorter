@@ -1,0 +1,39 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=14
+
+//Damage stuff
+@current rf #adds_fire
+@current flag adds_lightning
+@current::#d8=3
+@current::#d6=0
+@current::#secondary_d6=0
+@current::#dmg_bonus=8
+@current::#secondary_d8=3
+
+//Data has been configured, now roll an attack.
+print LIGHTNING LONGSWORD
+ld .../:::/monsters/scripts/core/roll_attacks.txt
+
+print      
+print     
+print FIRE WHIP
+
+rf @current adds_lightning
+flag @current #adds_fire
+@current::#attacks=1
+
+
+//Damage stuff
+@current::#d8=0
+@current::#d6=2
+@current::#dmg_bonus=8
+@current::#secondary_d6=3
+@current::#secondary_d8=0
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print *Whip also forces DC 20 STR Save vs pulled 25 ft closer

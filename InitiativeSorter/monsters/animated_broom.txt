@@ -1,0 +1,3 @@
+add broom1 aliases:b1,ab1,animated_broom1,animatedbroom1 flags:#animated,#animated_brooms,#animatedbrooms,#animatedbroom,#animated_broom,#brooms,#construct,#constructs,#enemy,#enemies ac:15 hp:17 str:0 dex:3 con:0 int:-5 wis:-3 cha:-5 +3 start:.../:::/monsters/scripts/animated_broom.txt
+reminder broom1 50ft fly (hover).\nVulnerable to fire
+note broom1 Immune to poison, cold, psychic, most conditions\nGrabbing hold of it while motionless triggers Animated Attack:\n     Broom DEX vs grabber's STR to fly out of grasp and make attack at advantage.

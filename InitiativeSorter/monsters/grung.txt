@@ -1,0 +1,3 @@
+grung1 ac:12 hp:11 str:-2 dex:4 +2 con:2 int:0 wis:0 cha:0 start:.../:::/monsters/scripts/grung.txt aliases:g1 flags:#grung,#frog,#grungs,#frogs,#toad,#toads,#enemy,#enemies
+reminder grung1 speed 25ft., climb 25 ft.\nLong jump 25ft., high jump 15ft.
+info grung1 Immune to poison\nAmphibious\nPoison Skin (DC 12 CON vs poisoned for 1 min, can repeat at turn end)\nLong jump 25ft, high jump 15ft

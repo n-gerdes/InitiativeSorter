@@ -1,0 +1,3 @@
+add shadow1 ac:12 hp:17 start:.../:::/monsters/scripts/shadow.txt flags:#shadow,#enemy,#shadows,#enemies aliases:s1,sh1,shdw1
+reminder shadow1 speed 40ft.\nCan hide as a bonus action while in dim or darkness.
+note shadow1 Resistant: Acid, Cold, Fire, Lightning, Thunder, Nonmagical Prc/Slsh/Bldg\nImmunities: Necrotic, Poison; All Conditions.

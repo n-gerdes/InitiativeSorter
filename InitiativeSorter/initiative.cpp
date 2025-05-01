@@ -12,7 +12,7 @@ const static int		ALIASES_SHOWN = 2;
 //						The 'info' command will still show all of a character's aliases, and simple display mode will only show their first name (outside of 'info')
 
 //						Determines whether or not it shows a character's info when no other info is displayed.
-const static bool		SHOW_INFO_EACH_TURN = true;
+const static bool		SHOW_INFO_EACH_TURN = false;
 
 //						How long the program forces the user to wait on a complex character's turn before it lets the turn advance.
 const static long 
@@ -1647,12 +1647,31 @@ public:
 		return hp;
 	}
 
+	inline int roll_initiative()
+	{
+		int d20 = 1 + (rand() % 20);
+		if (has_flag_case_insensitive("initiative_advantage") || has_flag_case_insensitive("advantage_initiative") || has_flag_case_insensitive("init_advantage")
+			|| has_flag_case_insensitive("init_adv") || has_flag_case_insensitive("advantage_init") || has_flag_case_insensitive("adv_init")
+			)
+		{
+			int d20_2 = 1 + (rand() % 20);
+			if (d20_2 > d20)
+			{
+				d20 = d20_2;
+			}
+		}
+		int mod = get_initiative_modifier();
+		int roll = d20 + mod;
+		return roll;
+	}
+
 	inline int get_temp_hp() const {
 		return temp_hp;
 	}
 	creature(const std::string& name, int initiative, int modifier, int max_hp, int hp, int temp_hp, const std::string& flags_list, const std::string& alias_list, int regeneration, 
 		int armor_class, const std::list<creature> const* creatures_list, const std::string& start_turn_filename, const std::string& end_turn_filename,
-		bool has_con, int str, int dex, int con, int intelligence, int wis, int cha, bool entered_dex) : name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
+		bool has_con, int str, int dex, int con, int intelligence, int wis, int cha, bool entered_dex, bool roll_on_initialize) 
+		: name(name), initiative(initiative), modifier(modifier), temp_hp(temp_hp),
 		hp(hp), max_hp(max_hp), turn_count(-1), regen(regeneration), ac(armor_class), turn_start_file(start_turn_filename), turn_end_file(end_turn_filename),
 		has_con(has_con), str(str), dex(dex), con(con), intelligence(intelligence), wis(wis), cha(cha), entered_dex(entered_dex)
 	{
@@ -1742,6 +1761,11 @@ public:
 		aliases.push_back("@all");
 		if (!entered_dex)
 			dex = modifier;
+
+		if (roll_on_initialize)
+		{
+			set_initiative(roll_initiative());
+		}
 	}
 
 	creature(const std::string& name, int initiative, int modifier) : name(name), initiative(initiative), modifier(modifier),
@@ -1766,6 +1790,12 @@ public:
 	}
 
 	inline int adjust_hp(int amount) {
+		bool no_heal = false;
+		if (has_flag_case_insensitive("noheal") || has_flag_case_insensitive("no_heal"))
+			no_heal = true;
+
+		if (amount > 0 && no_heal)
+			amount = 0;
 		if (max_hp != -1)
 		{
 			if (amount == INT_MAX)
@@ -2831,7 +2861,7 @@ inline void clone_character(const std::string& name, int count, std::list<creatu
 		base->add_alias("@current");
 }
 
-std::string replace_beginning_if_match(const std::string& base, const std::string& original_beginning, const std::string& new_beginning)
+inline std::string replace_beginning_if_match(const std::string& base, const std::string& original_beginning, const std::string& new_beginning)
 {
 	if (starts_with(base, original_beginning))
 	{
@@ -2843,10 +2873,16 @@ std::string replace_beginning_if_match(const std::string& base, const std::strin
 	}
 }
 
-void command_replacement(std::string& dummy_line)
+inline void command_replacement(std::string& dummy_line)
 {
+	//Hardcoded full-command replacements.
 	{
 		std::string lc = get_lowercase(dummy_line);
+		if (lc == "info")
+		{
+			dummy_line = "info @current";
+			return;
+		}
 		if (lc == "full display mode")
 		{
 			dummy_line = "full display";
@@ -8640,8 +8676,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
 				{
-					int roll = 1 + (rand() % 20);
-					i->set_initiative(roll + (i->get_initiative_modifier()));
+					i->set_initiative(i->roll_initiative());
 					i->touched = true;
 					if (i == (--creatures.end()))
 					{
@@ -8656,8 +8691,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						try {
 							if (!i->touched)
 							{
-								int roll = 1 + (rand() % 20);
-								i->set_initiative(roll + (i->get_initiative_modifier()));
+								i->set_initiative(i->roll_initiative());
 								creatures.sort();
 								used_command = true;
 								i->touched = true;
@@ -9884,14 +9918,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int initiative = (rand() % 20) + 1 + modifier;
 						if (!entered_dex)
 							dex = modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex,true);
 						added_creature = true;
 						//cleanup_current();
 					}
 					else
 					{
 						int initiative = std::stoi(initiative_string);
-						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
+						creatures.emplace_back(name, initiative, 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex,false);
 						added_creature = true;
 						//cleanup_current();
 					}
@@ -9941,7 +9975,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						}
 						if (!entered_dex)
 							dex = modifier;
-						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
+						creatures.emplace_back(name, initiative, modifier, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex, false);
 						added_creature = true;
 						//cleanup_current();
 
@@ -9970,7 +10004,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					return false;
 				}
 
-				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex);
+				creatures.emplace_back(name, 1 + (rand() % 20), 0, max_hp, hp, temp_hp, flags, aliases, regen_amnt, ac_value, &creatures, start_file_name, end_file_name, has_con, str, dex, con, intelligence, wis, cha, entered_dex, true);
 				added_creature = true;
 				//cleanup_current();
 			}
@@ -11255,6 +11289,17 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					current_turn = 0;
 					initial_turn = creatures.begin()->get_name();
 				}
+			}
+			else if (
+				dummy_line == "reset time"
+				|| dummy_line == "reset timer"
+				|| dummy_line == "reset timers"
+				|| dummy_line == "reset clock"
+				|| dummy_line == "reset clocks"
+				)
+			{
+				used_command = true;
+				reset_timers();
 			}
 
 			auto kill_creature = [&](const std::string& lowercase_name, bool invert) {
@@ -16600,8 +16645,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				}
 				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
 				{
-					int roll = 1 + (rand() % 20);
-					i->set_initiative(roll + (i->get_initiative_modifier()));
+					i->set_initiative(i->roll_initiative());
 					i->touched = true;
 					i = creatures.begin();
 					if (i == (--creatures.end()))
@@ -16617,8 +16661,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					try {
 						if (!i->touched)
 						{
-							int roll = 1 + (rand() % 20);
-							i->set_initiative(roll + (i->get_initiative_modifier()));
+							i->set_initiative(i->roll_initiative());
 							creatures.sort();
 							used_command = true;
 							i->touched = true;
@@ -16698,17 +16741,6 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					
 					}
 				}
-				else if (
-					dummy_line == "reset time"
-					|| dummy_line == "reset timer"
-					|| dummy_line == "reset timers"
-					|| dummy_line == "reset clock"
-					|| dummy_line == "reset clocks"
-					)
-					{
-						used_command = true;
-						reset_timers();
-					}
 				else if (dummy_line == "i " + lowercase_name || dummy_line == lowercase_name+" i")
 				{
 					turn_msg = get_info(i->get_raw_ptr(), current_turn, current_round, false);

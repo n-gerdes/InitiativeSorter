@@ -1,0 +1,1 @@
+sea_spawn_quills1 aliases:quills1,ssq1,q1,sq1 ac:11 hp:32 str:2 -1 dex:-1 con:2 int:-2 wis:+0 cha:-1 start:.../:::/monsters/scripts/sea_spawn_quills.txt flags:#sea_spawn,#quill,#quills,#sea_spawn_quills,#sea_spawn_quill,#monster,#monsters,#enemy,#enemies,#spawn,#quill_spawn,#spawn_quill

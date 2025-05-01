@@ -1,0 +1,35 @@
+print CLAWS (10ft reach):
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=4
+@current::#secondary_d6=0
+
+ld .../:::/monsters/scripts/core/roll_attacks.txt
+print      
+print     
+print STING (10ft reach):
+
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=4
+@current::#secondary_d6=5
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print plus DC 14 CON vs Poisoned for 1 min.
+printtab
+print *can reroll at the start of each turn, ending it on a success.
+printtab
+print *no immunity is conferred on a success.

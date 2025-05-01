@@ -1,0 +1,10 @@
+print LIFE LEECH
+print Target Large or smaller
+print DC 13 DEX Save vs Grappled (escape DC 13)
+printtab
+print Grapple also RESTRAINS and prevents breathing unless they can waterbreath
+printtab
+print Half damage dealt to tracker transferred grapple target
+printtab
+print Grappled target takes 3d10 necrotic damage at the start of its turn
+print It only grapples one at a time.

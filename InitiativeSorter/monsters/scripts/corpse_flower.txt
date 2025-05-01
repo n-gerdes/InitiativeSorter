@@ -1,0 +1,13 @@
+@current::corpses==-1 {@current::corpses=1d6+3}
+//Set number of attacks
+@current::#attacks=3
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=2
+@current::#secondary_d6=3
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt

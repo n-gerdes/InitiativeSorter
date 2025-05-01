@@ -1,0 +1,23 @@
+print Either gets Dueling Attack or doesn't - only one attack.
+print
+print DUELING ATTACK
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=2
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print *And add one effect:
+printtab
+print 1) DC 12 WIS or disadvantage against other targets.
+printtab
+print 2) DC 12 DEX or drop an item of the duelist's choice at its feet.
+printtab
+print 3) Extend reach to 10 ft.

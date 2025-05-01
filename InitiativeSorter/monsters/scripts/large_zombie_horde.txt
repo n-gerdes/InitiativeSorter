@@ -3,4 +3,6 @@
 
 @current::#atk_bonus=8
 
+print Attacks resolved manually. Remember Frightful Presence and Stench!
+
 //ld core/roll_attacks.txt

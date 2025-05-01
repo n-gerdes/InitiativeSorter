@@ -63,6 +63,12 @@ if @current crit {print CRIT}
 if @current nat1 {print nat1}
 print       
 print DAMAGE
+if @current halve_dmg {@current::#halve_dmg=1}
+if @current halve_damage {@current::halve_dmg=1}
+if @current half_dmg {@current::#halve_dmg=1}
+if @current half_damage {@current::halve_dmg=1}
+@current.halve_dmg==1 {@current::dmg/=2}
+@current.halve_dmg==1 {print *halving damage}
 printnum @current::#dmg
 @current::#secondary_dmg>0 {print plus:}
 @current::#secondary_dmg>0 {printnum @current::#secondary_dmg}

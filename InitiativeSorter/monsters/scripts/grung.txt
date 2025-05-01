@@ -1,0 +1,41 @@
+print If Grung GRAPPLED (or skin otherwise touches someone), the one grung touched must roll
+print DC 12 CON vs Poisoned for 1 minute.
+printtab
+print It can reroll at the end of its turns.
+
+if @current green grung_poison/green_grung.txt
+if @current blue grung_poison/blue_grung.txt
+if @current purple grung_poison/purple_grung.txt
+if @current red grung_poison/purple_grung.txt
+if @current orange grung_poison/orange_grung.txt
+if @current gold grung_poison/gold_grung.txt
+
+@current::#has_color=0
+
+if @current green {@current::has_color=1}
+if @current blue {@current::has_color=1}
+if @current purple {@current::has_color=1}
+if @current red {@current::has_color=1}
+if @current orange {@current::has_color=1}
+if @current gold {@current::has_color=1}
+
+@current::has_color==1 {print    }
+@current::has_color==1 {print *can leap at someone to trigger this}
+
+print
+
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt
+
+print and target must succeed on DC 12 CON Save or take poison damage*:
+printnum 2d4
+print *does not inflict Poisoned condition, nor any additional effects.

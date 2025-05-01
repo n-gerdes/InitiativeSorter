@@ -1,0 +1,17 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+print Sting or Bite
+ld core/roll_attacks.txt
+print & DC 11 CON Save to halve poison damage:
+printnum 3d6
+print      
+print     

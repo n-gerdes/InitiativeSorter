@@ -1,0 +1,16 @@
+print Remember Blood Frenzy - advantage on attacks vs wounded targets!
+print First attack is first roll, second attack is second roll.
+print Use the first if target is not injured, use the higher attack roll if it is.
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=4
+
+//Data has been configured, now roll an attack.
+print Bite
+ld core/roll_attacks.txt

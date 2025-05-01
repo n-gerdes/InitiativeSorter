@@ -1,0 +1,1 @@
+bodak1 aliases:bd1,bdk1,bk1,b1 ac:15 hp:58 str:2 +3 dex:3 con:2 int:-2 wis:+1 cha:+1 start:.../:::/monsters/scripts/bodak.txt flags:#addsnecrotic,#bodak,#bodaks,#undead,#enemy,#enemies

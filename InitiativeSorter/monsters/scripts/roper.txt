@@ -1,0 +1,20 @@
+print 6 Grappling Tendrils, Escape DC 15
+print	Restrains & imposes disadvantage on STR and DEX, uses up tendril
+print	Tendril has 20 AC, 10 HP, damage *not* transferred to roper if hit
+print		Immune to psychic/poison
+
+print BITE
+
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=7
+
+//Damage stuff
+@current::#d8=4
+@current::#dmg_bonus=4
+
+ld core/roll_attacks.txt
+
+print Then pull grappled creatures 25ft closer

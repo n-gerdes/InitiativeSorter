@@ -1,0 +1,2 @@
+add hunter_shark1 aliases:hs1,shark1,sh1 flags:#hunter_shark,#hshark,#hsharks,#h_sharks,#hunter_sharks,#shark,#sharks,#enemy,#enemies,#beast,#beasts,#animal,#animals ac:12 hp:45 str:4 dex:1 +1 con:2 int:-5 wis:0 cha:-3 start:.../:::/monsters/scripts/hunter_shark.txt
+reminder hunter_shark1 45ft swim\nAdvantage on attacks against wounded creatures!\nBlindsight 30ft.

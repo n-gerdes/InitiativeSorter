@@ -1,0 +1,19 @@
+print BITE
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=2
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+//Print extra complications
+print plus DC 11 CON to halve poison dmg:
+printnum 4d8
+print If target reduced to 0 by psn, target is stable but poisoned & paralyzed for 1 hr.
+print

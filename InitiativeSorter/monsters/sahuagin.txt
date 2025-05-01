@@ -1,0 +1,2 @@
+add sahuagin1 aliases:sahagun1,sahagin1,sahaugin1,sahagin1,sgn1,s1 flags:#enemy,#enemies,#sahuagin,#sahaugin,#sahagin ac:12 hp:22 str:1 dex:0 +0 con:1 int:1 wis:1 cha:-1 start:.../:::/monsters/scripts/sahuagin.txt
+reminder sahuagin1 30ft., Swim 40ft.

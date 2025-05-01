@@ -1,0 +1,36 @@
+print PSEUDOPODS
+
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d10=0
+@current::#d6=2
+@current::#dmg_bonus=5
+
+ld core/roll_attacks.txt
+print Pseudopod grapples & restrains on a hit (Escape DC 16 at disadvantage)
+print Advantage to hit grappled targets
+print   
+print   
+         
+print BITE
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#secondary_d6=2
+@current::#d10=2
+@current::#dmg_bonus=5
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+print Note: Bite includes 2d6 acid, may need to roll manually if resistances matter.
+print      +8 to hit, 2d10+5 piercing & 2d6 acid.
+print    
+if @current mist {print Caustic Mist (Recharge 5-6): 30 ft cone; DC 14 DEX to halve 6d8 acid; Failure also blinds targets until end of their next turn.}

@@ -1,0 +1,1 @@
+add tree_blight1 ac:15 hp:115 +3 str:6 dex:0 con:5 int:-2 wis:0 cha:-4 flags:#enemy,#enemies,#blight,#tree,#trees,#blights,#tree_blight,#tree_blights,#treeblight,#treeblights,#plant,#plants aliases:b1,t1,tb1 start:.../:::/monsters/scripts/tree_blight.txt

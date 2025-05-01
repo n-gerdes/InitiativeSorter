@@ -1,0 +1,2 @@
+add phase_spider1 ac:13 hp:32 str:2 dex:2 +2 con:1 int:-2 wis:0 cha:-2 flags:#spider,#enemy,#enemies,#spiders,#addspoison start:.../:::/monsters/scripts/phase_spider.txt aliases:ps1,spider1,phasespider1
+reminder phase_spider1 Bonus Action to shift to ethereal plane or vise versa!

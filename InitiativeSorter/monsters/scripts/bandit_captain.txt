@@ -1,0 +1,49 @@
+print Choose between MELEE or RANGED attacks
+print
+print RANGED ATTACK ROUTINE
+print Dagger x 2; range 20/60
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=0
+@current::#d4=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print
+print MELEE ATTACK ROUTINE
+print Scimitar x 2
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=1
+@current::#d4=0
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+print
+print Dagger
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=0
+@current::#d4=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

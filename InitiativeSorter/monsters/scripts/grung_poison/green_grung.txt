@@ -1,0 +1,4 @@
+print
+print This grung is green; poisoned target can't move except to climb or make standing jumps.
+printtab
+print If flying, it can't take any actions or reactions until it lands.

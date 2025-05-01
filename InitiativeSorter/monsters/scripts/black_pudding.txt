@@ -1,0 +1,17 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=1
+@current::#dmg_bonus=3
+@current::#secondary_d8=4
+
+//Data has been configured, now roll an attack.
+print PSEUDOPOD
+ld .../:::/monsters/scripts/core/roll_attacks.txt
+print Each hit inflicts a -1 penalty to target's nonmagical armor.
+print Hitting the black pudding inflicts a -1 penalty to target's nonmagical weapon & 1d8 acid to attacker.
+print

@@ -1,0 +1,12 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=2
+
+//Damage stuff
+@current::#d8=1
+
+//Data has been configured, now roll an attack.
+print Spear or Trident
+ld core/roll_attacks.txt

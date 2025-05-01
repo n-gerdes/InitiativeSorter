@@ -1,0 +1,4 @@
+print
+print This grung is purple; poisoned target feels desperate need to soak itself in liquid or mud.
+printtab
+print It can't take actions or move except to do so.

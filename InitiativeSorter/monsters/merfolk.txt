@@ -1,0 +1,2 @@
+add merfolk1 aliases:m1,mf1 flags:#merfolk,#mermaid,#mermaids,#merman,#mermen ac:11 hp:11 str:0 +1 dex:1 con:1 int:0 wis:0 cha:1 start:.../:::/monsters/scripts/merfolk.txt
+reminder merfolk1 speed 10ft., swim 40ft.

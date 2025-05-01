@@ -1,0 +1,2 @@
+add corpse_flower1 aliases:cf1,flower1,corpse-flower1,corpseflower,copseflower1,copse_flower1,copse-flower1 ac:12 hp:127 +2 str:2 dex:2 con:3 int:-2 wis:2 cha:-4 flags:#enemy,#enemies,#plant,#plants,#corpseflower,#corpse_flower,#corpse-flower,#flower,#flowers,#corpseflowers,#corpse_flowers,#corpse-flowers,#addspoison start:.../:::/monsters/scripts/corpse_flower.txt
+corpse_flower1::corpses=-1

@@ -1,0 +1,22 @@
+@current.dueling_attacks>0 strong_duelist_dueling_attack.txt
+print
+print
+print NON-DUELING ATTACK
+print ______________________
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=2
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+print
+print *-2 to hit and damage vs plate armor
+print Remember to subtract from Dueling Attacks if a Dueling Attack was used!
+

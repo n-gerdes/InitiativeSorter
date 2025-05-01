@@ -1,0 +1,24 @@
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=9
+
+//Damage stuff
+@current::#d6=3
+@current::#dmg_bonus=6
+
+//Data has been configured, now roll an attack.
+print BRANCH ATTACKS
+ld core/roll_attacks.txt
+print      
+print     
+print GRASPING ROOT:
+print     DC 17 STR Save vs Grapple. Escape DC 16
+print     It can then pull grappled target 10 feet closer.
+print     Can grapple up to 6 creatures.
+print     13 (2d6 + 6) bludgeoning to grappled creature at start of its turns.
+print
+print GNASH
+print One grappled creatures makes DC 17 DEX Save to halve piercing dmg:
+printnum 3d8+6

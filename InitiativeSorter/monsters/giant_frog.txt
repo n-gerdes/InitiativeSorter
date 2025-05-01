@@ -1,0 +1,2 @@
+add giant_frog1 aliases:gf1,f1,frog1 flags:#enemy,#animal,#beast,#animals,#beasts,#enemies,#frog,#frogs,#giant_frog,#giant_frogs,#gf ac:11 hp:18 str:1 +1 dex:1 con:0 int:-4 wis:0 cha:-4 start:.../:::/monsters/scripts/giant_frog.txt
+reminder giant_frog1 Move/Swim 30ft.\nCan jump 10 feet up, 20 feet forward.

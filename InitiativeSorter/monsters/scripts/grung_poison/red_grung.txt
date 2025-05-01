@@ -1,0 +1,2 @@
+print
+print This grung is red; poisoned target must use its action to eat if food is within reach.

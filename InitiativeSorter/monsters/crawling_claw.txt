@@ -1,0 +1,3 @@
+add crawling_claw1 ac:12 hp:2 aliases:cc1,hand1 flags:#undead,#crawling_claw,#crawling_claws,#hands,#hand start:.../:::/monsters/scripts/crawling_claw.txt str:1 dex:2 con:0 int:-3 wis:0 cha:-3
+reminder crawling_claw1 speed 20ft., climb 20ft.\nBlindsight 30ft (blind beyond that).
+info crawling_claw1 Immune to poison, charmed, exhaustioned, poisoned.

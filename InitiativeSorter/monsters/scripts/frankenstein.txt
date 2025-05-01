@@ -1,0 +1,14 @@
+//Set number of attacks
+@current::#attacks=3
+
+//Configure attack data
+@current::#atk_bonus=10
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=6
+@current::#secondary_d8=1
+
+//Data has been configured, now roll an attack.
+print Slam Attacks
+ld core/roll_attacks.txt

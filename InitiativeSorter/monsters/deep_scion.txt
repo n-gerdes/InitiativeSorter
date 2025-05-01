@@ -1,0 +1,1 @@
+add deep_scion1 aliases:ds1,d1,scion1,deep1 flags:#enemy,#enemies,#deep,#deep_scion,#deep_scions,#deepscions,#scion,#scions,screech ac:11 hp:67 str:4 dex:1 +1 con:3 int:0 wis:3 cha:4 start:.../:::/monsters/scripts/deep_scion.txt
