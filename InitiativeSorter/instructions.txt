@@ -440,6 +440,9 @@ reminder [character] [reminder text]
 restore [character]
 	-If a character's maximum hit points has decreased, this restores them back to their peak.
 
+unrestore [character]
+	-Sets a character's "record hp" for the purpose of the 'restore' command equal to their current max hp.
+
 time
 	-Display information about how much time each turn has taken, as well as combat overall.
 

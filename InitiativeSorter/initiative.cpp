@@ -2157,6 +2157,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "read"
 			|| lowerc == "clone-1"
 			|| lowerc == "restore"
+			|| lowerc == "unrestore"
 			|| lowerc == "time"
 		) 
 			return false;
@@ -3853,6 +3854,11 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				{
 					used_command = true;
 					i->restore_max_hp();
+				}
+				else if ((dummy_line == "unrestore " + lowercase_name) || (dummy_line == lowercase_name + " unrestore"))
+				{
+					used_command = true;
+					i->peak_max_hp = i->get_max_hp();
 				}
 				else if (comp_substring(lowercase_name + " recharge0 ", dummy_line, (lowercase_name + " recharge0 ").length())
 					|| comp_substring(lowercase_name + " recharge 0 ", dummy_line, (lowercase_name + " recharge 0 ").length())
@@ -11380,6 +11386,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					used_command = true;
 					i->restore_max_hp();
+				}
+				else if ((dummy_line == "unrestore " + lowercase_name) || (dummy_line == lowercase_name + " unrestore"))
+				{
+					used_command = true;
+					i->peak_max_hp = i->get_max_hp();
 				}
 				else if (comp_substring("hurt all ", dummy_line, 9) ||
 						 comp_substring("dmg all ", dummy_line, 8) ||
