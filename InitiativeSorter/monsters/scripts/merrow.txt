@@ -1,0 +1,35 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d8=0
+@current::#d6=2
+@current::#dmg_bonus=4
+
+//Data has been configured, now roll an attack.
+print HARPOON (reach 5ft or range 20/60ft)
+ld core/roll_attacks.txt
+print On hit: Huge or smaller must roll DC
+printnum 1d20+4
+print strength or be pulled 20ft closer.
+
+print
+print _____________________
+print BITE
+
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d6=0
+@current::#d8=1
+@current::#dmg_bonus=4
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

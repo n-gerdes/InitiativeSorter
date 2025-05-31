@@ -1,0 +1,2 @@
+merrow1 aliases:m1 ac:13 hp:45 str:4 dex:0 +2 con:2 int:-1 wis:0 cha:-1 start:.../:::/monsters/scripts/merrow.txt flags:#enemy,#enemies,#merrow,#merrows
+reminder merrow1 10ft., swim 40ft.\ndarkvision 60ft

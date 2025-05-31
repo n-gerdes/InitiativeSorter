@@ -1,0 +1,1 @@
+jack_o_lantern1 0 +0 aliases:jack1,jack-o-lantern1,j1,p1,pumpkin1 flags:#enemy,#enemies,#jack_o_lantern,#jack-o-lantern,#jackolantern,#jack_o_lanterns,#jack-o-lanterns,#pumpkin,#pumpkins,#minion hp:1 ac:10 start:.../:::/monsters/scripts/jack_o_lantern.txt

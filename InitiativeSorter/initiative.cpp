@@ -8682,13 +8682,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 
 				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
 				{
-					i->set_initiative(i->roll_initiative());
-					i->touched = true;
-					if (i == (--creatures.end()))
+					used_command = true;
+					if (!i->touched)
 					{
-						used_command = true;
+						i->set_initiative(i->roll_initiative());
+						i->touched = true;
 						creatures.sort();
+						i = creatures.begin();
 					}
+					
 				}
 				else if (
 					comp_substring("reroll " + lowercase_name, dummy_line, ("reroll " + lowercase_name).length()) ||
@@ -8701,6 +8703,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 								creatures.sort();
 								used_command = true;
 								i->touched = true;
+								i = creatures.begin();
 							}
 						}
 						catch (const std::exception& E) {
@@ -10509,8 +10512,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			log_file.close();
 		}
 
-		if(SHOW_INFO_EACH_TURN)
-			std::cout << "__________________________________INITIATIVE DISPLAY__________________________________\n" << std::endl;
+		//if(SHOW_INFO_EACH_TURN)
+		std::cout << std::endl << std::endl;
+		std::cout << "__________________________________INITIATIVE DISPLAY__________________________________\n" << std::endl;
+		std::cout << std::endl;
 		for (auto i = creatures.begin(); i != creatures.end(); ++i)
 		{
 			i->touched = false;
@@ -16658,11 +16663,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					i->set_initiative(i->roll_initiative());
 					i->touched = true;
+					used_command = true;
 					i = creatures.begin();
+					creatures.sort();
 					if (i == (--creatures.end()))
 					{
 						used_command = true;
-						creatures.sort();
+						
 					}
 				}
 				else if (

@@ -1,0 +1,2 @@
+add horned_devil1 aliases:horn_devil1,horndevil1,horneddevil1,hd1 str:10 dex:7 +3 con:5 int:1 wis:7 cha:7 ac:18 hp:178 flags:#horndevil,##horneddevil,#horn_devil,#horned_devil,#devil,#enemy,#evil,#unholy,#magic_resistance start:.../:::/monsters/scripts/horned_devil.txt
+reminder horned_devil1 speed 20ft.\nfly 60ft.\nDarkvision/telepathy 120ft

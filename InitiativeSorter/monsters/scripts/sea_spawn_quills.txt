@@ -17,6 +17,7 @@ print POISON QUILL
 @current::#d4=0
 @current::#dmg_bonus=0
 @current::#d6=1
+@current::#attacks=1
 ld core/roll_attacks.txt
 print On Hit: DC 12 CON Save vs Poisoned for 1 minute.
 printtab

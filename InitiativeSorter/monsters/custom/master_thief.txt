@@ -1,0 +1,2 @@
+master_thief1 aliases:mt1 ac:13 hp:22 str:0 dex:6 +3 con:1 int:3 wis:2 cha:3 start:.../:::/monsters/scripts/master_thief.txt flags:#enemy,#enemies,#thief,#thieves,#master_thief,#master_thieves
+master_thief1 reminder 40ft.\nCan Dash, Disengage, or Hide as a bonus action.

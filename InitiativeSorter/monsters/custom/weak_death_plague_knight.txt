@@ -1,0 +1,6 @@
+death_plague_knight1 +3 ac:17 hp:120 flags:#enemy,#enemies,#guard,#guards,#undead,#knight,#knights,vomit aliases:knight1,guard1,dn1,dk1,dpk1,plague_knight1,pk1,deadknight1,dk1 str:4 dex:6 con:3 int:0 wis:3 cha:1
+death_plague_knight1 recharge1-6 reaction
+death_plague_knight1 recharge6 bite
+death_plague_knight1::Can_Parry=1
+info death_plague_knight1 Immune to poison, poisoned, charmed.\nResist: cold, necrotic, BPS from nonsilver/nonmagic.
+death_plague_knight1 reminder speed 40ft.

@@ -1,0 +1,2 @@
+add pumpking ac:19 hp:171 con:8 wis:6 str:5 dex:0 int:-3 cha:5 flags:#enemy,#enemies,#pumpkin,#pumpkins aliases:boss,pumpkin
+pumpking.LR = 3

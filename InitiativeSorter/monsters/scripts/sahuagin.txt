@@ -19,6 +19,7 @@ print
 
 //Configure attack data
 @current::#atk_bonus=3
+@current::#attacks=1
 
 //Damage stuff
 @current::#d4=0

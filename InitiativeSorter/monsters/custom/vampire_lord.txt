@@ -12,4 +12,3 @@ alias vampire lamor
 alias vampire duke
 alias vampire count
 v.LR = 3
-nosferatu aliases:n,minion,m hp:127 ac:17 flags:vomit,surprised str:4 dex:7 con:4 int:2 wis:6 cha:3

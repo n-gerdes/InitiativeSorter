@@ -17,6 +17,7 @@ print TENTACLE (10ft Reach)
 @current::#d4=0
 @current::#dmg_bonus=2
 @current::#d6=1
+@current::#attacks=1
 ld core/roll_attacks.txt
 print On Hit: Grapple (DC 12) medium or smaller.
 printtab

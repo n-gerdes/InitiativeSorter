@@ -1,0 +1,5 @@
+death_plague_knight1 +4 hp:161 flags:#enemy,#enemies,#guard,#guards,#undead,#knight,#knights,vomit ac:18 aliases:knight1,guard1,dn1,dk1,dpk1,plague_knight1,pk1,deadknight1,dk1 str:4 dex:8 con:4 int:2 wis:7 cha:3
+death_plague_knight1 recharge1-6 reaction
+death_plague_knight1 recharge6 bite
+death_plague_knight1::Can_Parry=1
+death_plague_knight1 reminder speed 40ft., climb 40ft

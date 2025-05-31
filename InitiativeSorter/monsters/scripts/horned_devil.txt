@@ -1,0 +1,46 @@
+print Choose Hurl Flame OR Multiattack
+print
+print HURL FLAME (150 ft)
+@current::#atk_bonus=7
+@current::#d6=4
+@current::#d8=0
+@current::dmg_bonus=0
+@current::#attacks=1
+ld core/roll_attacks.txt
+print
+print
+print
+print MULTIATTACK
+print Forks (10ft reach):
+
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=10
+
+//Damage stuff
+@current::#d6=0
+@current::#d8=2
+@current::#dmg_bonus=6
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+ld core/reset_attack_data.txt
+print
+print
+print Tail (10ft reach)
+@current::#attacks=1
+@current::#atk_bonus=10
+@current::#d8 = 1
+@current::#dmg_bonus = 6
+ld core/roll_attacks.txt
+print plus DC 17 CON vs Wounded until staunched with DC 12 Medicine check or magic healing
+printtab
+print Lose 10 (3d6) HP at start of turn
+printtab
+print Can accumulate with each failed save (for 6d6, 9d6, 12d6, etc).
+printtab
+printtab
+print Can use target.regen-=10
+printtab
+print *no immunity is conferred on a success.

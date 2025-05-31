@@ -27,7 +27,3 @@ print
 //Data has been configured, now roll an attack.
 print Claws
 ld core/roll_attacks.txt
-print & DC 11 CON Save to halve poison damage:
-printnum 3d6
-print      
-print     
