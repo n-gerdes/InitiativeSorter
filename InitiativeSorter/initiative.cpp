@@ -8076,6 +8076,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
+					used_command = true;
 				}
 				else if (dummy_line == lowercase_name + " dex_save" || dummy_line == "dex_save " + lowercase_name)
 				{
@@ -8104,6 +8105,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
+					used_command = true;
 				}
 				else if (dummy_line == lowercase_name + " con_save" || dummy_line == "con_save " + lowercase_name)
 				{
@@ -8126,6 +8128,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
+					used_command = true;
 				}
 				else if (dummy_line == lowercase_name + " int_save" || dummy_line == "int_save " + lowercase_name)
 				{
@@ -8148,6 +8151,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
+					used_command = true;
 				}
 				else if (dummy_line == lowercase_name + " wis_save" || dummy_line == "wis_save " + lowercase_name)
 				{
@@ -8170,7 +8174,8 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " cha_save" || dummy_line == "cha_save " + lowercase_name)
 				{
 					int save = i->get_cha_bonus();
@@ -8192,6 +8197,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
+					used_command = true;
 				}
 				else if (comp_substring("str_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
@@ -15892,7 +15898,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " dex_save" || dummy_line == "dex_save " + lowercase_name)
 				{
 					int save = i->get_dex_bonus();
@@ -15920,7 +15927,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " con_save" || dummy_line == "con_save " + lowercase_name)
 				{
 					int save = i->get_con_bonus(creatures);
@@ -15942,7 +15950,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " int_save" || dummy_line == "int_save " + lowercase_name)
 				{
 					int save = i->get_int_bonus();
@@ -15964,7 +15973,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " wis_save" || dummy_line == "wis_save " + lowercase_name)
 				{
 					int save = i->get_wis_bonus();
@@ -15986,7 +15996,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (dummy_line == lowercase_name + " cha_save" || dummy_line == "cha_save " + lowercase_name)
 				{
 					int save = i->get_cha_bonus();
@@ -16008,7 +16019,8 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						turn_msg += "fail)\n\n";
 						i->add_flag("_" + save_name + "_failure", true);
 					}
-					}
+					used_command = true;
+				}
 				else if (comp_substring("str_save " + lowercase_name + " ", dummy_line, ("str_save " + lowercase_name + " ").length()))
 				{
 					try {
