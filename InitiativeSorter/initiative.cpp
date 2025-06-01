@@ -182,15 +182,21 @@ inline long long int get_turn_time(const std::string& name)
 
 inline void increase_turn_time(const std::string& name, long long int duration)
 {
-	if (name.size() == 0)
-		return;
-	if (turn_lengths.count(name) == 0)
-	{
-		turn_lengths.emplace(name, duration);
+	try {
+		if (name.size() == 0)
+			return;
+		if (turn_lengths.count(name) == 0)
+		{
+			turn_lengths.emplace(name, duration);
+		}
+		else
+		{
+			turn_lengths[name] += duration;
+		}
 	}
-	else
+	catch (const std::exception& E)
 	{
-		turn_lengths[name] += duration;
+
 	}
 }
 
@@ -11328,6 +11334,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (  !(i->has_alias(lowercase_name)) )
 						{
 							//i->remove_alias("@current"); ////////
+							if (current_creature == (&(*i)))
+							{
+								current_creature = nullptr;
+							}
 							creatures.erase(i);
 							i = creatures.begin();
 						}
@@ -11343,6 +11353,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 						if (i->has_alias(lowercase_name))
 						{
 							//i->remove_alias("@current"); ////////
+							if (current_creature == (&(*i)))
+							{
+								current_creature = nullptr;
+							}
 							creatures.erase(i);
 							i = creatures.begin();
 							//i->remove_alias("@current"); ////////
