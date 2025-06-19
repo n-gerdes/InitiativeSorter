@@ -1738,7 +1738,7 @@ public:
 					if (alias != "")
 					{
 						trim(alias);
-						if(name_is_unique(alias, *creatures_list) && alias!=name)
+						if(name_is_unique(alias, *creatures_list) && alias!=name && !has_alias(alias))
 							aliases.push_back(alias);
 						alias = "";
 					}
@@ -1747,7 +1747,7 @@ public:
 				if (c == ',' || c == '&')
 				{
 					trim(alias);
-					if (name_is_unique(alias, *creatures_list) && alias != name)
+					if (name_is_unique(alias, *creatures_list) && alias != name && !has_alias(alias))
 						aliases.push_back(alias);
 					alias = "";
 				}
@@ -1759,7 +1759,7 @@ public:
 			if (alias != "")
 			{
 				trim(alias);
-				if (name_is_unique(alias, *creatures_list) && alias != name)
+				if (name_is_unique(alias, *creatures_list) && alias != name && !has_alias(alias))
 					aliases.push_back(alias);
 				alias = "";
 			}
