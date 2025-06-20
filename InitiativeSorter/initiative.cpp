@@ -1587,9 +1587,10 @@ public:
 
 	inline bool has_flag(const std::string& flag)
 	{
+		std::string lc = get_lowercase(flag);
 		for (auto i = flags.begin(); i != flags.end(); ++i)
 		{
-			if ((*i) == get_lowercase(flag))
+			if (get_lowercase(*i) == lc)
 			{
 				return true;
 			}
