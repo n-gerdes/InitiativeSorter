@@ -1646,6 +1646,10 @@ public:
 	{
 		return modifier;
 	}
+	inline void set_modifier(int new_mod)
+	{
+		modifier = new_mod;
+	}
 	inline int get_max_hp() const {
 		return max_hp;
 	}
@@ -7932,11 +7936,15 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 						int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
 						if (!i->touched)
 						{
-							i->set_initiative(val);
+							if (is_signed)
+								i->set_modifier(val);
+							else
+								i->set_initiative(val);
 							i->touched = true;
 							creatures.sort();
 							i = creatures.begin();
 							start_over = true;
+							used_command = true;
 							break;
 						}
 						used_command = true;
@@ -16814,11 +16822,15 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							if (!i->touched)
 							{
 								int val = get_number_arg(dummy_line, is_signed, creatures, i->get_raw_ptr());
-								i->set_initiative(val);
+								if (is_signed)
+									i->set_modifier(val);
+								else
+									i->set_initiative(val);
 								i->touched = true;
 								creatures.sort();
 								i = creatures.begin();
 								start_over = true;
+								used_command = true;
 								break;
 							}
 							
