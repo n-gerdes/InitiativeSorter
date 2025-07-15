@@ -537,6 +537,7 @@ if [character] [flag] {command}
 		-Don't try to recursively nest commands this way, it doesn't work. Chain files together instead.
 
 print [message]
+println [message]
 	-Print a message. Useful when writing scripts to automate complex behavior for certain creatures.
 
 printnum [value]

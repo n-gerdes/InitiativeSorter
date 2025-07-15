@@ -294,7 +294,7 @@ std::string replace_first(const std::string& original, const std::string& origin
 		{
 			std::string prestring = original.substr(0, index);
 			std::string post = "";
-			if (index + original_substring.length() < original.length())
+			if (index + lowercase_original_substring.length() < lowercase_original.length())
 				post = original.substr(index + original_substring.length());
 
 			return prestring + new_substring + post;
@@ -324,8 +324,8 @@ std::string replace_first(const std::string& original, const std::string& origin
 			{
 				std::string prestring = original.substr(0, index);
 				std::string post = "";
-				if (index + original_substring.length() < original.length())
-					post = original.substr(index + original_substring.length());
+				if (index + lowercase_original_substring.length() < original.length())
+					post = original.substr(index + lowercase_original_substring.length());
 
 				return prestring + new_substring + post;
 			}
@@ -391,7 +391,10 @@ std::string replace_first(const std::string& original, const std::string& origin
 			{
 				if (get_lowercase(cur).find(lowercase_original_substring) != std::string::npos)
 				{
-					cur = replace_first(cur, " " + original_substring + " ", " " + new_substring + " ", false);
+					cur = replace_first(cur,
+						" " + original_substring + " ", 
+						" " + new_substring + " ", 
+						false);
 				}
 
 
@@ -2149,6 +2152,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "hidevar"
 			|| lowerc == "showvar"
 			|| lowerc == "print"
+			|| lowerc == "println"
 			|| lowerc == "printnum"
 			|| lowerc == "print_num"
 			|| lowerc == "dc"
@@ -7804,6 +7808,14 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			}
 			catch (const std::exception& E) {}
 		}
+		else if (dummy_line.size() > 8 && comp_substring(dummy_line, "println ", 8))
+		{
+			std::cout << line.substr(8) << std::endl;
+			used_command = true;
+			turn_msg += line.substr(8);
+			turn_msg += "\n";
+			return false;
+		}
 		else if (dummy_line.size()>6 && comp_substring(dummy_line, "print ", 6))
 		{
 			std::cout << line.substr(6) << std::endl;
@@ -7813,6 +7825,13 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 			return false;
 		}
 		else if (dummy_line == "print")
+		{
+			std::cout << std::endl;
+			used_command = true;
+			turn_msg += "\n";
+			return false;
+		}
+		else if (dummy_line == "println")
 		{
 			std::cout << std::endl;
 			used_command = true;
@@ -10996,6 +11015,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::cout << std::endl;
 			turn_msg += "\n";
 		}
+		else if (dummy_line == "println")
+		{
+			used_command = true;
+			skip_command_checks = true;
+			std::cout << std::endl;
+			turn_msg += "\n";
+			}
 		else if (dummy_line == "printtab")
 		{
 			used_command = true;
@@ -11216,6 +11242,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 		{
 			keep_name = dummy_line.substr(5);
 			trim(keep_name);
+		}
+		else if (dummy_line.size() > 8 && (comp_substring("println  ", dummy_line, 8)))
+		{
+			std::cout << line.substr(8) << std::endl;
+			turn_msg += line.substr(8) + "\n";
+			used_command = true;
+			skip_command_checks = true;
 		}
 		else if (dummy_line.size()>6 && (comp_substring("print  ", dummy_line, 6)))
 		{
