@@ -2174,6 +2174,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "restore"
 			|| lowerc == "unrestore"
 			|| lowerc == "time"
+			|| lowerc == ""
 		) 
 			return false;
 
