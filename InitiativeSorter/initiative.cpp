@@ -3128,6 +3128,10 @@ inline void command_replacement(std::string& dummy_line)
 	{
 		dummy_line = replace_first(dummy_line, "save dc", "dc", true, false);
 	}
+	else if (dummy_line == "save dc")
+	{
+		dummy_line = "dc";
+	}
 	dummy_line = replace_first(dummy_line, "falg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
