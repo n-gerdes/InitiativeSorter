@@ -3124,6 +3124,10 @@ inline void command_replacement(std::string& dummy_line)
 		dummy_line = replace_all(dummy_line, " .", ".", false);
 		dummy_line = replace_all(dummy_line, ". ", ".", false);
 	}
+	if (starts_with(dummy_line, "save dc "))
+	{
+		dummy_line = replace_first(dummy_line, "save dc", "dc", true, false);
+	}
 	dummy_line = replace_first(dummy_line, "falg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
@@ -3154,6 +3158,7 @@ inline void command_replacement(std::string& dummy_line)
 	dummy_line = replace_first(dummy_line, "hidevar", "hide", true, false);
 	dummy_line = replace_first(dummy_line, "showvar", "show", true, false);
 	dummy_line = replace_first(dummy_line, "print_num", "printnum", true, false);
+	
 	dummy_line = replace_first(dummy_line, "save_dc", "dc", true, false);
 	dummy_line = replace_first(dummy_line, "savedc", "dc", true, false);
 
@@ -9838,7 +9843,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 				return false;
 			}
 		}
-		else if (takes_commands && (comp_substring("save ", lowercase, 5)))
+		else if (takes_commands && (comp_substring("save ", lowercase, 5)) && !starts_with(lowercase, "save dc"))
 		{
 			std::string filename = lowercase.substr(5);
 			save_state(filename, creatures, initial_turn, initial_round, false);
@@ -11369,7 +11374,9 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			}
 
 			auto kill_creature = [&](const std::string& lowercase_name, bool invert) {
+				const std::string& cur_creature_name = current_creature->get_name();
 				i = creatures.begin();
+				bool removed_current_creature = false;
 				while ((creatures.size()!=0) && (i != creatures.end()))
 				{
 					if (invert)
@@ -11380,8 +11387,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							if (current_creature == (&(*i)))
 							{
 								current_creature = nullptr;
+								removed_current_creature = true;
 							}
 							creatures.erase(i);
+							if (creatures.size() == 0)
+								return;
 							i = creatures.begin();
 						}
 						else
@@ -11399,8 +11409,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 							if (current_creature == (&(*i)))
 							{
 								current_creature = nullptr;
+								removed_current_creature = true;
 							}
 							creatures.erase(i);
+							if (creatures.size() == 0)
+								return;
 							i = creatures.begin();
 							//i->remove_alias("@current"); ////////
 						}
@@ -11416,6 +11429,42 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				++next;
 				used_command = true;
 				did_erase = true;
+
+				if (creatures.size() == 0)
+					return;
+				
+
+				//Added this segment 8/12/2025 because I got annoyed at how removing creatures whose turns precede the highlighted creature would cause the turn order to shift forward. Can delete if it causes bugs later.
+				if (!removed_current_creature)
+				{
+					cleanup_current();
+					i->remove_alias("@current");
+					int tc = 0;
+					for (auto i = creatures.begin(); i != creatures.end(); ++i)
+					{
+						i->set_turn_count(tc);
+						++tc;
+					}
+					for (auto i = creatures.begin(); i != creatures.end(); ++i)
+					{
+						if (i->get_name() == cur_creature_name)
+						{
+							next = i;
+							i->add_alias("@current");
+							next = i;
+							move_turn = i->get_turn_count();
+							current_turn = move_turn;
+							current_creature = &(*i);
+							//std::cout << " >> " << current_creature->get_name() << "  <<\n";
+							//new_turn = true;
+							//file_load_disable = false;
+						}
+					}
+				}
+
+
+
+				
 			};
 			auto all_names = i->get_all_names();
 			for (auto alias_iterator = all_names.begin(); alias_iterator != all_names.end(); ++alias_iterator)
