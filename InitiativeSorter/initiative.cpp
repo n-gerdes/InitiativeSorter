@@ -1795,9 +1795,70 @@ public:
 
 	inline const bool operator<(const creature& other) const
 	{
+		auto sort_by_name = [&]() -> bool
+			{
+				bool matches_until_digits = false;
+				auto is_digit = [&](char c) -> bool
+					{
+						if (c == '0')
+							return true;
+						else if (c == '1')
+							return true;
+						else if (c == '2')
+							return true;
+						else if (c == '3')
+							return true;
+						else if (c == '4')
+							return true;
+						else if (c == '5')
+							return true;
+						else if (c == '6')
+							return true;
+						else if (c == '7')
+							return true;
+						else if (c == '8')
+							return true;
+						else if (c == '9')
+							return true;
+
+						return false;
+					};
+
+				auto first_digit = [&](const std::string& name) -> int
+					{
+						for (int i = 0; i < name.size(); ++i)
+						{
+							if (is_digit(name[i]))
+								return i;
+						}
+						return std::string::npos;
+					};
+				
+				auto has_digits = [&](const std::string& name) -> bool
+					{
+						return first_digit(name) != std::string::npos;
+					};
+
+				if (has_digits(name) && has_digits(other.name))
+				{
+
+					std::string my_pre_digits = name.substr(0, first_digit(name));
+					std::string other_pre_digits = name.substr(0, first_digit(other.name));
+
+					if (my_pre_digits == other_pre_digits)
+					{
+						int digit_index = first_digit(name);
+						int my_digits = std::stoi(name.substr(digit_index));
+						int other_digits = std::stoi(other.name.substr(digit_index));
+						return my_digits < other_digits;
+					}
+				}
+				
+				return name < other.name;
+			};
 		if (initiative == other.initiative)
 			if (modifier == other.modifier)
-				return name < other.name;
+				return sort_by_name();
 			else
 				return modifier > other.modifier;
 		return initiative > other.initiative;
