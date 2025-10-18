@@ -1,0 +1,12 @@
+reroll @all
+monster grung
+grung1 flag #purple
+alias grung1 purple1
+alias grung1 p1
+alias grung1 frog1
+alias grung1 toad1
+clone grung1
+sort @grung
+monster slithering_tracker
+slithering_tracker1.max_hp /= 2
+round 1

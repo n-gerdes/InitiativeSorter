@@ -1,0 +1,9 @@
+monster phase_spider
+monster giant_spider2024
+clone-1 phase_spider1 #pc
+clone phase_spider1 #pc
+clone-1 giant_spider1 #pc
+clone giant_spider1 #pc
+clone giant_spider1 #pc
+sort @giant_spider
+sort @phase_spider

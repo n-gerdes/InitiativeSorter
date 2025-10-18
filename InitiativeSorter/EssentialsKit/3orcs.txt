@@ -1,0 +1,3 @@
+orc hp:15 ac:13 +1 aliases:o
+clone orc 3
+rm orc

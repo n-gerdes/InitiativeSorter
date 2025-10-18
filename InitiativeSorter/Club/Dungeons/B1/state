@@ -1,0 +1,14 @@
+reset
+dc 10
+claude 18 +2 str:0 int:0 wis:0 cha:0  hp:11/11 flags:pc,party,core ac:17
+alias claude gracen
+alias claude c
+alias claude g
+sabel 11 +3 str:0 int:0 wis:0 cha:0  hp:10/10 flags:pc,party,core ac:18
+alias sabel chloe
+alias sabel s
+T 11 +1 str:0 int:0 wis:0 cha:0  hp:9/9 flags:pc,party,core,#simple
+alias T owen
+round 5
+turn claude
+simple display

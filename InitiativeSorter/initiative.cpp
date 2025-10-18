@@ -1664,8 +1664,8 @@ public:
 	inline int roll_initiative()
 	{
 		int d20 = 1 + (rand() % 20);
-		if (has_flag_case_insensitive("initiative_advantage") || has_flag_case_insensitive("advantage_initiative") || has_flag_case_insensitive("init_advantage")
-			|| has_flag_case_insensitive("init_adv") || has_flag_case_insensitive("advantage_init") || has_flag_case_insensitive("adv_init")
+		if (has_flag_case_insensitive("initiative_advantage") || has_flag_case_insensitive("advantage_initiative") || has_flag_case_insensitive("init_advantage") || has_flag_case_insensitive("advantage_on_initiative") || has_flag_case_insensitive("advantage_on_init")
+			|| has_flag_case_insensitive("init_adv") || has_flag_case_insensitive("advantage_init") || has_flag_case_insensitive("adv_init") || has_flag_case_insensitive("has_advantage_on_init") || has_flag_case_insensitive("has_advantage_on_initiative") || has_flag_case_insensitive("has_initiative_advantage")
 			)
 		{
 			int d20_2 = 1 + (rand() % 20);
@@ -17718,8 +17718,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				{
 					int len = ("rename " + lowercase_name + " ").length();
 					std::string new_name = original_dummy_line.substr(len);
-					i->set_name(new_name);
-					used_command = true;
+					if (name_is_unique(new_name, creatures))
+					{
+						i->set_name(new_name);
+						used_command = true;
+					}
 				}
 				else if ((dummy_line == "reroll all" || dummy_line == "reroll @all" || dummy_line == "@all reroll" || dummy_line == "all reroll") && !i->touched)
 				{

@@ -1,0 +1,5 @@
+monster custom/jack_o_lantern
+clone jack_o_lantern1 8
+sort @jack_o_lantern1
+sort @jack_o_lantern
+read H13-2-desc.txt

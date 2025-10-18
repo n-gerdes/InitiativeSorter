@@ -1,2 +1,1 @@
-small -2 hp:133 ac:8 flags:enemy,mob,zombies,undead,horde,mass,mob aliases:sh,small_horde,smallhorde,sm,s,sl,h,z,horde,zombies str:6 con:6 dex:-2 wis:0 int:-4 cha:-1 start:monsters/scripts/small_zombie_horde.txt
-reminder small Frightful Presence & Stench (DCs 14)
+horde1 -2 hp:133 ac:8 flags:#enemy,#enemies,#secondary_necrotic_dmg,#mob,#zombies,#zombie,#undead,#hordes,#horde,#mass,#mob,#masses,#mobs aliases:small1,sh1,small_horde1,smallhorde1,sm1,s1,sl1,h1,z1,zombies1 str:6 con:6 dex:-2 wis:0 int:-4 cha:-1 start:monsters/scripts/small_zombie_horde.txt

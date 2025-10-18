@@ -11,4 +11,6 @@ alias vampire l
 alias vampire lamor
 alias vampire duke
 alias vampire count
+alias vampire vl
 v.LR = 3
+reminder vampire_lord FRIGHTFUL PRESENCE: DC 17

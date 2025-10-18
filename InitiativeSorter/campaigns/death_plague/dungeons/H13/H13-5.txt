@@ -1,0 +1,9 @@
+Along the walls of this circular chamber is a tall stone staircase, leading up to another room above. 
+A heavy-looking iron cauldron stands over the embers of a dying fire in an alcove beneath, a strange dark liquid steaming from within. 
+Next to it a shelf is covered in mismatched vials and bottles with glowing liquids of varying color and consistency.
+The light of floating magic candles flickers all across the dark room, casting long dancing shadows. 
+An old bookshelf holds ancient tomes and grimoires, and a table covered in strange plants and vials with various powders and other scattered ingredients.
+...
+You hear cackling echo from upstairs (H13-6)
+
+*Can also exit back out to H13-4

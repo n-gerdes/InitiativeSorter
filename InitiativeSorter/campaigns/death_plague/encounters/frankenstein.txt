@@ -1,0 +1,10 @@
+add f1 aliases:creature1,c1,phase1 ac:9 hp:142 str:4 dex:-1 -1 con:4 int:-2 wis:0 cha:-3 flags:#boss,#enemy,#magic_resistance,#addslightning start:.../:::/monsters/scripts/flesh_golem2024.txt
+f1::death_burst=2d10
+add f2 aliases:creature2,c2,phase2 ac:13 hp:178 str:6 dex:-1 -1 con:4 int:-2 wis:0 cha:-3 flags:#boss,#enemy,#magic_resistance,#addslightning start:.../:::/monsters/scripts/frankenstein.txt
+monster skeleton
+clone sk1 4
+sort @skeleton
+monster imp
+rename imp1 igor
+alias igor imp
+add doc ac:16 hp:37 str:1 con:5 dex:4 int:7 wis:-1 cha:3 +4 aliases:frankenstein,victor,frank flags:#enemy,#enemies

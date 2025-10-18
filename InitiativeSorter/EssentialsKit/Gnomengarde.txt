@@ -1,0 +1,3 @@
+ld G6.txt
+ld G7.txt
+ld G8.txt

@@ -1,0 +1,2 @@
+gnome aliases:g,rg,rock_gnome,rockgnome,rgnome hp:7 ac:13 +0
+gnome.slots=2

@@ -1,0 +1,50 @@
+reset
+dc 18
+Manus 19 +5 str:0 int:0 wis:0 cha:0  hp:97/108 flags:#PC,#party,#core,#simple ac:17
+Manus thp 14
+alias Manus wilpert
+alias Manus vilpert
+alias Manus gregory
+alias Manus greg
+alias Manus braven
+oswald 14 +3 str:0 int:0 wis:0 cha:0  hp:59/59 flags:#pc,#core,#party,#simple ac:16
+oswald thp 14
+alias oswald o
+alias oswald owen
+Zrird 7 +2 str:0 int:0 wis:0 cha:0  hp:72/81 flags:#PC,#party,#core,#simple ac:18
+alias Zrird z
+Zrird:#hd 8
+big1 6 -2 str:7 dex:-2 con:6 int:-4 wis:1 cha:3  hp:202/202 flags:enemy,mob,zombies,undead,horde,mass,#simple ac:16 start:monsters/scripts/large_zombie_horde.txt
+alias big1 bh1
+alias big1 big_horde1
+alias big1 bighorde1
+alias big1 horde1
+alias big1 zh1
+alias big1 bzh1
+alias big1 zombies1
+big1:#atk_bonus 8
+big1:attacks 2
+reminder big1 Frightful Presence & Stench (DCs 20); 1 attack at 100 - 1 hp.
+Gabriel 3 +2 str:0 int:0 wis:0 cha:0  hp:65/65 flags:#core,#ally,#npc,#simple ac:18
+alias Gabriel gabe
+alias Gabriel horse
+alias Gabriel angel
+Jonsi 2 +0 str:0 int:0 wis:0 cha:0  hp:115/121 flags:#PC,#party,#core,#simple ac:21
+Jonsi thp 14
+alias Jonsi hoffer
+alias Jonsi ser
+alias Jonsi j
+big2 1 -2 str:7 dex:-2 con:6 int:-4 wis:1 cha:3  hp:202/202 flags:enemy,mob,zombies,undead,horde,mass,#simple ac:16 start:monsters/scripts/large_zombie_horde.txt
+alias big2 bh2
+alias big2 big_horde2
+alias big2 bighorde2
+alias big2 horde2
+alias big2 zh2
+alias big2 bzh2
+alias big2 zombies2
+big2:#atk_bonus 8
+big2:attacks 2
+reminder big2 Frightful Presence & Stench (DCs 20); 1 attack at 100 - 1 hp.
+round 1
+turn Zrird
+simple display

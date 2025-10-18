@@ -1,0 +1,2 @@
+add legendary_hydra_head1 aliases:lhh1,lh1,llh1,hy1,h1,hydra1,hydrah1,hydra_head1,head1,hhead1,h_head1 ac:15 hp:94 start:.../:::/monsters/scripts/l_hydra_head.txt str:5 dex:1 con:5 int:-4 wis:0 cha:-2 flags:#hydra,#hydras,#hydra_head,#hydra_heads
+reminder legendary_hydra_head1 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.

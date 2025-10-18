@@ -1,0 +1,5 @@
+greater_sentinel_demon1 aliases:gsd1,d1,sd1,md1,melee_demon1 ac:18 hp:264 str:14 dex:2 con:12 int:2 wis:4 cha:12 flags:#magic_resistance,#demon,#demons,#devil,#devils,#sentinel_demon,#sentinel_demons,#fiend,#fiends,#enemy,#enemies
+reminder greater_sentinel_demon1 FRIGHTFUL PRESENCE: DC 22
+recharge1-6 greater_sentinel_demon1 r1
+recharge1-6 greater_sentinel_demon1 r2
+recharge1-6 greater_sentinel_demon1 r3

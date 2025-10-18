@@ -1,0 +1,3 @@
+mimic aliases:m +1 hp:58 ac:12
+mimic reminder ADHESIVE TRAIT!
+mimic notes People who touch it are grappled.\nPeople who it hits are grappled.\nIt has advantage on grapple contests (+3).

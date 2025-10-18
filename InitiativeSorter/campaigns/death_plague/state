@@ -1,0 +1,126 @@
+reset
+dc 18
+archers1 18 +3 str:0 int:0 wis:0 cha:0  hp:150/150 flags:#ally,#archer,#archers,#simple,#allies ac:16 start:.../:::/monsters/scripts/archer_unit_9.txt
+archers1 thp 15
+alias archers1 a1
+alias archers1 archer_unit1
+alias archers1 archers_unit1
+alias archers1 au1
+archers1:#atk_bonus 6
+archers1:#d8 4
+archers1:#dmg_bonus 3
+ashen 17 +3 str:0 int:0 wis:0 cha:0  hp:52/52 flags:#pc ac:15
+ashen thp 17
+alias ashen ashenwood
+alias ashen ash
+boric 17 +0 str:0 int:0 wis:0 cha:0  hp:101/101 flags:#PC ac:16
+boric thp 7
+alias boric owen
+alias boric b
+alias boric borik
+alias boric borric
+alias boric fletch
+alias boric borc
+Manus 16 +5 str:0 int:0 wis:0 cha:0  hp:118/118 flags:#PC,#party,#core,#pc,#simple,swallowed ac:19
+Manus thp 10
+alias Manus wilpert
+alias Manus vilpert
+alias Manus gregory
+alias Manus greg
+alias Manus braven
+Hammer1 16 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:52/52 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,reaction,#hammer ac:20 start:monsters/scripts/veteran_greatsword.txt
+alias Hammer1 minion1
+alias Hammer1 hm1
+alias Hammer1 melee1
+alias Hammer1 knight1
+alias Hammer1 h1
+alias Hammer1 wh1
+alias Hammer1 warhammer1
+alias Hammer1 m1
+alias Hammer1 k1
+Hammer1:#atk_bonus 2
+Hammer1:#d6 2
+Hammer1:#dmg_bonus 0
+Hammer1:can_parry 1
+Hammer1:hd 8
+note Hammer1 Plate Armor, Greatsword
+recharge1 Hammer1 reaction
+archers2 16 +3 str:0 int:0 wis:0 cha:0  hp:150/150 flags:#ally,#archer,#archers,#simple,#allies ac:16 start:.../:::/monsters/scripts/archer_unit_9.txt
+alias archers2 a2
+alias archers2 archer_unit2
+alias archers2 archers_unit2
+alias archers2 au2
+archers2:#atk_bonus 6
+archers2:#d8 4
+archers2:#dmg_bonus 3
+warhorse1 16 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
+alias warhorse1 horse1
+Hammer2 15 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:52/52 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,reaction,#hammer ac:20 start:monsters/scripts/veteran_greatsword.txt
+Hammer2 thp 11
+alias Hammer2 minion2
+alias Hammer2 hm2
+alias Hammer2 melee2
+alias Hammer2 knight2
+alias Hammer2 h2
+alias Hammer2 wh2
+alias Hammer2 warhammer2
+alias Hammer2 m2
+Hammer2:#atk_bonus 2
+Hammer2:#d6 2
+Hammer2:#dmg_bonus 0
+Hammer2:can_parry 1
+Hammer2:hd 8
+note Hammer2 Plate Armor, Greatsword
+recharge1 Hammer2 reaction
+kiran 15 +0 str:0 int:0 wis:0 cha:0  hp:59/59 flags:#pc ac:17
+kiran thp 12
+alias kiran k
+alias kiran kyran
+Hammer3 14 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:52/52 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,reaction,#hammer ac:20 start:monsters/scripts/veteran_greatsword.txt
+Hammer3 thp 11
+alias Hammer3 minion3
+alias Hammer3 hm3
+alias Hammer3 melee3
+alias Hammer3 knight3
+alias Hammer3 h3
+alias Hammer3 wh3
+alias Hammer3 warhammer3
+alias Hammer3 m3
+Hammer3:#atk_bonus 2
+Hammer3:#d6 2
+Hammer3:#dmg_bonus 0
+Hammer3:can_parry 1
+Hammer3:hd 8
+note Hammer3 Plate Armor, Greatsword
+recharge1 Hammer3 reaction
+warhorse2 9 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
+alias warhorse2 horse2
+hans 8 -1 str:0 int:0 wis:0 cha:0  hp:69/69 flags:#pc ac:19
+hans thp 17
+alias hans hoffman
+alias hans hoff
+alias hans han
+alias hans kyler
+alias hans hanz
+archers3 4 +3 str:0 int:0 wis:0 cha:0  hp:150/150 flags:#ally,#archer,#archers,#simple,#allies ac:16 start:.../:::/monsters/scripts/archer_unit_9.txt
+archers3 thp 17
+alias archers3 a3
+alias archers3 archer_unit3
+alias archers3 archers_unit3
+alias archers3 au3
+archers3:#atk_bonus 6
+archers3:#d8 4
+archers3:#dmg_bonus 3
+Zrird 3 +2 str:0 int:0 wis:0 cha:0  hp:87/87 flags:#PC,#party,#core,#pc ac:18
+Zrird thp 17
+alias Zrird z
+Zrird:#hd 8
+Jonsi 3 +0 str:0 int:0 wis:0 cha:0  hp:121/130 flags:#PC,#party,#core,#pc ac:19
+alias Jonsi hoffer
+alias Jonsi ser
+alias Jonsi j
+warhorse3 1 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
+alias warhorse3 horse3
+round 1
+turn archers1
+simple display

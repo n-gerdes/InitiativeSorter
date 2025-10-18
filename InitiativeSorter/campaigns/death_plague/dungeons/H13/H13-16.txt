@@ -1,0 +1,13 @@
+Shares connections with:
+	H13-17
+	H13-19
+	H13-14
+	H13-15
+
+	H13-20 (the boss room). Written above it: "The pattern holds the key."
+		The way is blocked by a barrier of evil magical darkness, almost like smoke. 
+		It's physically permeable, but deals 3d10 necrotic damage on contact & per round to anyone 
+		not invited by the witches; this is pre-emptively telegraphed by telling players that the 
+		darkness seems cold and uninviting before they step in, and asking them if they're sure. 
+
+		The darkness can be shut off by flipping the switches in H13 – 12 (page 19) to the correct pattern.

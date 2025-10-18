@@ -1,0 +1,4 @@
+shadow_demon1 +2 str:9 dex:3 con:6 int:6 wis:8 cha:9 aliases:shadowstep_demon1,sd1 hp:147 ac:16 flags:#magic_resistance
+regen shadow_demon1 10
+sd1.lr=3
+reminder sd1 Manual turns - remember legendary actions and frightful presence!

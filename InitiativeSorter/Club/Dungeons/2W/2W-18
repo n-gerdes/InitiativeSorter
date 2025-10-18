@@ -1,0 +1,5 @@
+reroll @all
+monster merfolk
+clone merfolk1 17
+sort @merfolk
+round 1

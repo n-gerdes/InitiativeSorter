@@ -1,0 +1,6 @@
+reroll @all
+round 1
+monster skeleton
+clone skeleton1 3
+sort @skeletons
+print These skeletons wield tridents (only) instead!

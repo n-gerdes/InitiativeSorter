@@ -1,0 +1,44 @@
+reset
+dc 10
+slithering_tracker1 22 +4 str:3 dex:4 con:2 int:0 wis:2 cha:0  hp:19/19 flags:#initiative_advantage,#ooze,#slithering_tracker,#slithering_trackers,#tracker,#trackers,#enemy,#enemies,#oozes ac:14 start:.../:::/monsters/scripts/slithering_tracker.txt
+slithering_tracker1 max_hp 39
+slithering_tracker1 max_hp 19
+alias slithering_tracker1 st1
+alias slithering_tracker1 tracker1
+alias slithering_tracker1 t1
+alias slithering_tracker1 slt1
+alias slithering_tracker1 sl1
+reminder slithering_tracker1 walk/climb/swim 30ft.,\nSpider Climb\nCan enter other creature's spaces, squeeze to 1"\nCan hide in water as a bonus action, roll with advantage.
+note slithering_tracker1 Resist nonmagial BPS/nVulnerable to cold/fire\nImmune to conditions except poison
+mabel 18 +3 str:0 int:0 wis:0 cha:0  hp:11/14 flags:#pc,#PC,#party,#core ac:18
+alias mabel chloe
+alias mabel mbl
+alias mabel mb
+alias mabel ml
+alias mabel clh
+alias mabel chl
+grung1 15 +2 str:-2 dex:4 con:2 int:0 wis:0 cha:0  hp:11/11 flags:#grung,#frog,#grungs,#frogs,#toad,#toads,#enemy,#enemies,#purple ac:12 start:.../:::/monsters/scripts/grung.txt
+alias grung1 g1
+alias grung1 purple1
+alias grung1 p1
+alias grung1 frog1
+alias grung1 toad1
+grung1:#atk_bonus 4
+grung1:#d4 1
+grung1:#dmg_bonus 2
+grung1:#has_color 1
+reminder grung1 speed 25ft., climb 25 ft.\nLong jump 25ft., high jump 15ft.
+p3 12 +2 str:0 int:0 wis:0 cha:0  hp:23/23 flags:#pc,#PC,#party,#core ac:14
+alias p3 prank
+p6 12 +1 str:0 int:0 wis:0 cha:0  hp:23/23 flags:#pc,#PC,#party,#core ac:13
+alias p6 grant
+grung2 10 +2 str:-2 dex:4 con:2 int:0 wis:0 cha:0  hp:11/11 flags:#grung,#frog,#grungs,#frogs,#toad,#toads,#enemy,#enemies,#purple ac:12 start:.../:::/monsters/scripts/grung.txt
+alias grung2 g2
+alias grung2 purple2
+alias grung2 p2
+alias grung2 frog2
+alias grung2 toad2
+reminder grung2 speed 25ft., climb 25 ft.\nLong jump 25ft., high jump 15ft.
+round 1
+turn p3
+simple display

@@ -1,0 +1,42 @@
+rf @current _does_bite
+//Set number of attacks
+@current::#attacks=3
+if @current bite {print Bite? 1=yes, 0=no}
+
+if @current bite {@current::#_does_bite=input()}
+
+@current::_does_bite==1 {@current::#attacks=2}
+print GREATSWORDS
+rf @current secondary_necrotic
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d8=0
+@current::#d6=2
+@current::#dmg_bonus=3
+@current::#secondary_d6=0
+
+//Data has been configured, now roll for greatswords
+ld core/roll_attacks.txt
+
+
+//If bite option was chosen, that gets resolved next.
+@current::_does_bite!=1 {return;}
+//If not biting, then it simply returns
+
+//If it is biting, then it prints the bite attack
+println
+print --------------------------------------------------
+print BITE
+@current::#attacks=1
+@current::#atk_bonus=6
+@current::#d6=0
+@current::#d8=1
+@current::#dmg_bonus=3
+@current::#secondary_d6=2
+flag @current #secondary_necrotic
+ld core/roll_attacks.txt
+rf @current #secondary_necrotic
+rf @current bite
+@current::_does_bite=0

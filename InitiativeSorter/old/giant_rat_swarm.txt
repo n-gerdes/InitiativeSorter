@@ -1,0 +1,1 @@
+add rats1 ac:16 hp:126 start:.../:::/monsters/scripts/giant_rat_swarm.txt flags:#swarm,#enemy,#horde,#rats,#rat,#enemies aliases:swarm1,rat1,rs1 str:-1 dex:1 con:-1 int:-4 wis:0 cha:-4

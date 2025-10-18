@@ -1,0 +1,5 @@
+reroll @all
+monster skeleton
+clone skeleton1 3
+sort @skeleton
+round 1

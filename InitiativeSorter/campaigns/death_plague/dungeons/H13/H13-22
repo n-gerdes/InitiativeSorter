@@ -1,0 +1,7 @@
+monster corpse_flower
+@current::_temp_counter = #pc
+@current::_temp_counter--
+clone corpse_flower1 @current::_temp_counter
+rv @current _temp_counter
+@corpse_flowers::corpses=1d6+3
+sort @corpse_flowers

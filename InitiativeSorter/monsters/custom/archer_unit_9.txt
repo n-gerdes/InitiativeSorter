@@ -1,0 +1,5 @@
+archers1 15 +3 str:0 int:0 wis:0 cha:0  hp:150/150 flags:#ally,#archer,#archers,#simple,#allies ac:16 start:.../:::/monsters/scripts/archer_unit_9.txt
+alias archers1 a1
+alias archers1 archer_unit1
+alias archers1 archers_unit1
+alias archers1 au1

@@ -1,0 +1,3 @@
+lesser_sentinel_demon1 aliases:lsd1,d1,sd1,md1,melee_demon1 ac:18 hp:142 str:11 dex:1 con:9 int:2 wis:4 cha:5 flags:#magic_resistance,#demon,#demons,#devil,#devils,#sentinel_demon,#sentinel_demons,#fiend,#fiends,#enemy,#enemies
+reminder lesser_sentinel_demon1 FRIGHTFUL PRESENCE: DC 18
+recharge1-6 lesser_sentinel_demon1 r

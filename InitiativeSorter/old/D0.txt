@@ -1,0 +1,3 @@
+ld .../:::/monsters/custom/elite_archer.txt
+clone archer1 8
+sort @archer

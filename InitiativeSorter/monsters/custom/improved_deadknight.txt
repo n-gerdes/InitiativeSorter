@@ -1,0 +1,5 @@
+death_plague_knight1 +3 ac:18 hp:150 flags:#enemy,#enemies,#guard,#guards,#undead,#knight,#knights,vomit aliases:knight1,guard1,dn1,dk1,dpk1,plague_knight1,pk1,deadknight1,dk1 str:3 dex:6 con:6 int:0 wis:0 cha:1 start:monsters/scripts/normal_deadknight.txt
+death_plague_knight1 recharge6 bite
+death_plague_knight1 recharge1-6 reaction
+death_plague_knight1 reminder speed 40ft, has Aggressive bonus action.
+death_plague_knight1.parry_bonus=3

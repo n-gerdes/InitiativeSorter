@@ -1,0 +1,9 @@
+add _temp_global_vars
+_temp_global_vars.count = #pc
+_temp_global_vars.count *= 2
+_temp_global_vars.count--
+monster shadow
+clone shadow1 _temp_global_vars.count
+rm _temp_global_vars
+sort @shadow
+add hag ac:17 hp:112 +2 str:4 dex:2 con:3 int:3 wis:2 cha:3

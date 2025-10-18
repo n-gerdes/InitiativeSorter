@@ -1,0 +1,39 @@
+print MELEES
+//Set number of attacks
+@current::#attacks=2
+rf @current secondary_necrotic
+//Configure attack data
+@current::#atk_bonus=7
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=4
+@current::#secondary_d10=0
+@current::#secondary_d6=0
+//Data has been configured, now roll an attack
+ld core/roll_attacks.txt
+
+println
+print BITE
+@current::#prev_hit=0
+@current::any_dmg=0
+@current rf adv
+println Did previous two attacks hit? (1 = yes, 0 = no)
+@current::#prev_hit = input()
+@current::#prev_hit==1 {flag @current #adv}
+@current::#prev_hit==0 {println Target missing hp?}
+@current::#prev_hit==0 {@current::#any_dmg = input()}
+@current::#any_dmg==1 {flag @current #adv}
+@current::#attacks=1
+@current::#atk_bonus=7
+@current::#d8=1
+@current::#dmg_bonus=4
+@current::#secondary_d10=0
+@current::#secondary_d6=0
+@current::#any_dmg==1 {@current::#secondary_d10=2}
+@current::#prev_hit==1 {@current::#secondary_d10=2}
+@current::#secondary_d10==0 {@current::#secondary_d6=2}
+@current::#secondary_d10==2 {println doing extra necrotic}
+flag @current #secondary_necrotic
+ld core/roll_attacks.txt
+rf @current #secondary_necrotic

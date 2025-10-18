@@ -1,0 +1,13 @@
+reset
+dc 13
+zid 19 +3 str:0 int:0 wis:0 cha:0  hp:18/32 flags:#pc ac:16
+ash 18 +2 str:0 int:0 wis:0 cha:0  hp:4/23 flags:#pc ac:14
+alias ash kath
+pious 17 +2 str:0 int:0 wis:0 cha:0  hp:10/25 flags:#pc ac:16
+alias pious gracen
+carnyn 11 +1 str:0 int:0 wis:0 cha:0  hp:10/18 flags:#pc ac:17
+alias carnyn noah
+alias carnyn carnon
+round 6
+turn zid
+simple display

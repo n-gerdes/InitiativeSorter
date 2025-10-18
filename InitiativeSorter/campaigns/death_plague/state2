@@ -1,0 +1,52 @@
+reset
+dc 18
+Manus 19 +5 str:0 int:0 wis:0 cha:0  hp:88/88 flags:#PC,#party,#core ac:17
+Manus max_hp 108
+Manus max_hp 88
+alias Manus wilpert
+alias Manus vilpert
+alias Manus gregory
+alias Manus greg
+alias Manus braven
+oswald 14 +3 str:0 int:0 wis:0 cha:0  hp:59/59 flags:#pc,#core,#party ac:16
+alias oswald o
+alias oswald owen
+crawling_claw2 14 +0 str:1 dex:2 con:0 int:-3 wis:0 cha:-3  hp:2/2 flags:#undead,#crawling_claw,#crawling_claws,#hands,#hand ac:12 start:.../:::/monsters/scripts/crawling_claw.txt
+alias crawling_claw2 cc2
+alias crawling_claw2 hand2
+crawling_claw2:#atk_bonus 3
+crawling_claw2:#d4 1
+crawling_claw2:#dmg_bonus 1
+reminder crawling_claw2 speed 20ft., climb 20ft.\nBlindsight 30ft (blind beyond that).
+Zrird 7 +2 str:0 int:0 wis:0 cha:0  hp:72/81 flags:#PC,#party,#core ac:18
+alias Zrird z
+Zrird:#hd 8
+big 6 -2 str:7 dex:-2 con:6 int:-4 wis:1 cha:3  hp:202/202 flags:enemy,mob,zombies,undead,horde,mass,#simple ac:16 start:monsters/scripts/large_zombie_horde.txt
+alias big bh
+alias big big_horde
+alias big bighorde
+alias big horde
+alias big zh
+alias big bzh
+alias big zombies
+big:#atk_bonus 8
+big:attacks 2
+reminder big Frightful Presence & Stench (DCs 20); 1 attack at 100 - 1 hp.
+crawling_claw1 4 +0 str:1 dex:2 con:0 int:-3 wis:0 cha:-3  hp:2/2 flags:#undead,#crawling_claw,#crawling_claws,#hands,#hand ac:12 start:.../:::/monsters/scripts/crawling_claw.txt
+alias crawling_claw1 cc1
+alias crawling_claw1 hand1
+crawling_claw1:#atk_bonus 3
+crawling_claw1:#d4 1
+crawling_claw1:#dmg_bonus 1
+reminder crawling_claw1 speed 20ft., climb 20ft.\nBlindsight 30ft (blind beyond that).
+Gabriel 3 +2 str:0 int:0 wis:0 cha:0  hp:65/65 flags:#core,#ally,#npc,#simple ac:18
+alias Gabriel gabe
+alias Gabriel horse
+alias Gabriel angel
+Jonsi 2 +0 str:0 int:0 wis:0 cha:0  hp:115/121 flags:#PC,#party,#core ac:21
+alias Jonsi hoffer
+alias Jonsi ser
+alias Jonsi j
+round 1
+turn Manus
+simple display

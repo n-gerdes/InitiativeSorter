@@ -1,0 +1,5 @@
+reroll @all
+monster custom/master_thief
+clone master_thief 3
+sort @master_thief
+round 1

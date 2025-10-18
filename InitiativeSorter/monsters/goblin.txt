@@ -1,0 +1,2 @@
+add goblin1 aliases:g1,gb1,gob1,gbl1,gbln1,glb1 hp:7 ac:15 start:.../:::/monsters/custom/scripts/goblin.txt str:-1 dex:2 con:0 int:0 wis:-1 cha:-1 flags:#goblin,#goblins
+reminder goblin1 Can use Scimitar or Shortbow (80/320)\nCan Dash, Disengage, or Hide as a Bonus Action!

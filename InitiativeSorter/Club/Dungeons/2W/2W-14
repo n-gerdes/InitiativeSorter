@@ -1,0 +1,25 @@
+reroll @all
+monster grung
+clone grung1 5
+flag grung1 orange
+flag grung2 purple
+flag grung3 purple
+flag grung4 purple
+flag grung5 purple
+flag grung6 purple
+rename grung1 orange1
+alias orange1 o1
+alias o1 o
+rename grung2 purple1
+rename grung3 purple2
+rename grung4 purple3
+rename grung5 purple4
+rename grung6 purple5
+alias purple1 p1
+alias purple2 p2
+alias purple3 p3
+alias purple4 p4
+alias purple5 p5
+alias purple6 p6
+sort @purple
+round 1

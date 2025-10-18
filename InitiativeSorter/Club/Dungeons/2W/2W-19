@@ -1,0 +1,5 @@
+reroll @all
+monster kuo-toa
+clone kuo_toa1 5
+sort @kuo_toa
+round 1

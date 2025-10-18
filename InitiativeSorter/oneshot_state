@@ -1,0 +1,18 @@
+reset
+dc 10
+rex 6 +4 str:0 int:0 wis:0 cha:0  hp:72/72 flags:#enemy,#enemies,#boss,#bloodkill,#bandit,r,#simple ac:11
+recharge1 rex r
+bolt 5 +1 str:0 int:0 wis:0 cha:0  hp:46/46 flags:r,#simple,#pc ac:8
+recharge1 bolt r
+xithrak 4 +0 str:0 int:0 wis:0 cha:0  hp:56/56 flags:#PC,r,#simple ac:8
+alias xithrak x
+alias xithrak xith
+recharge1 xithrak r
+corya 3 +0 str:0 int:0 wis:0 cha:0  hp:56/56 flags:#PC,r,#simple ac:8
+alias corya cor
+alias corya cr
+alias corya c
+recharge1 corya r
+round 1
+turn rex
+simple display

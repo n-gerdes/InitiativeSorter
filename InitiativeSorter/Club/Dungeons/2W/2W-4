@@ -1,0 +1,8 @@
+reroll @all
+monster skeleton
+clone sk1 2
+sort @skeleton
+monster giant_frog
+clone gf1 2
+sort @frogs
+round 1

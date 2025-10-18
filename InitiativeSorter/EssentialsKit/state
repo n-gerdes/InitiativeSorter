@@ -1,0 +1,20 @@
+reset
+dc 13
+zid 19 +3 str:0 int:0 wis:0 cha:0  hp:18/32 flags:#pc ac:16
+ash 18 +2 str:0 int:0 wis:0 cha:0  hp:4/23 flags:#pc ac:14
+alias ash kath
+pious 17 +2 str:0 int:0 wis:0 cha:0  hp:10/25 flags:#pc ac:16
+alias pious gracen
+orc1 16 +3 str:0 int:0 wis:0 cha:0  hp:1/15 flags:#orc
+orc2 15 +3 str:0 int:0 wis:0 cha:0  hp:1/15 flags:#orc
+carnyn 11 +1 str:0 int:0 wis:0 cha:0  hp:10/18 flags:#pc ac:17
+alias carnyn noah
+alias carnyn carnon
+orc3 8 +3 str:0 int:0 wis:0 cha:0  hp:1/15 flags:#orc
+orc4 6 +3 str:0 int:0 wis:0 cha:0  hp:1/15 flags:#orc
+dragon 2 +0 str:4 dex:3 con:7 int:0 wis:3 cha:4  hp:8/133 ac:17
+alias dragon boss
+recharge5 dragon breath
+round 6
+turn zid
+simple display

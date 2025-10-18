@@ -1,0 +1,13 @@
+ld .../:::/monsters/custom/death_plague_vampire.txt
+ld .../:::/monsters/custom/death_plague_nosferatu.txt
+alias vampire1 vampire
+alias vamprie1 vampire_lord
+alias vampire1 v
+alias v count
+alias v count_newmore
+alias v newmore
+alias n1 n
+alias n1 nosferatu
+alias nosferatu1 wife
+alias nosferatu1 woman
+alias nosferatu1 bride

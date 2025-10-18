@@ -1,0 +1,44 @@
+Throughout the ages wizards, sorcerers, kings, and civilizations past have long protected their treasures and secrets in tombs, temples,
+crypts and dungeons of all kinds.
+Now, an unusual and ancient discovery beckons to be explored.
+
+*The party is brought in to investigate the recovered DUNGEON BOX - an seemingly decorative artifact discovered to have powerful magic
+on it, and when opened reveals an entire dungeon within. This extradimensional space could have only been made by an incredibly powerful
+magician or people.
+
+The dwarves who uncovered it fear to tread too deep, and mean only to research whatever historical or arcane artifacts might be
+significant within. They want these artifacts retrieved, and promise the party can keep whatever valuables they find within.
+If the party finds any magic items the dwarves can learn from, they might even be able to use their dwarven craftsmanship to upgrade or
+copy certain items.
+
+
+AREA IDEAS:
+Aquatic Dungeon: Half the dungeon is above water, the other half under water. You have to somehow find a way to breath underwater or
+drain certain areas to make them accessible; however, draining one area makes another impossible to reach, since you then can't swim
+across the chasm.
+So you can swim the chasm from A to B, and at the bottom of the chasm is C.
+C holds something they need to progress to Area D.
+However, to safely retrieve the item from C they'd have to drain 
+
+Could use the Archimedes puzzle from the last Indiana Jones as the intro to the aquatic dungeon.
+
+
+BOW PUZZLE IDEAS:
+A dungeon that's all about ranged attacks/weapons.
+In Room A you encounter a mob of slow-moving enemies starting at a range of 600 feet. You can easily defeat them via ranged attacks.
+In Room Boss you encounter a Ballistaman - an animated living humanoidish-looking construct wielding a ballista. If you aren't careful in your
+approach then it shoots you from afar and can easily kill you. To defeat it you have to use ranged attacks, or somehow sneak up to it
+without it noticing.
+In Room C there's archers up on a ledge. If you come in through the top entrance you can surprise them from behind and either ambush them
+or even push them down to their deaths. However, should players approach from below, they suffer arrow rain; climbing up is painfully slow
+and takes multiple rounds, so melees are in trouble. Ranged characters can fight the enemy fairly.
+
+
+VERTICAL DUNGEON:
+Entire dungeon is arranged VERTICALLY instead of horizontally, which makes it really hard cause gravity.
+The dungeon is ultimately centered around trying to climb to the boss room at the very top, where a biblically-accurate-angel-styled fallen angel stands as the final boss.
+Probably get some "divine intervention" during the battle, so I need to overtune it on purpose.
+
+Before you can climb to the top you have to free the angels resisting the demons in hell by defeating an archdemon, and then they can fly you up to the heavens.
+Lots of flying enemies in this dungeon, and some burrowing imps in "hell".
+"Angels fall and demons rise. The righteous see heavens above, and the mighty conquer hell below. Only great heroes can walk both roads."

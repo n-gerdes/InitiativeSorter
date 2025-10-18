@@ -1,0 +1,6 @@
+monster tree_blight
+@current::_pc_counter = #pc
+@current::_pc_counter -= 1
+clone tree_blight1 @current::_pc_counter
+rv @current _pc_counter
+sort @tree_blight

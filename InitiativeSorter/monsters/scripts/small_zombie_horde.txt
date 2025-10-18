@@ -1,7 +1,13 @@
 @current::hp>=1 {@current::attacks=1}
 @current::hp>=67 {@current::attacks=2}
 
-@current::#atk_bonus=7
-//@current::#d4=6
+println FRIGHTFUL PRESENCE (120 ft range): DC 14
+println STENCH (5 ft range): DC 14 vs Poisoned until end of its turn
 
-//ld core/roll_attacks.txt
+@current::#atk_bonus=7
+@current::#d4=4
+@current::#secondary_d4=2
+
+ld core/roll_attacks.txt
+
+print *Grapple on hit (escape DC 14)

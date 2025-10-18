@@ -1,0 +1,6 @@
+ooze aliases:o,gray_ooze,go hp:22 ac:8 -2
+clone ooze 2
+rm ooze
+orc hp:15 ac:13 +1
+clone orc @#pc
+rm orc

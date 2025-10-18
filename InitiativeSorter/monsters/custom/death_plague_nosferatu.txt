@@ -1,4 +1,1 @@
-add nosferatu1 aliases:n,minion,m hp:127 ac:17 flags:vomit,#vampire,#enemy,#nosferatu,#undead str:4 dex:7 con:4 int:2 wis:6 cha:3
-alias nosferatu1 vampire1
-alias nosferatu1 n1
-alias nosferatu1 v1
+add nosferatu1 aliases:n1,minion1,m1,v1 hp:127 ac:17 flags:vomit,#vampire,#enemy,#nosferatu,#undead str:4 dex:7 con:4 int:2 wis:6 cha:3 start:.../:::/monsters/scripts/death_plague_nosferatu.txt

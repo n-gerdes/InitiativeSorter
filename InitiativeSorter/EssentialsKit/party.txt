@@ -1,0 +1,12 @@
+pregen1 ac:14 hp:16 +1 flags:#pc aliases:p1
+pregen2 ac:11 hp:7 flags:#pc aliases:p2 +1
+pregen3 ac:14 hp:14 flags:#pc aliases:p3 +2
+pregen4 ac:14 hp:10 flags:#pc aliases:p4 +3
+pregen5 ac:13 hp:8 flags:#pc aliases:p5 +3
+pregen6 ac:13 hp:14 +1 flags:#pc aliases:p6
+pregen7 ac:14 hp:14 +2 flags:#pc aliases:p7
+pregen8 ac:14 hp:9 +1 flags:#pc aliases:p8
+pregen9 ac:16 hp:12 +2 flags:#pc aliases:p9
+pregen10 ac:14 hp:14 -1 flags:#pc aliases:p10
+pregen11 ac:13 hp:9 +2 aliases:p11 flags:#pc
+pregen12 ac:14 hp:12 aliases:p12 flags:#pc +3

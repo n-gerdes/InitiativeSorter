@@ -1,0 +1,6 @@
+orc hp:15 ac:13 +1 aliases:o flags:#orc
+clone orc #pc
+clone orc #pc
+clone orc #pc
+sort @orc
+rm orc

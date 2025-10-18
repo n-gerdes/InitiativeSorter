@@ -1,0 +1,8 @@
+add hutijin aliases:devil,demon,boss,hutujin hp:200 ac:19 +2 str:8 dex:9 con:14 int:6 wis:11 cha:7 flags:#magic_resistance
+hutijin.LR=3
+hutijin.dispel_magics=3
+recharge5-6 hutijin voice
+note hutijin Magic Resistance
+reminder hutijin Speed 30ft, Fly 60ft.\nInfernal Despair: Non-devils within 30ft have disadvantage on saves.
+regen hutijin 20
+hutijin.heals=1

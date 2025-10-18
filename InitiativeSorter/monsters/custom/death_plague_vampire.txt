@@ -2,4 +2,4 @@ vampire1 +4 hp:161 ac:18 str:4 dex:9 con:4 int:3 wis:7 cha:9 flags:#enemy,#undea
 alias vampire1 v1
 alias vampire1 boss1
 v1.LR = 3
-vampire reminder Attacks are not automated for Vampire!
+vampire reminder Attacks are not automated for Vampire!\nFRIGHTFUL PRESENCE: DC 17

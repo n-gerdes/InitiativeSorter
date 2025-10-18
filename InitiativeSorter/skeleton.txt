@@ -1,0 +1,2 @@
+skeleton1 +2 hp:13 ac:13 aliases:s1,sk1 start:.../:::/monsters/scripts/skeleton.txt
+reminder skeleton1 Vulnerable to Bludgeoning\nImmune to Poison/Exhaustion

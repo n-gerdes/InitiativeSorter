@@ -1,0 +1,4 @@
+ld .../:::/monsters/custom/death_plague_vampire_spawn.txt
+clone spawn1 2
+sort @spawn
+zombies 0

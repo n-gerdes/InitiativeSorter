@@ -1,0 +1,29 @@
+reset
+dc 10
+jeffrey 20 +1 str:0 int:0 wis:0 cha:0  hp:5/23 flags:#pc ac:13
+alias jeffrey jeff
+alias jeffrey jef
+alias jeffrey j
+deep_scion1 18 +1 str:4 dex:1 con:3 int:0 wis:3 cha:4  hp:0/67 flags:#enemy,#enemies,#deep,#deep_scion,#deep_scions,#deepscions,#scion,#scions ac:11 start:.../:::/monsters/scripts/deep_scion.txt
+alias deep_scion1 ds1
+alias deep_scion1 d1
+alias deep_scion1 scion1
+alias deep_scion1 deep1
+deep_scion1:#atk_bonus 6
+deep_scion1:#d10 0
+deep_scion1:#d4 0
+deep_scion1:#d6 1
+deep_scion1:#dmg_bonus 4
+sahar 8 +3 str:0 int:0 wis:0 cha:0  hp:20/20 flags:#pc ac:16
+alias sahar sa
+alias sahar s
+alias sahar sr
+alias sahar shr
+jack 7 +0 str:0 int:0 wis:0 cha:0  hp:12/15 flags:#pc ac:11
+alias jack rachel
+alias jack torin
+alias jack torn
+alias jack jac
+round 3
+turn jack
+simple display

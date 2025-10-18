@@ -1,0 +1,4 @@
+monster black_pudding
+clone-1 black_pudding1 #pc
+clone black_pudding1 #pc
+sort @black_pudding

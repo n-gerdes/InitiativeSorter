@@ -1,0 +1,27 @@
+print GREATSWORDS
+//Set number of attacks
+@current::#attacks=2
+rf @current secondary_necrotic
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d8=0
+@current::#d6=2
+@current::#dmg_bonus=4
+@current::#secondary_d10=0
+
+//Data has been configured, now roll an attack
+ld core/roll_attacks.txt
+
+println
+print BITE
+@current::#attacks=1
+@current::#atk_bonus=8
+@current::#d6=0
+@current::#d8=1
+@current::#dmg_bonus=4
+@current::#secondary_d10=2
+flag @current #secondary_necrotic
+ld core/roll_attacks.txt
+rf @current #secondary_necrotic

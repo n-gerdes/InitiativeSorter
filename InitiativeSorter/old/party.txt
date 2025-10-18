@@ -1,0 +1,4 @@
+Zrird +2 hp:81 flags:#PC,#party,#core ac:18 aliases:z
+Jonsi +0 hp:76 aliases:hoffer,ser,j flags:#PC,#party,#core ac:20
+Manus +5 hp:108 aliases:Wilpert,Vilpert,Gregory,Greg flags:#PC,#party,#core ac:17
+Gabriel +2 hp:65 aliases:Gabe,Horse,Angel flags:#core,#ally,#npc ac:18

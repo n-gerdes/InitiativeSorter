@@ -1,0 +1,5 @@
+monster boneless
+monster skeleton
+monster zombie
+monster crawling_claw
+clone crawling_claw1

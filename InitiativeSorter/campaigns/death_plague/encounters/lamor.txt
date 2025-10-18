@@ -1,0 +1,33 @@
+vampire +4 hp:229 ac:20 dex:9 wis:7 cha:9 str:4 int:8 con:4 flags:#enemy,#vampire
+alias vampire v
+alias vampire lord
+alias vampire b
+alias vampire boss
+alias vampire vl
+alias vampire l
+alias vampire lamor
+alias vampire duke
+reminder v 60 ft speed
+v.LR = 3
+nosferatu hp:127 ac:17 str:4 dex:7 con:4 int:2 wis:6 cha:3 flag:vomit aliases:spawn
+reminder nosferatu 40 ft speed, 40 ft climb.
+alias spawn minion
+flag spawn enemy
+flag spawn vampire
+flag spawn minion
+alias spawn m
+alias spawn s
+clone spawn 2
+rm spawn
+alias spawn1 Gideon
+alias spawn2 Elric
+alias Elric lrc
+alias Elric ec
+alias elric E
+alias Elric El
+alias Elric E1
+alias Gideon G1
+alias Gideon Gi
+alias Gideon Gid
+alias Gideon Gd
+alias Gideon Gdn

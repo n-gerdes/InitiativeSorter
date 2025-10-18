@@ -1,0 +1,6 @@
+reroll @all
+monster custom/strong_duelist
+monster custom/master_thief
+clone master_thief1
+sort @thief
+round 1

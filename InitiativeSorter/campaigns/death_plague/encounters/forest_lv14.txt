@@ -1,0 +1,10 @@
+monster custom/archer_devil
+clone archer_devil1
+sort @fiends
+add basic_undead 0 ac:8
+reminder basic_undead 20ft movement\n+0 to hit/1d12 dmg & grapple (escape DC 10)\nDie on 10+ dmg taken or a critical hit.\nCan call shot to head; -5 to hit, +2 dmg.
+basic_undead.dmg_threshold=10
+basic_undead.call_shot_atk_penalty=-5
+basic_undead.call_shot_dmg_bonus=2
+monster custom/deadknight_cr6
+monster custom/shadowstep_demon

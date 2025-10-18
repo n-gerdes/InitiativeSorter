@@ -1,0 +1,7 @@
+monster mimic
+clone mimic1 2
+sort @mimic
+monster custom/mimic_hoard
+monster quickling
+clone quickling1 3
+sort @quicklings

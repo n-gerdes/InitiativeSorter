@@ -1,0 +1,2 @@
+gargoyle1 +0 hp:67 ac:15 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#gargoyle,#gargoyles aliases:g1 str:2 dex:0 con:3 int:-2 wis:0 cha:-2 start:monsters/scripts/gargoyle2024.txt
+reminder gargoyle1 30 ft speed, 60 ft fly.\nFlyby (doesn't provoke opp. attacks when flying out of reach)

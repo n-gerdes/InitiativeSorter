@@ -1,0 +1,14 @@
+reset
+dc 10
+mabel 23 +3 str:0 int:0 wis:0 cha:0  hp:14/14 flags:#pc,#PC,#party,#core ac:18
+alias mabel chloe
+alias mabel mbl
+alias mabel mb
+alias mabel ml
+alias mabel clh
+alias mabel chl
+p3 21 +2 str:0 int:0 wis:0 cha:0  hp:23/23 flags:#pc,#PC,#party,#core ac:14
+p6 21 +1 str:0 int:0 wis:0 cha:0  hp:23/23 flags:#pc,#PC,#party,#core,rage ac:13
+round 7
+turn mabel
+simple display

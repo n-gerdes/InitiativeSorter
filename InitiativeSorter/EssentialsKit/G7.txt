@@ -1,0 +1,5 @@
+facktore aliases:f,gnome,g,fack,fa hp:7 ac:13 +0 4
+facktore.slots=2
+platform aliases:p,contraption,c,crossbow,machine,m hp:45 ac:13
+reminder platform Every 10 damage taken causes it to lose one of its four crossbows.\nIt can fire up to 2 crossbows at a time.\nAt 15 HP it has one attack, at 5 HP it has none.
+platform.attacks=2

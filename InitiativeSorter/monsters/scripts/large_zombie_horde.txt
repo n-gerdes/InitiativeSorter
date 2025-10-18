@@ -1,8 +1,13 @@
 @current::hp>=1 {@current::attacks=1}
 @current::hp>=101 {@current::attacks=2}
 
+println FRIGHTFUL PRESENCE (120 ft range): DC 20
+println STENCH (5 ft range): DC 20 vs Poisoned until end of its turn
+
 @current::#atk_bonus=8
+@current::#d4=6
+@current::#secondary_d4=3
 
-print Attacks resolved manually. Remember Frightful Presence and Stench!
+ld core/roll_attacks.txt
 
-//ld core/roll_attacks.txt
+print *Grapple on hit (escape DC 20)

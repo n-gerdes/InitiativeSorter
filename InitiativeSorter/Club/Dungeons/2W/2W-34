@@ -1,0 +1,5 @@
+reroll @all
+monster custom/strong_duelist
+clone strong_duelist1
+sort @strong_duelist
+round 1

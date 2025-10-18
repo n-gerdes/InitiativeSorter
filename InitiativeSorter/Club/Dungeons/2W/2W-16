@@ -1,0 +1,6 @@
+reroll @all
+monster sahuagin
+monster reef_shark
+clone reef_shark1 2
+sort @reef_shark
+round 1

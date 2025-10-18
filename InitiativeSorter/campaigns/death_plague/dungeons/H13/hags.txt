@@ -1,0 +1,13 @@
+hag1 +2 ac:17 hp:112 flags:#enemy,#hag,#witch,#hags,#witches,#enemies aliases:witch1,h1,w1 str:4 dex:2 con:3 int:3 wis:2 cha:3
+reminder hag1 Remember to apply concentration ('c') flag when concentrating!
+clone hag1 2
+sort @witch
+broom1 +3 ac:15 hp:17 aliases:b1 flags:#enemy,#broom,#brooms,#enemies str:0 dex:3 con:0 int:-3 cha:-5
+broom1 reminder Brooms attack twice!\n0 ft speed, 50 ft fly
+clone broom1 2
+sort @broom
+imp1 +3 ac:13 hp:10 aliases:i1 flags:#enemy,#imps,#imp,#enemies str:-2 dex:3 con:1 int:0 wis:1 cha:2
+imp1 reminder 1 attack, 20ft speed, 40ft fly
+clone imp1 2
+sort @imp
+monster custom/pumpking

@@ -1,0 +1,6 @@
+monster bodak
+@current::_temp = #pc
+@current::_temp--
+clone bodak1 @current::_temp
+rv @current::_temp
+sort @bodak

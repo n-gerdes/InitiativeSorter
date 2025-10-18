@@ -1,0 +1,3 @@
+monster custom/weak_death_plague_knight
+clone knight1 2
+sort @knights

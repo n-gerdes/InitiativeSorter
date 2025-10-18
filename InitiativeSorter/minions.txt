@@ -1,5 +1,0 @@
-m0 +0 hp:10 aliases:m_0 flags:minion
-clone m0 15
-rm m0
-max_hp @minion 5d10
-heal @minion max

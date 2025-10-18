@@ -1,0 +1,20 @@
+reset
+dc 10
+boss 23 +4 str:0 int:0 wis:0 cha:0 
+corya 20 +1 str:0 int:0 wis:0 cha:0  flags:#pc,#PCs,#player,#players
+alias corya cor
+alias corya c
+alias corya mom
+bolt 19 +1 str:0 int:0 wis:0 cha:0  hp:29/36 flags:#pc,#PCs,#player,#players
+alias bolt b
+alias bolt bol
+m1 14 +0 str:0 int:0 wis:0 cha:0 
+slaughter 7 +0 str:0 int:0 wis:0 cha:0  flags:#pc,#PCs,#player,#players
+alias slaughter sl
+alias slaughter s
+alias slaughter tom
+m2 5 +0 str:0 int:0 wis:0 cha:0 
+m3 3 +0 str:0 int:0 wis:0 cha:0 
+round 2
+turn bolt
+simple display

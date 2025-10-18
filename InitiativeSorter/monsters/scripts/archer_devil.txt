@@ -1,0 +1,15 @@
+//Set number of attacks
+@current::#attacks=3
+
+//Configure attack data
+@current::#atk_bonus=7
+
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=3
+@current::#secondary_d6=3
+
+ld core/roll_attacks.txt
+
+println
+print *Piercing damage is MAGIC!

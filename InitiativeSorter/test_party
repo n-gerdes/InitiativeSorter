@@ -1,0 +1,256 @@
+reset
+dc 16
+Vott 23 +3 str:0 int:0 wis:0 cha:0  hp:187/187 flags:#pc ac:19
+Lander 22 +2 str:0 int:0 wis:0 cha:0  hp:130/130 flags:#pc ac:19
+Averill 19 +1 str:0 int:0 wis:0 cha:0  hp:86/86 flags:#pc ac:14
+legendary_hydra_head1 15 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:79/94 flags:#hydra,target ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head1 lhh1
+alias legendary_hydra_head1 lh1
+alias legendary_hydra_head1 llh1
+alias legendary_hydra_head1 hy1
+alias legendary_hydra_head1 h1
+alias legendary_hydra_head1 hydra1
+alias legendary_hydra_head1 hydrah1
+alias legendary_hydra_head1 hydra_head1
+alias legendary_hydra_head1 head1
+alias legendary_hydra_head1 hhead1
+alias legendary_hydra_head1 h_head1
+reminder legendary_hydra_head1 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+Shiv 14 +2 str:0 int:0 wis:0 cha:0  hp:101/101 flags:#pc ac:14
+legendary_hydra_head2 14 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:68/94 flags:#hydra,target ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head2 lhh2
+alias legendary_hydra_head2 lh2
+alias legendary_hydra_head2 llh2
+alias legendary_hydra_head2 hy2
+alias legendary_hydra_head2 h2
+alias legendary_hydra_head2 hydra2
+alias legendary_hydra_head2 hydrah2
+alias legendary_hydra_head2 hydra_head2
+alias legendary_hydra_head2 head2
+alias legendary_hydra_head2 hhead2
+alias legendary_hydra_head2 h_head2
+reminder legendary_hydra_head2 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head4 13 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:63/94 flags:#hydra,target ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head4 lhh4
+alias legendary_hydra_head4 lh4
+alias legendary_hydra_head4 llh4
+alias legendary_hydra_head4 hy4
+alias legendary_hydra_head4 h4
+alias legendary_hydra_head4 hydra4
+alias legendary_hydra_head4 hydrah4
+alias legendary_hydra_head4 hydra_head4
+alias legendary_hydra_head4 head4
+alias legendary_hydra_head4 hhead4
+alias legendary_hydra_head4 h_head4
+reminder legendary_hydra_head4 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head5 13 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:63/94 flags:#hydra,target,_dex_save_failure ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head5 lhh5
+alias legendary_hydra_head5 lh5
+alias legendary_hydra_head5 llh5
+alias legendary_hydra_head5 hy5
+alias legendary_hydra_head5 h5
+alias legendary_hydra_head5 hydra5
+alias legendary_hydra_head5 hydrah5
+alias legendary_hydra_head5 hydra_head5
+alias legendary_hydra_head5 head5
+alias legendary_hydra_head5 hhead5
+alias legendary_hydra_head5 h_head5
+reminder legendary_hydra_head5 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head6 12 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:63/94 flags:#hydra,target,_dex_save_failure ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head6 lhh6
+alias legendary_hydra_head6 lh6
+alias legendary_hydra_head6 llh6
+alias legendary_hydra_head6 hy6
+alias legendary_hydra_head6 h6
+alias legendary_hydra_head6 hydra6
+alias legendary_hydra_head6 hydrah6
+alias legendary_hydra_head6 hydra_head6
+alias legendary_hydra_head6 head6
+alias legendary_hydra_head6 hhead6
+alias legendary_hydra_head6 h_head6
+reminder legendary_hydra_head6 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head7 12 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:63/94 flags:#hydra,target,_dex_save_failure ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head7 lhh7
+alias legendary_hydra_head7 lh7
+alias legendary_hydra_head7 llh7
+alias legendary_hydra_head7 hy7
+alias legendary_hydra_head7 h7
+alias legendary_hydra_head7 hydra7
+alias legendary_hydra_head7 hydrah7
+alias legendary_hydra_head7 hydra_head7
+alias legendary_hydra_head7 head7
+alias legendary_hydra_head7 hhead7
+alias legendary_hydra_head7 h_head7
+reminder legendary_hydra_head7 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head10 11 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:79/94 flags:#hydra,target,_dex_save_success ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head10 lhh10
+alias legendary_hydra_head10 lh10
+alias legendary_hydra_head10 llh10
+alias legendary_hydra_head10 hy10
+alias legendary_hydra_head10 h10
+alias legendary_hydra_head10 hydra10
+alias legendary_hydra_head10 hydrah10
+alias legendary_hydra_head10 hydra_head10
+alias legendary_hydra_head10 head10
+alias legendary_hydra_head10 hhead10
+alias legendary_hydra_head10 h_head10
+reminder legendary_hydra_head10 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head8 11 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:79/94 flags:#hydra,target,_dex_save_success ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head8 lhh8
+alias legendary_hydra_head8 lh8
+alias legendary_hydra_head8 llh8
+alias legendary_hydra_head8 hy8
+alias legendary_hydra_head8 h8
+alias legendary_hydra_head8 hydra8
+alias legendary_hydra_head8 hydrah8
+alias legendary_hydra_head8 hydra_head8
+alias legendary_hydra_head8 head8
+alias legendary_hydra_head8 hhead8
+alias legendary_hydra_head8 h_head8
+reminder legendary_hydra_head8 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head9 11 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:63/94 flags:#hydra,target,_dex_save_failure ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head9 lhh9
+alias legendary_hydra_head9 lh9
+alias legendary_hydra_head9 llh9
+alias legendary_hydra_head9 hy9
+alias legendary_hydra_head9 h9
+alias legendary_hydra_head9 hydra9
+alias legendary_hydra_head9 hydrah9
+alias legendary_hydra_head9 hydra_head9
+alias legendary_hydra_head9 head9
+alias legendary_hydra_head9 hhead9
+alias legendary_hydra_head9 h_head9
+reminder legendary_hydra_head9 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head11 9 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head11 lhh11
+alias legendary_hydra_head11 lh11
+alias legendary_hydra_head11 llh11
+alias legendary_hydra_head11 hy11
+alias legendary_hydra_head11 h11
+alias legendary_hydra_head11 hydra11
+alias legendary_hydra_head11 hydrah11
+alias legendary_hydra_head11 hydra_head11
+alias legendary_hydra_head11 head11
+alias legendary_hydra_head11 hhead11
+alias legendary_hydra_head11 h_head11
+reminder legendary_hydra_head11 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head12 8 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head12 lhh12
+alias legendary_hydra_head12 lh12
+alias legendary_hydra_head12 llh12
+alias legendary_hydra_head12 hy12
+alias legendary_hydra_head12 h12
+alias legendary_hydra_head12 hydra12
+alias legendary_hydra_head12 hydrah12
+alias legendary_hydra_head12 hydra_head12
+alias legendary_hydra_head12 head12
+alias legendary_hydra_head12 hhead12
+alias legendary_hydra_head12 h_head12
+reminder legendary_hydra_head12 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head13 7 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head13 lhh13
+alias legendary_hydra_head13 lh13
+alias legendary_hydra_head13 llh13
+alias legendary_hydra_head13 hy13
+alias legendary_hydra_head13 h13
+alias legendary_hydra_head13 hydra13
+alias legendary_hydra_head13 hydrah13
+alias legendary_hydra_head13 hydra_head13
+alias legendary_hydra_head13 head13
+alias legendary_hydra_head13 hhead13
+alias legendary_hydra_head13 h_head13
+reminder legendary_hydra_head13 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head14 6 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head14 lhh14
+alias legendary_hydra_head14 lh14
+alias legendary_hydra_head14 llh14
+alias legendary_hydra_head14 hy14
+alias legendary_hydra_head14 h14
+alias legendary_hydra_head14 hydra14
+alias legendary_hydra_head14 hydrah14
+alias legendary_hydra_head14 hydra_head14
+alias legendary_hydra_head14 head14
+alias legendary_hydra_head14 hhead14
+alias legendary_hydra_head14 h_head14
+reminder legendary_hydra_head14 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head15 6 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head15 lhh15
+alias legendary_hydra_head15 lh15
+alias legendary_hydra_head15 llh15
+alias legendary_hydra_head15 hy15
+alias legendary_hydra_head15 h15
+alias legendary_hydra_head15 hydra15
+alias legendary_hydra_head15 hydrah15
+alias legendary_hydra_head15 hydra_head15
+alias legendary_hydra_head15 head15
+alias legendary_hydra_head15 hhead15
+alias legendary_hydra_head15 h_head15
+reminder legendary_hydra_head15 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head16 4 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head16 lhh16
+alias legendary_hydra_head16 lh16
+alias legendary_hydra_head16 llh16
+alias legendary_hydra_head16 hy16
+alias legendary_hydra_head16 h16
+alias legendary_hydra_head16 hydra16
+alias legendary_hydra_head16 hydrah16
+alias legendary_hydra_head16 hydra_head16
+alias legendary_hydra_head16 head16
+alias legendary_hydra_head16 hhead16
+alias legendary_hydra_head16 h_head16
+reminder legendary_hydra_head16 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head17 3 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head17 lhh17
+alias legendary_hydra_head17 lh17
+alias legendary_hydra_head17 llh17
+alias legendary_hydra_head17 hy17
+alias legendary_hydra_head17 h17
+alias legendary_hydra_head17 hydra17
+alias legendary_hydra_head17 hydrah17
+alias legendary_hydra_head17 hydra_head17
+alias legendary_hydra_head17 head17
+alias legendary_hydra_head17 hhead17
+alias legendary_hydra_head17 h_head17
+reminder legendary_hydra_head17 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head18 1 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head18 lhh18
+alias legendary_hydra_head18 lh18
+alias legendary_hydra_head18 llh18
+alias legendary_hydra_head18 hy18
+alias legendary_hydra_head18 h18
+alias legendary_hydra_head18 hydra18
+alias legendary_hydra_head18 hydrah18
+alias legendary_hydra_head18 hydra_head18
+alias legendary_hydra_head18 head18
+alias legendary_hydra_head18 hhead18
+alias legendary_hydra_head18 h_head18
+reminder legendary_hydra_head18 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head19 0 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head19 lhh19
+alias legendary_hydra_head19 lh19
+alias legendary_hydra_head19 llh19
+alias legendary_hydra_head19 hy19
+alias legendary_hydra_head19 h19
+alias legendary_hydra_head19 hydra19
+alias legendary_hydra_head19 hydrah19
+alias legendary_hydra_head19 hydra_head19
+alias legendary_hydra_head19 head19
+alias legendary_hydra_head19 hhead19
+alias legendary_hydra_head19 h_head19
+reminder legendary_hydra_head19 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+legendary_hydra_head20 0 +0 str:5 dex:1 con:5 int:-4 wis:0 cha:-2  hp:94/94 flags:#hydra ac:15 start:.../:::/monsters/scripts/l_hydra_head.txt
+alias legendary_hydra_head20 lhh20
+alias legendary_hydra_head20 lh20
+alias legendary_hydra_head20 llh20
+alias legendary_hydra_head20 hy20
+alias legendary_hydra_head20 h20
+alias legendary_hydra_head20 hydra20
+alias legendary_hydra_head20 hydrah20
+alias legendary_hydra_head20 hydra_head20
+alias legendary_hydra_head20 head20
+alias legendary_hydra_head20 hhead20
+alias legendary_hydra_head20 h_head20
+reminder legendary_hydra_head20 40ft.\nVulernable to fire; must be killed with fire or it respawns with a twin.
+round 1
+turn legendary_hydra_head1
+simple display

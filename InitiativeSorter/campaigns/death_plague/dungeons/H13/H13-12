@@ -1,0 +1,5 @@
+add shadow_demon aliases:demon,shadow,sd,boss,miniboss flags:#enemy,#enemies,#demon,#demons,#magic_resistance str:9 +2 dex:2 con:5 int:6 wis:10 cha:3 hp:147 ac:19
+shadow_demon.lr=3
+shadow_demon regen 10
+reminder shadow_demon Remember Frightful Presence (DC 16)
+read H13-12.txt

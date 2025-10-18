@@ -1,0 +1,5 @@
+@current::#attacks=1
+@current::#atk_bonus=6
+@current::#d6 = 2
+@current::#dmg_bonus = 4
+ld .../:::/monsters/scripts/core/roll_attacks.txt

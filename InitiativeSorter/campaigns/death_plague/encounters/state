@@ -1,0 +1,23 @@
+reset
+dc 18
+boric 23 +0 str:0 int:0 wis:0 cha:0  hp:36/36 flags:#PC ac:16
+alias boric owen
+alias boric crc
+alias boric c
+alias boric corric
+Zrird 20 +2 str:0 int:0 wis:0 cha:0  hp:87/87 flags:#PC,#party,#core,#pc ac:18
+alias Zrird z
+Zrird:#hd 8
+Manus 12 +5 str:0 int:0 wis:0 cha:0  hp:118/118 flags:#PC,#party,#core,#pc ac:17
+alias Manus wilpert
+alias Manus vilpert
+alias Manus gregory
+alias Manus greg
+alias Manus braven
+Jonsi 8 +0 str:0 int:0 wis:0 cha:0  hp:130/130 flags:#PC,#party,#core,#pc ac:21
+alias Jonsi hoffer
+alias Jonsi ser
+alias Jonsi j
+round 6
+turn boric
+simple display
