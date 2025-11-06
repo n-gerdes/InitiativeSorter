@@ -1598,6 +1598,11 @@ public:
 				return true;
 			}
 		}
+		if (flag.size() > 0 && flag[0] == '#')  //Added 11-4-2025
+		{
+			if (has_flag(flag.substr(1)))
+				return true;
+		}
 		return false;
 	}
 
@@ -1609,6 +1614,11 @@ public:
 			{
 				return true;
 			}
+		}
+		if (flag.size() > 0 && flag[0] == '#') //Added 11-4-2025
+		{
+			if (has_flag_case_insensitive(flag.substr(1)))
+				return true;
 		}
 		return false;
 	}
@@ -1625,6 +1635,10 @@ public:
 				flags_hidden.erase(flag);
 				return;
 			}
+		}
+		if (flag.size() > 0 && flag[0] == '#')
+		{
+			remove_flag(flag.substr(1));
 		}
 	}
 
@@ -2527,6 +2541,15 @@ inline int parse_dice(std::string& input)
 	std::vector<dice> dmg_dice;
 	std::string temp;
 	//std::cout << "Preprocessing: " << input << std::endl;
+	const std::string& LC = get_lowercase(input);
+	if (LC == "yes" || LC == "true" || LC == "y" || LC == "yeah")
+	{
+		return 1;
+	}
+	else if (LC == "no" || LC == "non" || LC == "false" || LC == "f" || LC == "n")
+	{
+		return 0;
+	}
 	temp.reserve(input.size());
 	size_t start;
 	for (start = 0; start < input.size(); ++start)
@@ -2733,6 +2756,15 @@ inline int get_number_arg(std::string dummy_line, bool& is_signed, std::list<cre
 		{
 			std::cout << "Please enter a number: ";
 			std::getline(std::cin, user_input);
+			const std::string& LC = get_lowercase(user_input);
+			if (LC == "yes" || LC == "true" || LC == "y" || LC == "yeah")
+			{
+				return 1;
+			}
+			else if (LC == "no" || LC == "non" || LC == "false" || LC == "f" || LC == "n")
+			{
+				return 0;
+			}
 			if (user_input.size() == 0)
 				return 0;
 		}
