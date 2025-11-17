@@ -1,0 +1,21 @@
+@current::#use_berserk=0
+
+if @current berserk {println Does it use BERSERKING EYES?}
+if @current berserk {println 1=yes, 0=no}
+if @current berserk {@current::#use_berserk=input}
+@current::#attacks=0
+
+@current::#use_berserk==0 {@current::#attacks=3}
+@current::#use_berserk==1 {rf @current berserk}
+
+//Configure attack data
+@current::#atk_bonus=11
+
+@current::#d10=3
+@current::#dmg_bonus=0
+
+@current::#use_berserk==0 core/roll_attacks.txt
+@current::#use_berserk!=0 {println}
+@current::#use_berserk!=0 {print targets everyone it wants, DC 19 DEX to halve}
+@current::#use_berserk!=0 {printnum 5d10}
+@current::#use_berserk!=0 {print radiant damage.}

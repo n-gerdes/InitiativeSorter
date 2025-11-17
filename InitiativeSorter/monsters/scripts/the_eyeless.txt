@@ -1,0 +1,15 @@
+//Set number of attacks
+@current::#attacks=3
+
+//Configure attack data
+@current::#atk_bonus=10
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=6
+
+//Data has been configured, now roll an attack.
+print DAGGER x 3
+flag @current adv
+ld core/roll_attacks.txt
+rf @current adv

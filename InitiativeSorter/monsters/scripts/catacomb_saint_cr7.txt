@@ -1,0 +1,26 @@
+flag @current #secondary_radiant
+
+println
+ld reset.txt
+println HOLY ROD
+@current::#attacks=1
+@current::#atk_bonus=8
+
+@current::#secondary_d6=2
+@current::#d6=1
+@current::#dmg_bonus=5
+
+ld core/roll_attacks.txt
+
+//Now time for the holy sword
+println
+ld reset.txt
+println HOLY ROD
+@current::#attacks=1
+@current::#atk_bonus=8
+
+@current::#secondary_d6=2
+@current::#d8=1
+@current::#dmg_bonus=5
+
+ld core/roll_attacks.txt

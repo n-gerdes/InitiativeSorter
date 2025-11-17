@@ -1,0 +1,3 @@
+eldrich_hybrid1 +5 ac:19 hp:155 flags:#enemy,#enemies,#eldrich,#eldritch,#hybrid,#hbrids,#hybrids,#eldritch_hybrid,#eldritch_hybrids,#magic_resistance aliases:eldch_hybrid1,eldrich_hrbrd1,hyb1,hb1,hybrid1,eh1 str:11 dex:5 con:5 int:3 wis:11 cha:11 start:monsters/scripts/eldritch_hybrid.txt
+eldrich_hybrid1 recharge5-6 berserk
+eldrich_hybrid1 reminder speed 40ft. (incl fly)

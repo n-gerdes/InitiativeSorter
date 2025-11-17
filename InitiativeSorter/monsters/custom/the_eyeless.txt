@@ -1,0 +1,4 @@
+add the_eyeless aliases:eyeless,boss flags:#enemy,#enemies,#boss ac:20 hp:171 str:6 dex:2 con:5 int:4 wis:8 cha:5 start:.../:::/monsters/scripts/the_eyeless.txt
+the_eyeless.LR=2
+the_eyeless.Legendary_Actions=3
+reminder the_eyess Emits 60 ft blindness aura!

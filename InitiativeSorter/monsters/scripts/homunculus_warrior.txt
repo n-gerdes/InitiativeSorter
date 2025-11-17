@@ -1,0 +1,13 @@
+//Set number of attacks
+@current::#attacks=3
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d12=2
+@current::#dmg_bonus=5
+
+//Data has been configured, now roll an attack.
+print ARM-LANCE x 3
+ld core/roll_attacks.txt

@@ -2254,6 +2254,9 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "return"
 			|| lowerc == "return;"
 			|| lowerc == ""
+			|| lowerc == "back"
+			|| lowerc == "prev"
+			|| lowerc == "next"
 		) 
 			return false;
 
@@ -11734,13 +11737,32 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::getline(std::cin, dummy_line);
 			trim(dummy_line);
 		}
-		if (dummy_line != "")
+		if (dummy_line != "" && dummy_line != "next")
 			event_log += "\nEntered command: " + dummy_line + "\n";
 		else
 			event_log += "\nEntered command: next\n";
 		std::string original_dummy_line = dummy_line;
 		std::string& line = original_dummy_line;
 		make_lowercase(dummy_line);
+		bool rewind_round = false;
+		if (dummy_line == "back" || dummy_line == "prev")
+		{
+			auto j = creatures.begin();
+			for (j = creatures.begin(); j != creatures.end(); ++j)
+			{
+				if (j->get_raw_ptr() == current_creature->get_raw_ptr())
+					break;
+			}
+			--j;
+			if (current_creature->get_raw_ptr() == creatures.begin()->get_raw_ptr())
+			{
+				j = creatures.end();
+				--j;
+				rewind_round = true;
+			}
+			dummy_line = "goto " + (j->get_name());
+			make_lowercase(dummy_line);
+		}
 		command_replacement(dummy_line);
 		bool did_erase = false;
 		bool skip = false;
@@ -18019,7 +18041,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (!used_command)
 		{
-			if (dummy_line == "")
+			if (dummy_line == "" || dummy_line == "next")
 			{
 				std::string filename = current_creature->turn_end_file;
 				if (filename != "")
@@ -18105,6 +18127,13 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			turn_msg = knocked_out_creature->get_name() + " WAS KNOCKED OUT!\n\n" + turn_msg;
 			knocked_out_creature = nullptr;
 		}
+		if (rewind_round)
+		{
+			--current_round;
+			if (current_round < 1)
+				current_round = 1;
+		}
+		
 		save_buffer(); //For undoing/redoing purposes
 	}
 }

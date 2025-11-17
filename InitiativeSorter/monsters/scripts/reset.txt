@@ -1,0 +1,53 @@
+@current::#d4 = 0
+@current::#d6 = 0
+@current::#d8 = 0
+@current::#d10 = 0
+@current::#d12 = 0
+
+@current::#secondary_d4 = 0
+@current::#secondary_d6 = 0
+@current::#secondary_d8 = 0
+@current::#secondary_d10 = 0
+@current::#secondary_d12 = 0
+
+rv @current d4
+rv @current d6
+rv @current d8
+rv @current d10
+rv @current d12
+rv @current #d4
+rv @current #d6
+rv @current #d8
+rv @current #d10
+rv @current #d12
+
+rv @current secondary_d4
+rv @current secondary_d6
+rv @current secondary_d8
+rv @current secondary_d10
+rv @current secondary_d12
+rv @current #secondary_d4
+rv @current #secondary_d6
+rv @current #secondary_d8
+rv @current #secondary_d10
+rv @current #secondary_d12
+
+rv @current atk_bonus
+rv @current dmg_bonus
+
+rv @current attacks
+
+rv @current _d4Counter
+rv @current _d6Counter
+rv @current _d8Counter
+rv @current _d10Counter
+rv @current _d12Counter
+
+rv @current _secondary_d4Counter
+rv @current _secondary_d6Counter
+rv @current _secondary_d8Counter
+rv @current _secondary_d10Counter
+rv @current _secondary_d12Counter
+rv @current _crit_counter
+rf @current nat1
+rf @current crit
