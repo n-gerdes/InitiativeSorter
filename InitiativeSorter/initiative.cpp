@@ -30,6 +30,8 @@ const static int		CONSOLE_WIDTH = 112;
 //						When files are loaded it can be configured to read out what's happening as it does it in real time, or that feature can be disabled for faster loading.
 const static bool		DISPLAY_INFO_FROM_LOADED_FILES = false;
 
+const static bool		POLL_RECHARGES_AT_END_OF_TURN = true; //Determines whether recharge abilities are polled at the end of a creature's turn instead of at the start of its next. Can be good for telegraphing special attacks before they happen so players can act on that information.
+
 
 const static
 std::string				BASE_DIRECTORY_PROXY = ".../:::"; //Directories starting with this will start at the program's own directory
@@ -11457,6 +11459,23 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			i->touched = false;
 			std::cout << basic_formatting;
 			bool should_set_highlight_formatting = false;
+			bool did_poll_already = false;
+			if (POLL_RECHARGES_AT_END_OF_TURN && turn_count == current_turn-1)
+			{
+				if (  (i->get_name() == previous_turn_creature_name))
+				{
+					i->poll_recharges();
+					did_poll_already = true;
+					//std::cout << "Polling " << i->get_name() << " ";
+				}
+			}
+			if (POLL_RECHARGES_AT_END_OF_TURN && (new_round||new_round2) && i==creatures.begin()&& !did_poll_already)
+			{
+				auto last = creatures.end();
+				--last;
+				last->poll_recharges();
+				//std::cout << "Polling " << last->get_name() << " ";
+			}
 			if (current_turn == turn_count)
 			{
 				should_set_highlight_formatting = true;
@@ -11470,7 +11489,11 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 				if (new_turn)
 				{
-					current_creature->poll_recharges();
+					//previous_turn_creature_name
+					
+					if(!POLL_RECHARGES_AT_END_OF_TURN)
+						current_creature->poll_recharges();
+
 					int regen = current_creature->get_regen();
 					if (regen != 0 && (current_creature->get_hp() != current_creature->get_max_hp()))
 					{
