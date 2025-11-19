@@ -1311,27 +1311,27 @@ public:
 			return false;
 	}
 
-	inline bool is_concentrating()
+	inline bool is_concentrating() const
 	{
 		return has_flag("concentrating") || has_flag("concentration") || has_flag("conc") || has_flag("con") || has_flag("c");
 	}
 
-	inline bool has_con_bonus()
+	inline bool has_con_bonus() const
 	{
 		return has_con;
 	}
 
-	inline int get_con_bonus(std::list<creature>& creatures)
+	inline int get_con_bonus(std::list<creature>& creatures) const
 	{
 		return con;
 	}
 
-	inline int get_str_bonus()
+	inline int get_str_bonus() const
 	{
 		return str;
 	}
 
-	inline int get_dex_bonus()
+	inline int get_dex_bonus() const
 	{
 		if (!entered_dex)
 			return modifier;
@@ -1339,17 +1339,17 @@ public:
 			return dex;
 	}
 
-	inline int get_wis_bonus()
+	inline int get_wis_bonus() const
 	{
 		return wis;
 	}
 
-	inline int get_int_bonus()
+	inline int get_int_bonus() const
 	{
 		return intelligence;
 	}
 
-	inline int get_cha_bonus()
+	inline int get_cha_bonus() const
 	{
 		return cha;
 	}
@@ -1590,7 +1590,7 @@ public:
 		}
 	}
 
-	inline bool has_flag(const std::string& flag)
+	inline bool has_flag(const std::string& flag) const
 	{
 		std::string lc = get_lowercase(flag);
 		for (auto i = flags.begin(); i != flags.end(); ++i)
@@ -1608,7 +1608,7 @@ public:
 		return false;
 	}
 
-	inline bool has_flag_case_insensitive(const std::string& flag)
+	inline bool has_flag_case_insensitive(const std::string& flag) const
 	{
 		for (auto i = flags.begin(); i != flags.end(); ++i)
 		{
@@ -1644,7 +1644,7 @@ public:
 		}
 	}
 
-	inline bool has_evasion()
+	inline bool has_evasion() const
 	{
 		return has_flag("evasion") || has_flag("avoidance");
 	}
@@ -11530,7 +11530,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 				linedisp += " [" + std::to_string(i->get_initiative()) + "]";
 			if (i->get_ac() != -1)
 			{
-				linedisp += " <AC " + std::to_string(i->get_ac()) + ">";
+				if(i->has_flag_case_insensitive("_shield") && i->get_raw_ptr()!=current_creature->get_raw_ptr())
+					linedisp += " <AC " + std::to_string(i->get_ac()+5) + ">";
+				else
+					linedisp += " <AC " + std::to_string(i->get_ac()) + ">";
 			}
 			
 			if (i->get_max_hp() != -1) {
