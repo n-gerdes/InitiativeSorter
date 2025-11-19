@@ -11145,7 +11145,23 @@ std::string get_info(creature* i, int current_turn, int current_round, bool my_t
 	else
 		turn_msg += "\t\tTurns taken: " + std::to_string(current_round) + "\n";
 	if (i->get_ac() != -1)
-		turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
+	{
+		if (my_turn)
+		{
+			turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
+		}
+		else
+		{
+			if (i->has_flag_case_insensitive("_shield"))
+			{
+				turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()+5) + "*\n";
+			}
+			else
+			{
+				turn_msg += "\tArmor Class: " + std::to_string(i->get_ac()) + "\n";
+			}
+		}
+	}
 	if (i->get_max_hp() != -1)
 	{
 		turn_msg += "\tHP: " + std::to_string(i->get_hp()) + " / " + std::to_string(i->get_max_hp()) + "\n";
@@ -11531,7 +11547,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			if (i->get_ac() != -1)
 			{
 				if(i->has_flag_case_insensitive("_shield") && i->get_raw_ptr()!=current_creature->get_raw_ptr())
-					linedisp += " <AC " + std::to_string(i->get_ac()+5) + ">";
+					linedisp += " <AC " + std::to_string(i->get_ac()+5) + "*>";
 				else
 					linedisp += " <AC " + std::to_string(i->get_ac()) + ">";
 			}
