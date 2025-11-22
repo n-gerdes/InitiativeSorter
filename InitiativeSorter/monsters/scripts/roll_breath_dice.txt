@@ -1,0 +1,22 @@
+@current::#did_roll_breath_weapon_dice=0
+@current::#breath_d4>0 {@current::#did_roll_breath_weapon_dice+=1}
+@current::#breath_d4>0 {@current::#breath_dmg+=1d4}
+@current::#breath_d4>0 {@current::#breath_d4-=1}
+
+@current::#breath_d6>0 {@current::#did_roll_breath_weapon_dice+=1}
+@current::#breath_d6>0 {@current::#breath_dmg+=1d6}
+@current::#breath_d6>0 {@current::#breath_d6-=1}
+
+@current::#breath_d8>0 {@current::#did_roll_breath_weapon_dice+=1}
+@current::#breath_d8>0 {@current::#breath_dmg+=1d8}
+@current::#breath_d8>0 {@current::#breath_d8-=1}
+
+@current::#breath_d10>0 {@current::#did_roll_breath_weapon_dice+=1}
+@current::#breath_d10>0 {@current::#breath_dmg+=1d10}
+@current::#breath_d10>0 {@current::#breath_d10-=1}
+
+@current::#breath_d12>0 {@current::#did_roll_breath_weapon_dice+=1}
+@current::#breath_d12>0 {@current::#breath_dmg+=1d12}
+@current::#breath_d12>0 {@current::#breath_d12-=1}
+
+@current::#did_roll_breath_weapon_dice>0 roll_breath_dice.txt

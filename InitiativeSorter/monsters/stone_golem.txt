@@ -1,0 +1,2 @@
+StoneGolem1 -1 ac:17 hp:178 flags:#golem,#golems,#stone_golems,#stone_golem,#enemy,#minion,#guard,#guards,#minions,#enemies,#magic_resistance aliases:stone_golem1,sg1,golem1,gol1,gm1,glm1 str:6 dex:-1 con:5 int:-4 wis:0 cha:-5 start:.../:::/monsters/scripts/stone_golem.txt
+StoneGolem1 recharge5-6 slow

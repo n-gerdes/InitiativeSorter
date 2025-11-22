@@ -1,0 +1,21 @@
+@current::#use_cone_of_cold=0
+
+if @current cone_of_cold {println Does it use lv. 9 cone of cold?}
+if @current cone_of_cold {println 1=yes, 0=no}
+if @current cone_of_cold {@current::#use_cone_of_cold=input}
+@current::#attacks=0
+
+@current::#use_cone_of_cold==0 {@current::#attacks=4}
+@current::#use_cone_of_cold==1 {rf @current cone_of_cold}
+
+//Configure attack data
+@current::#atk_bonus=8
+
+@current::#d10=4
+@current::#dmg_bonus=5
+
+@current::#use_cone_of_cold==0 core/roll_attacks.txt
+@current::#use_cone_of_cold!=0 {println}
+@current::#use_cone_of_cold!=0 {print 60 ft cone, DC 17 CON to halve}
+@current::#use_cone_of_cold!=0 {printnum 12d8}
+@current::#use_cone_of_cold!=0 {print cold damage.}

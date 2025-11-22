@@ -1,0 +1,2 @@
+maw_demon1 aliases:maw1,md1,mawd1 ac:13 hp:33 str:2 -1 dex:-1 con:1 int:-3 wis:-1 cha:-3 start:.../:::/monsters/scripts/maw_demon.txt flags:#maw_demon,#maw_demons,#enemy,#enemies,#mawdemon,#mawdemons,#maws,#demon,#demons,#fiend,#fiends
+recharge6-6 maw_demon1 disgorge

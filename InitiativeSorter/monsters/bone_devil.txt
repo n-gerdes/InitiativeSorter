@@ -1,2 +1,2 @@
-add bone_devil1 ac:19 hp:142 str:4 dex:3 +3 con:4 int:5 wis:6 cha:7 aliases:db1,bd1,devil1,bone1,bondevil1,bondedevil1,bonedevil1 flags:#fiend,#devil,#demon,#monster,#bonedevil#bone_devil,#bone_devils,#bonedevils,#bondevils,#bondevil,#magic_resistance,#addspoison start:.../:::/monsters/scripts/bone_devil.txt
+add bone_devil1 ac:19 hp:142 str:4 dex:3 +3 con:4 int:5 wis:6 cha:7 aliases:db1,bd1,devil1,bone1,bondevil1,bondedevil1,bonedevil1 flags:#fiend,#devil,#demon,#monster,#bonedevil,#bone_devil,#bone_devils,#bonedevils,#bondevils,#bondevil,#magic_resistance,#addspoison start:.../:::/monsters/scripts/bone_devil.txt
 reminder bone_devil1 speed 40ft., fly 40ft.\n10ft reach.

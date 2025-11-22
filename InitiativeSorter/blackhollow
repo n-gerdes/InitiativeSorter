@@ -1,0 +1,13 @@
+monster scarecrow
+clone scarecrow1
+sort @scarecrows
+monster will-o-wisp
+add finley +1 ac:11 hp:13 flags:#pc
+add mera +2 ac:12 hp:8 flags:#pc
+add hubert +1 ac:13 hp:14 flags:#pc
+add hayden +2 ac:12 hp:10 flags:#pc
+add greer +2 ac:13 hp:13 flags:#pc
+add quinn +2 ac:13 hp:10 flags:#pc
+add mayor +2 ac:15 hp:45 flags:#enemy,#enemies,#boss str:3 int:2 wis:2
+evil_eugene aliases:eugene ac:13 hp:33 str:2 -1 dex:-1 con:1 int:-3 wis:-1 cha:-3 start:.../:::/monsters/scripts/maw_demon.txt flags:#maw_demon,#maw_demons,#enemy,#enemies,#mawdemon,#mawdemons,#maws,#demon,#demons,#fiend,#fiends
+recharge6-6 evil_eugene disgorge

@@ -1,1 +1,1 @@
-skeleton1 aliases:s1,sk1 ac:13 hp:13 str:0 dex:2 +2 con:2 int:-2 wis:-1 cha:-3 start:.../:::/monsters/scripts/skeleton.txt flags:#simple,#enemy,#enemies,#skeleton,#skeletons,#bones
+skeleton1 aliases:s1,sk1 ac:13 hp:13 str:0 dex:2 +2 con:2 int:-2 wis:-1 cha:-3 start:.../:::/monsters/scripts/skeleton.txt flags:#simple,#enemy,#enemies,#skeleton,#skeletons,#bones,#undead

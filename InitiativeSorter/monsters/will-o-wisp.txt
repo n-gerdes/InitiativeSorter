@@ -1,0 +1,2 @@
+add will_o_wisp1 +9 aliases:wow1,w1,wisp1,willwisp1,will1 flags:#evil,#undead,#monster,#enemy,#enemies,#monsters,#wisp,#wisps,#will-o-wisps,#wills,#willowpsi,#willowisps,#willowisp ac:19 hp:22 str:-5 dex:9 con:0 int:1 wis:2 cha:0 start:.../:::/monsters/scripts/will-o-wisp.txt
+reminder will_o_wisp1 Can CONSUME LIFE as a BONUS ACTION\nTarget within 5ft at 0 hp, DC 10 CON Save vs instant death, wisp heals 10 (3d6) if it dies.

@@ -1,0 +1,9 @@
+reset
+dc 10
+test1 10 +0 str:0 int:0 wis:0 cha:0  flags:c
+recharge5 test1 c
+test2 5 +0 str:0 int:0 wis:0 cha:0 
+test3 1 +0 str:0 int:0 wis:0 cha:0 
+round 1
+
+simple display

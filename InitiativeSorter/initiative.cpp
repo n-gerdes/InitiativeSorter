@@ -11782,6 +11782,10 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			dummy_line = "goto " + (j->get_name());
 			make_lowercase(dummy_line);
 		}
+		else if (dummy_line == "start" || dummy_line == "go")
+		{
+			dummy_line = "round 1";
+		}
 		command_replacement(dummy_line);
 		bool did_erase = false;
 		bool skip = false;

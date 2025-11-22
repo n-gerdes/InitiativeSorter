@@ -1,0 +1,9 @@
+println Everyone in area must roll a DEX Save:
+printnum @current::#breath_dc
+println to halve damage:
+@current::#breath_dmg=0
+ld roll_breath_dice.txt
+printnum @current::#breath_dmg
+rv @current #breath_dmg
+ld reset.txt
+rf @current breath

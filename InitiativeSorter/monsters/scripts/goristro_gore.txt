@@ -1,0 +1,12 @@
+println CHARGED GORE ATTACK
+@current::#attacks=1
+@current::#atk_bonus=13
+
+@current::#d10=14
+@current::#dmg_bonus=7
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+println Piercing Damage!
+println Target must roll DC 21 STR Save or be pushed back 20 feet & knocked prone.

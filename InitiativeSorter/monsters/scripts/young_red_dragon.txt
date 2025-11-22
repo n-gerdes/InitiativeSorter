@@ -1,0 +1,36 @@
+//Set number of attacks
+
+ld reset.txt
+if @current breath {println Use breath weapon?}
+@current::#use_breath = 0
+if @current breath {@current::#use_breath=input()}
+@current::#breath_d6=16
+@current::#breath_dc=17
+@current::#use_breath==1 dragon_breath.txt
+@current::#use_breath==1 {return}
+
+//Its multiattack routine for when breath weapons aren't used.
+
+ld reset.txt
+
+println CLAW x 2
+@current::#attacks=2
+@current::#atk_bonus=10
+@current::#d6=2
+@current::#dmg_bonus=6
+ld .../:::/monsters/scripts/core/roll_attacks.txt
+
+print      
+print     
+ld reset.txt
+print BITE
+
+@current::#attacks=1
+@current::#atk_bonus=10
+@current::#d10=2
+@current::#dmg_bonus=6
+@current::#secondary_d6=1
+flag @current #secondary_fire
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt

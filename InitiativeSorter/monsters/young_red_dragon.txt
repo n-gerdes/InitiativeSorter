@@ -1,0 +1,3 @@
+young_red_dragon1 flags:#enemy,#enemies,#dragon,#dragons,#boss,#bosses,#red,#red_dragon,#reds,#red_dragons,#reddragon,#reddragons,#redragon,#redragons start:.../:::/monsters/scripts/young_red_dragon.txt aliases:rd1,yrd1,dragon1,red1,r1,young1,d1 ac:18 hp:178 +0 str:6 dex:4 con:9 int:2 wis:0 cha:8
+reminder young_red_dragon1 40ft walk., climb 40ft., fly 80ft.
+recharge5-6 young_red_dragon1 breath

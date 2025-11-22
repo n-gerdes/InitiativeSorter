@@ -1,0 +1,1 @@
+add planetar1 ac:19 hp:200 aliases:pltr1,p1 flags:#celestial,#celestials,#pleenatr,#plenatar,#planetar,#planetars,#angel,#angels,#magic_resistance,#adds_radiant str:7 dex:5 +5 con:12 int:4 wis:11 cha:12 start:.../:::/monsters/scripts/planetar.txt

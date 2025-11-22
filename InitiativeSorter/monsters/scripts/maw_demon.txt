@@ -1,0 +1,23 @@
+@current::#use_disgorge=0
+if @current disgorge {println Use disgorge?}
+if @current disgorge {@current::#use_disgorge = input()}
+@current::#use_disgorge!=1 {@current::#use_disgorge=0}
+@current::#use_disgorge==1 {println Disgorge is vomit in a 15ft cube}
+@current::#use_disgorge==1 {println DC 11 DEX Save vs Prone & halve acid on success:}
+@current::#use_disgorge==1 {printnum 2d10}
+@current::#use_disgorge==1 {rf @current disgorge}
+//Set number of attacks
+
+@current::#attacks=1
+
+@current::#use_disgorge==0 {println}
+@current::#use_disgorge==0 {print BITE:}
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=2
+
+@current::#use_disgorge==0 core/roll_attacks.txt

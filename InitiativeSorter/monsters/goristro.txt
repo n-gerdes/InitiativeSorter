@@ -1,0 +1,2 @@
+goristro1 aliases:gor1,g1,gst1 flags:#enemy,#enemies,#fiend,#demon,#demons,#fiends,#goristro,#goristros,#boss,#magic_resistance start:.../:::/monsters/scripts/goristro.txt ac:19 hp:310 +0 str:13 dex:6 con:13 int:-2 wis:7 cha:2
+reminder goristro1 40ft speed

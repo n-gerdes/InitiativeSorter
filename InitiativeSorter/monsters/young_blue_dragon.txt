@@ -1,0 +1,3 @@
+young_blue_dragon1 flags:#enemy,#enemies,#dragon,#dragons,#boss,#bosses,#blue,#blue_dragon,#blues,#blue_dragons,#bluedragon,#bluedragons start:.../:::/monsters/scripts/young_blue_dragon.txt aliases:bd1,ybd1,dragon1,blue1,b1,young1,d1 ac:18 hp:152 +0 str:5 dex:4 con:8 int:2 wis:5 cha:7
+reminder young_blue_dragon1 40ft walk., burrow 20ft., fly 80ft.
+recharge5-6 young_blue_dragon1 breath

@@ -1,0 +1,15 @@
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d4=2
+@current::#dmg_bonus=1
+
+print Can do TERRIFYING GLARE (30ft, one target, DC 11 WIS Save vs Frightened until end of scarecrow's next turn) or 2 x CLAW!
+println
+print CLAW x 2:
+ld core/roll_attacks.txt
+print Each HIT inflicts DC 11 WIS Save vs Frightened!

@@ -1,0 +1,14 @@
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=12
+
+//Damage stuff
+@current::#d6=4
+@current::#dmg_bonus=7
+@current::#secondary_d8=5
+
+//Data has been configured, now roll an attack.
+print GREATSWORD x 2
+ld core/roll_attacks.txt

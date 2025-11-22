@@ -1,0 +1,38 @@
+rf @current #no_slow
+rv @current use_slow
+
+println Two attacks TOTAL, choosing between Slam and Force Bolt.
+println
+println SLAM ATTACKS:
+@current::#attacks=2
+@current::#atk_bonus=10
+@current::#d8=2
+@current::#dmg_bonus=6
+@current::#secondary_d8=2
+flag @current #secondary_force_dmg
+ld core/roll_attacks.txt
+rf @current secondary_force_dmg
+println
+println
+println FORCE BOLTS (range 120 ft):
+@current::#attacks=2
+@current::#atk_bonus=9
+@current::#d10=4
+@current::#d8=0
+@current::#dmg_bonus=0
+@current::#secondary_d8=0
+ld core/roll_attacks.txt
+@current::#d10=0
+
+flag @current #no_slow
+if @current slow {rf @current #no_slow}
+if @current #no_slow {return}
+
+println BONUS ACTION: Target up to 6 creatures in a 40-foot cube DC 17 WIS Save vs Slowed.
+println (half speed, limited to 1 attack per turn, no reactions, must choose between action and bonus action, -2 to AC/DEX Saves, 25% failure chance on spells with somatic components)
+println Slow lasts for 1 min, can repeat DC 17 WIS a end of each turn to end it early.
+rv @current use_slow
+println Use Slow?
+@current::#use_slow=input()
+@current::#use_slow==1 {flag @current concentrating}
+@current::#use_slow==1 {rf @current slow}

@@ -1,0 +1,29 @@
+println HOOF
+@current::#attacks=1
+@current::#atk_bonus=13
+
+@current::#d10=3
+@current::#dmg_bonus=7
+
+ld core/roll_attacks.txt
+println Target must roll a DC 21 STR Save vs Prone!
+println
+ld reset.txt
+println Did target fail STR Save?
+
+@current::#did_knock_prone=input()
+@current::#did_knock_prone!=0 {@current::#did_knock_prone=1}
+@current::#did_knock_prone==1 {flag @current adv}
+
+println FIST x 2
+@current::#attacks=2
+@current::#atk_bonus=13
+
+@current::#d8=3
+@current::#dmg_bonus=7
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+@current::#did_knock_prone==1 {rf @current adv}
+rv @current #did_knock_prone

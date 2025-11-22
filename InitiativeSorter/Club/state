@@ -1,29 +1,43 @@
 reset
-dc 10
-jeffrey 20 +1 str:0 int:0 wis:0 cha:0  hp:5/23 flags:#pc ac:13
-alias jeffrey jeff
-alias jeffrey jef
-alias jeffrey j
-deep_scion1 18 +1 str:4 dex:1 con:3 int:0 wis:3 cha:4  hp:0/67 flags:#enemy,#enemies,#deep,#deep_scion,#deep_scions,#deepscions,#scion,#scions ac:11 start:.../:::/monsters/scripts/deep_scion.txt
-alias deep_scion1 ds1
-alias deep_scion1 d1
-alias deep_scion1 scion1
-alias deep_scion1 deep1
-deep_scion1:#atk_bonus 6
-deep_scion1:#d10 0
-deep_scion1:#d4 0
-deep_scion1:#d6 1
-deep_scion1:#dmg_bonus 4
-sahar 8 +3 str:0 int:0 wis:0 cha:0  hp:20/20 flags:#pc ac:16
-alias sahar sa
-alias sahar s
-alias sahar sr
-alias sahar shr
-jack 7 +0 str:0 int:0 wis:0 cha:0  hp:12/15 flags:#pc ac:11
-alias jack rachel
-alias jack torin
-alias jack torn
-alias jack jac
-round 3
-turn jack
+dc 13
+bandit_captain1 20 +3 str:4 dex:5 con:2 int:2 wis:2 cha:2  hp:0/65 flags:#enemy,#enemies,#bandit,#bandits,#captain,#captains,#bandit_captain,#bandit_captains,parry ac:15 start:.../:::/monsters/scripts/bandit_captain.txt
+alias bandit_captain1 captain1
+alias bandit_captain1 bc1
+alias bandit_captain1 capt1
+alias bandit_captain1 cap1
+alias bandit_captain1 bcap1
+bandit_captain1:#atk_bonus 5
+bandit_captain1:#d4 1
+bandit_captain1:#d6 0
+bandit_captain1:#dmg_bonus 3
+recharge1 bandit_captain1 parry
+gnome 18 +3 str:0 int:0 wis:0 cha:0  hp:5/13 flags:#pc ac:14
+alias gnome chris
+alias gnome ch
+alias gnome christian
+glyph 17 +4 str:0 int:0 wis:0 cha:0  hp:16/16 flags:#pc ac:17
+alias glyph g
+alias glyph lg
+alias glyph glf
+alias glyph glif
+alias glyph clif
+alias glyph cliff
+alias glyph silver
+alias glyph monk
+stumpy_jawbreaker 17 +1 str:0 int:0 wis:0 cha:0  hp:24/24 flags:#pc ac:17
+alias stumpy_jawbreaker jaw
+alias stumpy_jawbreaker jawbreaker
+alias stumpy_jawbreaker stumpy
+alias stumpy_jawbreaker buck
+alias stumpy_jawbreaker stump
+alias stumpy_jawbreaker buc
+pyra 12 -1 str:0 int:0 wis:0 cha:0  hp:18/18 flags:#pc ac:10
+alias pyra p
+alias pyra patric
+alias pyra patrick
+alias pyra pat
+alhazred 10 +0 str:0 int:0 wis:0 cha:0  hp:12/21 ac:12
+alias alhazred sam
+round 5
+turn glyph
 simple display

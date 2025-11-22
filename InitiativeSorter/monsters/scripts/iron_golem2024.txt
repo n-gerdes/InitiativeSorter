@@ -1,0 +1,36 @@
+rf @current #no_poison
+rv @current use_poison
+
+println Two attacks TOTAL, choosing between Bladed Arms and Firey Bolts
+println
+println BLADED ARM ATTACKS (10ft Reach):
+@current::#attacks=2
+@current::#atk_bonus=12
+@current::#d8=3
+@current::#dmg_bonus=7
+@current::#secondary_d6=3
+flag @current #secondary_fire_dmg
+ld core/roll_attacks.txt
+rf @current secondary_fire_dmg
+println
+println
+println FIREY BOLT (range 120 ft):
+@current::#attacks=2
+@current::#atk_bonus=10
+
+@current::#d8=8
+@current::#dmg_bonus=0
+@current::#secondary_d6=0
+ld core/roll_attacks.txt
+
+flag @current #no_poison
+if @current poison {rf @current #no_poison}
+if @current #no_poison {return}
+println
+println OOOR use Poison Breath (60-foot cone, DC 18 CON to halve 10d10 poison damage)
+rv @current use_poison
+println Use poison breath?
+@current::#use_poison=input()
+@current::#use_poison==1 {println rolling for 10d10 poison damage:}
+@current::#use_poison==1 {printnum 10d10}
+@current::#use_poison==1 {rf @current poison}

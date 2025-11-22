@@ -1,0 +1,31 @@
+//Set number of attacks
+rf @current no_slow
+rv @current use_slow
+
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=10
+
+//Damage stuff
+@current::#d8=3
+@current::#dmg_bonus=6
+
+//Data has been configured, now roll an attack
+ld core/roll_attacks.txt
+
+flag @current #no_slow
+if @current slow {rf @current no_slow}
+if @current no_slow {return}
+println
+rf @current no_slow
+println OR Force visible creatures within 10 ft to roll DC 17 WIS Save vs Slowed.
+println (half speed, limited to 1 attack per turn, no reactions, must choose between action and bonus action).
+println Slow lasts for 1 min, can repeat DC 17 WIS a end of each turn to end it early.
+rv @current use_slow
+if @current slow {println Use Slow?}
+if @current slow {@current::#use_slow=input()}
+@current::#use_slow==1 {flag @current concentrating}
+@current::#use_slow==1 {rf @current slow}
+rf @current no_slow
+rf @current no_poison

@@ -1,0 +1,40 @@
+@current::#use_wave=0
+if @current wave {println Use wave?}
+if @current wave {@current::#use_wave = input()}
+@current::#use_wave==1 {println Wave is 250 feet long/tall, 50 feet wide}
+@current::#use_wave==1 {println DC 24 STR Save vs Prone & halve bludgeonong on success:}
+@current::#use_wave==1 {printnum 7d12}
+@current::#use_wave==1 {println Extinguishes fires too}
+@current::#use_wave==1 {rf @current wave}
+@current::#use_wave!=1 {@current::#use_wave=0}
+//Set number of attacks
+@current::#attacks=1
+flag @current #secondary_acid
+
+@current::#use_wave==0 {println}
+@current::#use_wave==0 {print SLAM}
+
+//Configure attack data
+@current::#atk_bonus=14
+
+//Damage stuff
+@current::#d12=2
+@current::#d10=0
+@current::#dmg_bonus=8
+@current::#secondary_d12=2
+@current::#secondary_d6=0
+//Data has been configured, now roll an attack
+@current::#use_wave==0 core/roll_attacks.txt
+
+@current::#use_wave==0 {println}
+@current::#use_wave==0 {print TAIL}
+
+@current::#attacks=1
+@current::#atk_bonus=14
+@current::#d12=0
+@current::#d10=2
+@current::#dmg_bonus=8
+@current::#secondary_d12=0
+@current::#secondary_d6=3
+
+@current::#use_wave==0 core/roll_attacks.txt

@@ -1,0 +1,3 @@
+magnus flags:#undead,#vampire,#vampires aliases:magus,vi,magnus_vi,emperor,holy_emperor,vl,vampire_lord,boss,vampire +4 hp:263 ac:20 str:5 dex:10 con:4 int:9 wis:8 cha:11
+magnus.LR = 3
+reminder vampire_lord FRIGHTFUL PRESENCE: DC 19

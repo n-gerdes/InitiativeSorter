@@ -4,12 +4,16 @@
 @current::#d10 = 0
 @current::#d12 = 0
 
+@current rv #did_roll_breath_weapon_dice
+
 @current::#secondary_d4 = 0
 @current::#secondary_d6 = 0
 @current::#secondary_d8 = 0
 @current::#secondary_d10 = 0
 @current::#secondary_d12 = 0
 
+rv @current #breath_dmg
+rv @current #breath_dc
 rv @current d4
 rv @current d6
 rv @current d8
@@ -20,6 +24,12 @@ rv @current #d6
 rv @current #d8
 rv @current #d10
 rv @current #d12
+
+rv @current #breath_d4
+rv @current #breath_d6
+rv @current #breath_d8
+rv @current #breath_10
+rv @current #breath_d12
 
 rv @current secondary_d4
 rv @current secondary_d6

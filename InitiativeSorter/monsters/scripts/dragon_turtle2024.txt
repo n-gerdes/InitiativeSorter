@@ -1,0 +1,50 @@
+rv @current #does_tail
+rf @current advantage
+@current::#use_breath=0
+@current::#does_tail=0
+
+if @current breath {println Does it use STEAM BREATH?}
+if @current breath {println 1=yes, 0=no}
+if @current breath {@current::#use_breath=input}
+@current::#attacks=0
+@current::#use_breath==0 {println Does it use TAIL? (lower dmg but knocks prone)}
+@current::#use_breath==0 {println 1=yes, 0=no}
+@current::#use_breath==0 {@current::#does_tail=input}
+@current::#got_adv=0
+@current::#does_tail!=0 {println}
+@current::#does_tail!=0 {println TAIL (15ft reach)}
+@current::#does_tail!=0 {@current::#atk_bonus=13}
+@current::#does_tail!=0 {@current::#d10=2}
+@current::#does_tail!=0 {@current::#dmg_bonus=7}
+@current::#does_tail!=0 {@current::#secondary_d6=0}
+@current::#does_tail!=0 {@current::#attacks=1}
+@current::#does_tail!=0 core/roll_attacks.txt
+@current::#does_tail!=0 {println Huge or smaller is knocked prone on a hit, granting advantage on its next attacks}
+@current::#does_tail!=0 {println Did it hit?}
+@current::#does_tail!=0 {@current::#got_adv=input}
+@current::#got_adv!=0 {@current flag advantage}
+
+@current::#use_breath==0 {println}
+@current::#use_breath==0 {print BITES (15ft reach):}
+//Set number of attacks
+@current::#use_breath==0 {@current::#attacks=2}
+@current::#does_tail==0 {@current:#attacks=3}
+@current::use_breath==1 {@current::#attacks=0}
+
+//Configure attack data
+@current::#atk_bonus=13
+
+@current::#d10=3
+@current::#dmg_bonus=7
+@current::#secondary_d6=2
+
+@current::#use_breath==0 core/roll_attacks.txt
+@current::#use_breath!=0 {println}
+@current::#use_breath!=0 {print 60 ft cone, DC 19 CON to halve }
+@current::#use_breath!=0 {printnum 16d6}
+@current::#use_breath!=0 {print fire damage.}
+@current::#use_breath!=0 {print Water does not grant resistance!}
+@current::#use_breath!=0 {rf @current breath}
+
+rf @current advantage
+//ld core/roll_attacks.txt

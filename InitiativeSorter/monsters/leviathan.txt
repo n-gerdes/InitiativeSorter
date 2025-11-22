@@ -1,0 +1,3 @@
+leviathan1 flags:#enemy,#enemies start:.../:::/monsters/scripts/leviathan.txt aliases:lv1,lev1,lav1,l1 ac:17 hp:328 +7 str:8 dex:7 con:10 int:-4 wis:10 cha:9
+recharge6-6 leviathan1 wave
+leviathan1.LR = 3

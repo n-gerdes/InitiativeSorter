@@ -1,0 +1,6 @@
+println Did it charge 15+ feet in a straight line first?
+ld reset.txt
+@current::#gore=input()
+@current::#gore!=0 {@current::#gore=1}
+@current::#gore==1 goristro_gore.txt
+@current::#gore==0 goristro_multiattack.txt

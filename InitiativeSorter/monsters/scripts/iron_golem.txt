@@ -1,0 +1,30 @@
+//Set number of attacks
+rf @current no_poison
+rv @current use_poison
+
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=13
+
+//Damage stuff
+@current::#d10=3
+@current::#dmg_bonus=7
+
+//Data has been configured, now roll an attack
+ld core/roll_attacks.txt
+
+flag @current #no_poison
+if @current poison {rf @current no_poison}
+if @current #no_poison { return }
+rf @current #no_poison
+println
+println OR use POISON BREATH (15 ft cone). DC 19 CON to halve 45 (10d8) poison damage.
+rv @current use_poison
+if @current poison {println Use poison?}
+if @current poison {@current::#use_poison=input()}
+@current::#use_poison==1 {rf @current poison}
+@current::#use_poison==1 {println 10d8 poison damage roll:}
+@current::#use_poison==1 {printnum 10d8}
+rf @current no_slow
+rf @current no_poison

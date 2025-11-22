@@ -1,0 +1,1 @@
+add scarecrow1 +1 aliases:sc1 flags:#evil,#monster,#enemy,#enemies,#monsters,#scarecrow,#scarecrows ac:11 hp:36 dex:1 cha:1 start:.../:::/monsters/scripts/scarecrow.txt
