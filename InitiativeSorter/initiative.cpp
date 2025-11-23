@@ -18035,10 +18035,20 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			bool dummy_taking_initiatives = true;
 			bool force_return = false;
 			used_command = true;
+			creature* cur = current_creature;
 			bool success = get_creature(creatures, dummy_taking_initiatives, original_dummy_line, file, false, true, true, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
 			if (success)
 			{
 				creatures.sort();
+				current_creature = cur;
+				current_creature_2 = cur;
+				auto it = creatures.begin();
+				for (current_turn = 0; current_turn < creatures.size(); ++current_turn)
+				{
+					if (it->get_raw_ptr() == current_creature->get_raw_ptr())
+						break;
+					++it;
+				}
 			}
 			else
 			{
@@ -18051,10 +18061,20 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			bool dummy_taking_initiatives = true;
 			used_command = true;
 			bool force_return = false;
+			creature* cur = current_creature;
 			bool success = get_creature(creatures, dummy_taking_initiatives, dummy_line, file, false, false, false, "", ignore_initial_file_load, wd, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
 			if (success)
 			{
 				creatures.sort();
+				current_creature = cur;
+				current_creature_2 = cur;
+				auto it = creatures.begin();
+				for (current_turn = 0; current_turn < creatures.size(); ++current_turn)
+				{
+					if (it->get_raw_ptr() == current_creature->get_raw_ptr())
+						break;
+					++it;
+				}
 			}
 			else
 			{

@@ -88,10 +88,6 @@ Jonsi thp 11
 alias Jonsi hoffer
 alias Jonsi ser
 alias Jonsi j
-ashen 8 +3 str:0 int:0 wis:0 cha:0  hp:73/73 flags:#pc ac:15
-ashen thp 17
-alias ashen ashenwood
-alias ashen ash
 Zrird 8 +2 str:0 int:0 wis:0 cha:0  hp:0/62 flags:#PC,#party,#core,#pc ac:18
 Zrird max_hp 87
 Zrird max_hp 62
@@ -99,7 +95,6 @@ alias Zrird z
 alias Zrird zrir
 Zrird:#hd 8
 boric 8 +0 str:0 int:0 wis:0 cha:0  hp:6/101 flags:#PC ac:16
-boric thp 17
 alias boric owen
 alias boric b
 alias boric borik
