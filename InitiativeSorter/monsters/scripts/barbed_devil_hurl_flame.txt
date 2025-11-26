@@ -1,0 +1,11 @@
+print HURL FLAME x 2 (range 150 ft):
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=3
+
+ld .../:::/monsters/scripts/core/roll_attacks.txt

@@ -1,0 +1,4 @@
+monster custom/cr7_catacomb_saint
+clone-1 catacomb_saint1 @pc
+sort @catacomb_saints
+round 1

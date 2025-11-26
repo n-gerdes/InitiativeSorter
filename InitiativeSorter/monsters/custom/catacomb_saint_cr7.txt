@@ -1,2 +1,5 @@
 catacomb_saint1 +1 ac:18 hp:110 flags:#guard,#guards,#undead,#knight,#knights,#saint,#saints,#catacomb,#catacomb_saints,#catacomb_saint aliases:cs1 str:5 dex:1 con:4 int:2 wis:8 cha:6 start:monsters/scripts/catacomb_saint_cr7.txt
-death_plague_knight1 reminder speed 40ft.
+catacomb_saint1 reminder speed 40ft.
+catacomb_saint1::lv1=4
+catacomb_saint1::lv2=3
+catacomb_saint1::lv3=3

@@ -1,0 +1,55 @@
+println
+println Using MELEE attack routine!
+//Set number of attacks
+ld reset.txt
+
+println Constrict: Target is blind or restrained?
+@current::#target_blind=input()
+@current::#target_blind!=0 {flag @current advantage}
+
+println CONSTRICT (10ft reach):
+@current::#attacks=1
+@current::#atk_bonus=12
+@current::#d6=3
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+rf @current advantage
+println Target is GRAPPLED and RESTRAINED!
+println
+ld reset.txt
+println Snake Hair: Target is blind or restrained?
+@current::#target_blind=input()
+@current::#target_blind!=0 {flag @current advantage}
+flag @current #adds_secondary_poison_dmg
+println SNAKE HAIR (5ft reach):
+@current::#attacks=1
+@current::#atk_bonus=12
+@current::#d10=1
+@current::#secondary_d10=1
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+rf @current #adds_secondary_poison_dmg
+rf @current advantage
+
+@current::#adv!=0 {flag @current advantage}
+println
+ld reset.txt
+println Final Blade: Target is blind or restrained?
+@current::#target_blind=input()
+@current::#target_blind!=0 {flag @current advantage}
+println FINAL BLADE (5ft reach):
+flag @current #adds_force_dmg
+@current::#attacks=1
+@current::#atk_bonus=12
+@current::#d6=2
+@current::#secondary_d6=6
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+rf @current advantage
+println A crit forces a DC 20 CON Save vs decapitation (Large or smaller only).
+println If didn't take damage or has legendary actions then it's immune.
+println If immune to decapitation then it deals 28 (6d6) extra damage instead.
+
+rf @currenet #adds_force_dmg
+rf @current advantage
+rv @current #adv

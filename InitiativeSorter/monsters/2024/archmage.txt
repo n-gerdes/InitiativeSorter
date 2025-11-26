@@ -1,5 +1,4 @@
 add archmage1 ac:17 hp:170 str:0 dex:2 +7 con:1 int:9 wis:6 cha:3 aliases:am1,mage1,arch1 flags:#magic_resistance,#mage,#mages,#archmage,#archmages,#archmagi,#wizard,#spellcaster start:.../:::/monsters/scripts/archmage2024.txt
 flag archmage1 cone_of_cold
-archmage1.shield_ac=22
 archmage1.misty_steps=3
 archmage1 recharge1-6 rct

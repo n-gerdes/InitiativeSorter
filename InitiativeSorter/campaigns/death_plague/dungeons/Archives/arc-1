@@ -1,0 +1,7 @@
+@current::#_triple_pc_count=@pc
+@current::#_triple_pc_count*=3
+monster custom/elite_pike
+clone-1 Pike1 @current::#_triple_pc_count
+sort @pikes
+rv @current #_triple_pc_count
+round 1

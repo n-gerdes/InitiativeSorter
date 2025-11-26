@@ -1,0 +1,7 @@
+@current::#_triple_pc_count=@pc
+@current::#_triple_pc_count*=2
+monster mimic
+clone-1 mimic1 @current::#_triple_pc_count
+sort @mimic
+rv @current #_triple_pc_count
+round 1

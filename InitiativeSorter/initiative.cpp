@@ -14,7 +14,7 @@ const static int		ALIASES_SHOWN = 2;
 //						Determines whether or not it shows a character's info when no other info is displayed.
 const static bool		SHOW_INFO_EACH_TURN = false;
 
-//						How long the program forces the user to wait on a complex character's turn before it lets the turn advance.
+//						How long the program forces the user to wait on a complex character's turn before it lets the turn advance. Can be bypassed with the 'next' command, or by jumping turns.
 const static long 
 double					SECONDS_WAITED = 2.25;
 
@@ -49,9 +49,9 @@ it was intended to do.
 At first it started small - just tracking turns and hit points. It was only a couple commands, no need to write a sophisticated and robust system to manage them right? 
 Just a quick'n'dirty hack to add a couple small features. And for a short term micro-project, comments would just be a waste of time.
 But after one more week I realized I needed just a few more features to make it more useful, so I added a just few commands to rearrange initiatives.
-It was then that I should have overhauled the code...but surely this time it would be the last change
+It was then that I should have overhauled the code...but surely this time it would be the last change...
 
-That was almost two years ago. Time and time again, I kept adding "just a little more", hack after hack, week by week, slowly growing it like a tumor.
+That was over two years ago. Time and time again, I kept adding "just a little more", hack after hack, week by week, slowly growing it like a tumor.
 Now it's far too late.
 To rewrite it now is more work than just adding slightly to the festering heap every time, forever dooming the code to its existence as a museum of lazy and
 ill-advised practices.
@@ -2257,6 +2257,10 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "back"
 			|| lowerc == "prev"
 			|| lowerc == "next"
+			|| lowerc == "ht"
+			|| lowerc == "hur"
+			|| lowerc == "hrt"
+			|| lowerc == "hut"
 		) 
 			return false;
 
@@ -3626,6 +3630,8 @@ inline bool search_links(std::string& filename)
 			return false; //If recursively linked directories don't have it either then it does not exist in this file tree; report that result.
 		}
 	}
+
+	return false; //Fallback default value so the compiler doesn't complain
 }
 
 
@@ -9687,8 +9693,31 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
-				else if (comp_substring("hurt " + lowercase_name + " ", dummy_line, ("hurt " + lowercase_name + " ").length()) ||
-					comp_substring(lowercase_name + " hurt ", dummy_line, (lowercase_name + " hurt ").length()))
+				else if (
+					
+					comp_substring("hurt " + lowercase_name + " ", dummy_line, ("hurt " + lowercase_name + " ").length()) ||
+					comp_substring("dmg " + lowercase_name + " ", dummy_line, ("dmg " + lowercase_name + " ").length()) ||
+					comp_substring("harm " + lowercase_name + " ", dummy_line, ("harm " + lowercase_name + " ").length()) ||
+					comp_substring("damage " + lowercase_name + " ", dummy_line, ("damage " + lowercase_name + " ").length()) ||
+					comp_substring("d " + lowercase_name + " ", dummy_line, ("d " + lowercase_name + " ").length()) ||
+					comp_substring("h " + lowercase_name + " ", dummy_line, ("h " + lowercase_name + " ").length()) ||
+					comp_substring("ht " + lowercase_name + " ", dummy_line, ("ht " + lowercase_name + " ").length()) ||
+					comp_substring("hrt " + lowercase_name + " ", dummy_line, ("hrt " + lowercase_name + " ").length()) ||
+					comp_substring("hut " + lowercase_name + " ", dummy_line, ("hut " + lowercase_name + " ").length()) ||
+					comp_substring("hur " + lowercase_name + " ", dummy_line, ("hur " + lowercase_name + " ").length()) ||
+
+					comp_substring(lowercase_name + " hurt ", dummy_line, (lowercase_name + " hurt ").length()) ||
+					comp_substring(lowercase_name + " dmg ", dummy_line, (lowercase_name + " dmg ").length()) ||
+					comp_substring(lowercase_name + " harm ", dummy_line, (lowercase_name + " harm ").length()) ||
+					comp_substring(lowercase_name + " damage ", dummy_line, (lowercase_name + " damage ").length()) ||
+					comp_substring(lowercase_name + " d ", dummy_line, (lowercase_name + " d ").length()) ||
+					comp_substring(lowercase_name + " h ", dummy_line, (lowercase_name + " h ").length()) ||
+					comp_substring(lowercase_name + " hrt ", dummy_line, (lowercase_name + " hrt ").length()) ||
+					comp_substring(lowercase_name + " ht ", dummy_line, (lowercase_name + " ht ").length()) ||
+					comp_substring(lowercase_name + " hut ", dummy_line, (lowercase_name + " hut ").length()) ||
+					comp_substring(lowercase_name + " hur ", dummy_line, (lowercase_name + " hur ").length())
+					
+					)
 				{
 					try {
 						bool is_signed = false;
@@ -12447,7 +12476,24 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 					comp_substring("harm " + lowercase_name + " ", dummy_line, ("harm " + lowercase_name + " ").length()) ||
 					comp_substring("damage " + lowercase_name + " ", dummy_line, ("damage " + lowercase_name + " ").length()) ||
 					comp_substring("d " + lowercase_name + " ", dummy_line, ("d " + lowercase_name + " ").length()) ||
-					comp_substring("h " + lowercase_name + " ", dummy_line, ("h " + lowercase_name + " ").length()))
+					comp_substring("h " + lowercase_name + " ", dummy_line, ("h " + lowercase_name + " ").length()) ||
+					comp_substring("ht " + lowercase_name + " ", dummy_line, ("ht " + lowercase_name + " ").length()) ||
+					comp_substring("hrt " + lowercase_name + " ", dummy_line, ("hrt " + lowercase_name + " ").length()) ||
+					comp_substring("hut " + lowercase_name + " ", dummy_line, ("hut " + lowercase_name + " ").length()) ||
+					comp_substring("hur " + lowercase_name + " ", dummy_line, ("hur " + lowercase_name + " ").length()) ||
+
+					comp_substring(lowercase_name + " hurt ", dummy_line, (lowercase_name + " hurt ").length()) ||
+					comp_substring(lowercase_name + " dmg ", dummy_line, (lowercase_name + " dmg ").length()) ||
+					comp_substring(lowercase_name + " harm ", dummy_line, (lowercase_name + " harm ").length()) ||
+					comp_substring(lowercase_name + " damage ", dummy_line, (lowercase_name + " damage ").length()) ||
+					comp_substring(lowercase_name + " d ", dummy_line, (lowercase_name + " d ").length()) ||
+					comp_substring(lowercase_name + " h ", dummy_line, (lowercase_name + " h ").length()) ||
+					comp_substring(lowercase_name + " hrt ", dummy_line, (lowercase_name + " hrt ").length()) ||
+					comp_substring(lowercase_name + " ht ", dummy_line, (lowercase_name + " ht ").length()) ||
+					comp_substring(lowercase_name + " hut ", dummy_line, (lowercase_name + " hut ").length()) ||
+					comp_substring(lowercase_name + " hur ", dummy_line, (lowercase_name + " hur ").length())
+					
+					)
 				{
 					try {
 						bool is_signed = false;

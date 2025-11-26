@@ -1,0 +1,4 @@
+monster barbed_devil
+clone-1 barbed_devil1 @pc
+sort @barbed_devil
+round 1

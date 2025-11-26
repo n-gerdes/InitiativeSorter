@@ -9,8 +9,8 @@ if @current cone_of_cold {@current::#use_cone_of_cold=input}
 @current::#use_cone_of_cold==1 {rf @current cone_of_cold}
 
 //Configure attack data
-@current::#atk_bonus=8
-
+@current::#atk_bonus=9
+@current::attack_bonus>@current::#atk_bonus {@current::#atk_bonus=@current::attack_bonus}
 @current::#d10=4
 @current::#dmg_bonus=5
 

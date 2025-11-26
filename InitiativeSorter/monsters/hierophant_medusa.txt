@@ -1,0 +1,4 @@
+add hierophant_medusa1 +5 hp:237 ac:17 str:6 dex:5 con:10 int:2 wis:12 cha:6 start:.../:::/monsters/scripts/hierophant_medusa.txt aliases:hierohpant_medusa1,hierophant_medusa1,medusa1,hm1,hierophant1,heirophant_meudsa1,meusda1,meuudsa1,meusda1,meudsa1,meduas1,medaus1,mdsa1,mds1,m1,hierophat_medus1,hierophant_medusa1,hierophat_medusa1 flags:#medusa,#medusas,#medusi,#hierophant_medusa,#hierophat_medus,#hierophant_medusa,#hierophat_medusa
+reminder hierophant_medusa1 speed 40ft (walk/climb/swim).
+hierophant_medusa1.LR=4
+recharge4-6 hierophant_medusa1 has_petrifying_gaze

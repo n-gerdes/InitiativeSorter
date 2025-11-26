@@ -1,0 +1,29 @@
+ld reset.txt
+
+println Target is blind or restrained?
+@current::#target_blind=input()
+@current::#target_blind!=0 {flag @current advantage}
+
+println WRATHFUL STRIKE (120ft range, radiant dmg):
+@current::#attacks=1
+@current::#atk_bonus=12
+@current::#d10=3
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+rf @current advantage
+rv @current #target_blind
+
+ld reset.txt
+
+println Target is blind or restrained?
+@current::#target_blind=input()
+@current::#target_blind!=0 {flag @current advantage}
+
+println WRATHFUL STRIKE (120ft range, radiant dmg):
+@current::#attacks=1
+@current::#atk_bonus=12
+@current::#d10=3
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+rf @current advantage
+rv @current #target_blind

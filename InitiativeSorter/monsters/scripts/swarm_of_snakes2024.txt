@@ -1,0 +1,22 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d8=1
+@current::#d4=0
+@current::#dmg_bonus=4
+
+@current::#half_hp=@current::max_hp
+@current::#half_hp/=2
+@current::hp<=@current::#half_hp {@current::#d8=0}
+@current::hp<=@current::#half_hp {@current::#d4=1}
+@current::hp<=@current::#half_hp {flag @current bloodied}
+@current::hp>@current::#half_hp {rf @current bloodied}
+@current::#secondary_d6=3
+
+//Data has been configured, now roll an attack.
+print BITES
+ld core/roll_attacks.txt

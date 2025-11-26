@@ -1,3 +1,4 @@
 dungeons/CastleNewmore
 dungeons/H13
+dungeons/Archives
 encounters

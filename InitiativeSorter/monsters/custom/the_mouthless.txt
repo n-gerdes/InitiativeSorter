@@ -1,0 +1,2 @@
+add the_mouthless aliases:mouthless,boss flags:#enemy,#enemies,#boss ac:19 hp:171 str:4 dex:2 con:5 int:4 wis:4 cha:1
+the_mouthless.LR=3

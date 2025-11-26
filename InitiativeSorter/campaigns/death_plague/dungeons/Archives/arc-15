@@ -1,0 +1,7 @@
+@current::#_triple_pc_count=@pc
+@current::#_triple_pc_count*=2
+monster custom/homunculus_warrior
+clone-1 homunculus_warrior1 @current::#_triple_pc_count
+sort @homunculi
+rv @current #_triple_pc_count
+round 1

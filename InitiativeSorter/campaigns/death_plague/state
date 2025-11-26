@@ -1,6 +1,6 @@
 reset
 dc 18
-magnus 23 +4 str:5 dex:10 con:4 int:9 wis:8 cha:11  hp:24/263 flags:#undead,#vampire,#vampires ac:20
+magnus 23 +4 str:5 dex:10 con:4 int:9 wis:8 cha:11  hp:263/263 flags:#undead,#vampire,#vampires ac:20
 alias magnus magus
 alias magnus vi
 alias magnus magnus_vi
@@ -10,27 +10,13 @@ alias magnus vl
 alias magnus vampire_lord
 alias magnus boss
 alias magnus vampire
-magnus:lr 2
+magnus:lr 3
 reminder magnus FRIGHTFUL PRESENCE: DC 19
 hammer1 23 +3 str:0 int:0 wis:0 cha:0  hp:52/52 flags:#hammer ac:20
 alias hammer1 hm1
-Pike1 22 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:39/39 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees,reaction ac:18 start:monsters/scripts/veteran_pike.txt
-alias Pike1 enemy1
-alias Pike1 minion1
-alias Pike1 guard1
-alias Pike1 melee1
-alias Pike1 knight1
-alias Pike1 p1
-alias Pike1 pk1
-alias Pike1 g1
-Pike1:can_hold_the_line 1
-Pike1:can_parry 1
-note Pike1 Plate Armor, Pike
-recharge1 Pike1 reaction
 hammer2 22 +3 str:0 int:0 wis:0 cha:0  hp:52/52 flags:#hammer ac:20
 alias hammer2 hm2
 kiran 19 +0 str:0 int:0 wis:0 cha:0  hp:104/104 flags:#pc ac:19
-kiran thp 17
 alias kiran k
 alias kiran kyran
 alias kiran jameson
@@ -42,15 +28,13 @@ alias archers1 au1
 archers1:#atk_bonus 6
 archers1:#d8 4
 archers1:#dmg_bonus 3
-hans 18 -1 str:0 int:0 wis:0 cha:0  hp:76/97 flags:#pc ac:19
-hans max_hp 105
-hans max_hp 97
+hans 18 -1 str:0 int:0 wis:0 cha:0  hp:143/143 flags:#pc ac:21
 alias hans hoffman
 alias hans hoff
 alias hans han
 alias hans kyler
 alias hans hanz
-Manus 17 +5 str:0 int:0 wis:0 cha:0  hp:51/118 flags:#PC,#party,#core,#pc,#simple ac:19
+Manus 17 +5 str:0 int:0 wis:0 cha:0  hp:118/118 flags:#PC,#party,#core,#pc,#simple ac:19
 alias Manus wilpert
 alias Manus vilpert
 alias Manus gregory
@@ -66,35 +50,17 @@ archers2:#d8 4
 archers2:#dmg_bonus 3
 warhorse1 16 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
 alias warhorse1 horse1
-Pike2 15 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:39/39 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees,reaction ac:18 start:monsters/scripts/veteran_pike.txt
-alias Pike2 enemy2
-alias Pike2 minion2
-alias Pike2 guard2
-alias Pike2 melee2
-alias Pike2 knight2
-alias Pike2 p2
-alias Pike2 pk2
-alias Pike2 g2
-Pike2:can_hold_the_line 1
-Pike2:can_parry 1
-note Pike2 Plate Armor, Pike
-recharge1 Pike2 reaction
 warhorse2 9 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
 alias warhorse2 horse2
-Jonsi 9 +0 str:0 int:0 wis:0 cha:0  hp:29/89 flags:#PC,#party,#core,#pc ac:19
-Jonsi max_hp 130
-Jonsi max_hp 89
-Jonsi thp 11
+Jonsi 9 +0 str:0 int:0 wis:0 cha:0  hp:130/130 flags:#PC,#party,#core,#pc ac:21
 alias Jonsi hoffer
 alias Jonsi ser
 alias Jonsi j
-Zrird 8 +2 str:0 int:0 wis:0 cha:0  hp:0/62 flags:#PC,#party,#core,#pc ac:18
-Zrird max_hp 87
-Zrird max_hp 62
+Zrird 8 +2 str:0 int:0 wis:0 cha:0  hp:87/87 flags:#PC,#party,#core,#pc ac:18
 alias Zrird z
 alias Zrird zrir
 Zrird:#hd 8
-boric 8 +0 str:0 int:0 wis:0 cha:0  hp:6/101 flags:#PC ac:16
+boric 8 +0 str:0 int:0 wis:0 cha:0  hp:101/101 flags:#PC ac:16
 alias boric owen
 alias boric b
 alias boric borik
@@ -103,21 +69,9 @@ alias boric fletch
 alias boric borc
 hammer3 7 +3 str:0 int:0 wis:0 cha:0  hp:52/52 flags:#hammer ac:20
 alias hammer3 hm3
-Pike3 6 +3 str:4 dex:3 con:4 int:1 wis:2 cha:2  hp:39/39 flags:#enemy,#minion,#guard,#guards,#minions,#enemies,#polearm,#polearms,#pike,#pikes,#spear,#spears,#lance,#lances,#knight,#knights,#heavy_melee,#heavymelee,#heavymelees,#heavy_melees,reaction ac:18 start:monsters/scripts/veteran_pike.txt
-alias Pike3 enemy3
-alias Pike3 minion3
-alias Pike3 guard3
-alias Pike3 melee3
-alias Pike3 knight3
-alias Pike3 p3
-alias Pike3 pk3
-alias Pike3 g3
-Pike3:can_hold_the_line 1
-Pike3:can_parry 1
-note Pike3 Plate Armor, Pike
-recharge1 Pike3 reaction
 warhorse3 1 +1 str:8 dex:1 con:6 int:-3 wis:0 cha:-2  hp:19/19 flags:#ally,#allies,#horse,#horses,#simple ac:18
 alias warhorse3 horse3
-round 18
-turn Jonsi
+simples 0 +0 str:0 int:0 wis:0 cha:0 
+round 1
+turn magnus
 simple display

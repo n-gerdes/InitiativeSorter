@@ -1,0 +1,6 @@
+println In Melee Range/Using Melee Attacks?
+@current::#use_melee=input()
+@current::#use_melee!=0 {@current::#use_melee=1}
+ld reset.txt
+@current::#use_melee==1 barbed_devil_melee.txt
+@current::#use_melee==0 barbed_devil_hurl_flame.txt

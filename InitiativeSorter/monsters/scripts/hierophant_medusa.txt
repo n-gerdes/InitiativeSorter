@@ -1,0 +1,6 @@
+if @current has_petrifying_gaze hierophant_medusa_gaze.txt
+println Does the Hierophant Medusa use its melee routine (higher DPR)?
+@current::#use_melee = input()
+@current::#use_melee != 0 hierophant_medusa_melee.txt
+@current::#use_melee == 0 hierophant_medusa_ranged.txt
+rv @current #use_melee

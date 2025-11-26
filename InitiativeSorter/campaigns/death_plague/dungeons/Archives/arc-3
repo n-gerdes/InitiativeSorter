@@ -1,0 +1,8 @@
+@current::#_triple_pc_count=@pc
+@current::#_triple_pc_count/=3
+@current::#_triple_pc_count<1 {@current::#_triple_pc_count=1}
+monster 2024/stone_golem
+clone-1 stone_golem1 @current::#_triple_pc_count
+sort @stone_golem
+rv @current #_triple_pc_count
+round 1

@@ -1,0 +1,7 @@
+@current::#_triple_pc_count=@pc
+@current::#_triple_pc_count*=2
+monster black_pudding
+clone-1 Black_Pudding1 @current::#_triple_pc_count
+sort @black_pudding
+rv @current #_triple_pc_count
+round 1
