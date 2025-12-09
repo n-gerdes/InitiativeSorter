@@ -1,0 +1,14 @@
+println Chose SPELLCASTING!
+println
+println
+println Which type?
+@current::lv1>0 {println 1. Spell at Level 1}
+@current::lv2>0 {println 2. Spell at Level 2}
+if @current fireball {println 3. Fireball}
+@current::#spell_lv=input()
+@current::#spell_lv<0 flameskull_spells.txt
+@current::#spell_lv>3 flameskull_spells.txt
+
+@current::#spell_lv==1 flameskull_lv1_spells.txt
+@current::#spell_lv==2 flameskull_lv2_spells.txt
+@current::#spell_lv==3 flameskull_fireball.txt

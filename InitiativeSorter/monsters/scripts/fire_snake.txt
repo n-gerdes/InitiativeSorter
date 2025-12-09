@@ -1,0 +1,8 @@
+println BITE + TAIL (5 ft reach):
+@current::#attacks=2
+@current::#atk_bonus=3
+@current::#d4=1
+@current::#secondary_d6=1
+@current::#dmg_bonus=1
+flag @current #secondary_fire_dmg
+ld core/roll_attacks.txt

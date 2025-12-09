@@ -1,0 +1,14 @@
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d6=2
+@current::#dmg_bonus=2
+@current::#secondary_d6=1
+
+//Data has been configured, now roll an attack.
+print PSEUDOPOD
+ld .../:::/monsters/scripts/core/roll_attacks.txt

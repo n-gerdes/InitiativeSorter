@@ -1,0 +1,29 @@
+println
+if @current engulfing {print engulfed creature takes automatic bludgeoning:}
+if @current engulfing {printnum 2d8+4}
+println
+@current::#both_hit = 0
+ld reset.txt
+@current::#hitting_engulfed=0
+if @current engulfing {println hitting engulfed creature?}
+if @current engulfing {@current::#hitting_engulfed=input()}
+@current::#hitting_engulfed!=0 {flag @current advantage}
+println SLAM x 2 (reach 5ft):
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=7
+
+//Damage stuff
+@current::#d8=2
+@currenet::#dmg_bonus=4
+
+ld core/roll_attacks.txt
+
+@current::#hitting_engulfed!=0 {rf @current advantage}
+if @current engulfing {return}
+println
+println Did both attacks hit?
+@current::#both_hit = input()
+println
+@current::#both_hit!=0 shambling_mound_engulf.txt

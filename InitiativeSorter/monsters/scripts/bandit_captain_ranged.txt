@@ -1,0 +1,21 @@
+print RANGED ATTACK ROUTINE
+print Dagger x 2; range 20/60
+println
+println Target beyond 20 feet?
+@current::#l_range=input()
+@current::#l_range!=0 {flag @current disadvantage}
+//Set number of attacks
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=0
+@current::#d4=1
+@current::#dmg_bonus=3
+
+//Data has been configured, now roll an attack.
+ld core/roll_attacks.txt
+
+@current::#l_range!=0 {rf @current disadvantage}

@@ -1,0 +1,13 @@
+ld reset.txt
+println
+println BEAK (same target):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d6=1
+@currenet::#dmg_bonus=2
+
+ld core/roll_attacks.txt

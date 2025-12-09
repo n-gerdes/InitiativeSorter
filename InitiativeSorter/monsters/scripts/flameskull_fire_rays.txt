@@ -1,0 +1,13 @@
+println Chose FIRE RAYS!
+println
+println
+println FIRE RAY x 2 (30ft range):
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=3
+
+ld core/roll_attacks.txt

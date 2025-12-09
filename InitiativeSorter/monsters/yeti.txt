@@ -1,0 +1,2 @@
+add yeti1 ac:12 hp:51 str:4 dex:1 con:3 int:-1 wis:1 cha:-2 +1 aliases:y1,yt1,yet1,yti1 flags:#monster,#monsters,#monstrosity,#monstrocity,#monstrosities,#monstrocities,#yeti,#yetis,#yetii,#enemy,#enemies start:.../:::/monsters/scripts/yeti.txt
+reminder yeti1 Walk/Climb 40ft.

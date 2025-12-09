@@ -1,0 +1,23 @@
+@current::#use_whirlwind=0
+if @current whirlwind {println use whirlwind on targets inside of elemental?}
+if @current whirlwind {@current::#use_whirlwind=input()}
+@current::#use_whirlwind==1 {println targets inside must roll dc 13 str save to halve damage:}
+@current::#use_whirlwind==1 {printnum 3d8+2}
+@current::#use_whirlwind==1 {println}
+@current::#use_whirlwind==1 {println failure also flings them 20 feet randomly & knock prone}
+@current::#use_whirlwind==1 {println each 10 feet flung before impact deals 1d6 damage}
+@current::#use_whirlwind==1 {println if it hits another creature then that one also has to save to halve dmg & prone}
+@current::#use_whirlwind==1 {rf @current whirlwind}
+@current::#use_whirlwind==1 {return}
+
+println SLAM x 2 (5 ft reach):
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d8=2
+@current::#dmg_bonus=5
+
+ld core/roll_attacks.txt

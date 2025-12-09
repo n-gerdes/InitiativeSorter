@@ -1,0 +1,8 @@
+println
+println 60 ft range, 5 ft diameter; sphere takes up 1 space, must be created in an unoccupied space.
+println Can use a BONUS ACTION to move the sphere 30ft and ram it into a creature (it stops after overlapping them).
+println It can move over barriers 5 feet tall and jump across 10ft gaps.
+println
+println If a creature is rammed or ends its turn inside the sphere it must make a DC 13 DEX Save to halve 2d6 fire damage.
+println Damage roll this turn:
+printnum 2d6

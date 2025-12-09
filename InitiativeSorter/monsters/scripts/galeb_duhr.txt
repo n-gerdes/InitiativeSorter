@@ -1,0 +1,29 @@
+@current::#anim_boulders=0
+@current::#rolled_far=0
+if @current animate_boulders {println does it animate up to two boulders within 60ft?}
+if @current animate_boulders {@current::#anim_boulders=input()}
+@current::#anim_boulders!=0 {rf @current animate_boulders}
+@current::#anim_boulders!=0 {flag @current animated_boulder}
+@current::#anim_boulders!=0 {clone @current 2}
+@current::#anim_boulders!=0 {rf @current animated_boulder}
+@current::#anim_boulders!=0 {println they persist as long as this one maintains concentration}
+@current::#anim_boulders!=0 {@current flag concentrating}
+@current::#anim_boulders!=0 {return}
+
+//Set number of attacks
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=8
+
+//Damage stuff
+@current::#d6=2
+println
+println Did the Galeb Duhr roll at least 20 feet before attacking?
+@current::#rolled_far=input()
+@current::#rolled_far!=0 {@current::#d6=4}
+@current::#dmg_bonus=5
+
+ld core/roll_attacks.txt
+
+@current::#rolled_far!=0 {println *on a hit the target must succeed on str save 16 or be knocked prone}

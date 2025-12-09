@@ -1,0 +1,9 @@
+@current::#attacks=1
+@current::#atk_bonus=4
+@current::#d6=2
+@current::#dmg_bonus=0
+
+ld core/roll_attacks.txt
+
+println Hit: target is IGNITED and takes 1d6 fire damage at the end of each of its turns!
+println Hit: target is BURNING until someone uses an action to douse it!

@@ -1,0 +1,29 @@
+@current::#use_breath=0
+@current::#pack_tactics=0
+if @current breath {println use fire breath?}
+if @current breath {@current::#use_breath=input()}
+@current::#use_breath==1 {println targets in 15-ft cone must roll dc 12 dex save to halve dmg:}
+@current::#use_breath==1 {printnum 6d6}
+@current::#use_breath==1 {println}
+@current::#use_breath==1 {rf @current breath}
+@current::#use_breath==1 {return}
+flag @current #secondary_fire
+
+println
+println Does Pack Tactics apply?
+@current::#pack_tactics=input()
+@current::#pack_tactics!=0 {flag @current advantage}
+println BITE (5 ft reach):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d8=1
+@current::#dmg_bonus=3
+@current::#secondary_d6=2
+
+ld core/roll_attacks.txt
+
+@current::#pack_tactics!=0 {rf @current advantage}

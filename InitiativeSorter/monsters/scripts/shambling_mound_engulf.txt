@@ -1,0 +1,8 @@
+if @current engulfing {return}
+flag @current engulfing
+println Medium or smaller target is GRAPPLED!
+println It is also BLINDED, RESTRAINED, and SUFFOCATING!
+println It must make on a DC 14 CON Save at the start of each of the mound's turns.
+println On a failure it takes 2d8 + 4 bludgeoning damage.
+println If the mound moves, so does the engulfed creature.
+println Mound can only engulf one at a time.

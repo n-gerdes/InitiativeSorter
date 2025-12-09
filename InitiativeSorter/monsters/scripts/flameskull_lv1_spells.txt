@@ -1,0 +1,9 @@
+@current::lv1==0 {println No spell slots of that level remain.}
+@current::lv1==0 flameskull_spells.txt
+println
+println Magic Missile: 3 targets, 120ft range. All hit simultaneously.
+print Damage:
+printnum 1d4+1
+printnum 1d4+1
+printnum 1d4+1
+@current::lv1-=1

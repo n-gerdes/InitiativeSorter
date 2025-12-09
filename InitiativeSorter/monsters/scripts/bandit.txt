@@ -1,0 +1,23 @@
+println Use preferred crossbow?
+@current::#l_range=0
+@current::#use_ranged=input()
+@current::#use_ranged!=0 {println l. crossbow (80/320ft)}
+@current::#use_ranged!=0 {println target beyond 80 feet?}
+@current::#use_ranged!=0 {@current::#l_range = input()}
+
+ld reset.txt
+println
+println
+@current::#l_range!=0 {flag @current disadvantage}
+
+//Configure attack data
+@current::#attacks=1
+@current::#atk_bonus=3
+@currenet::#dmg_bonus=1
+@current::#use_ranged!=0 {@current::#d8=1}
+@current::#use_ranged==0 {@current::#d6=1}
+@current::#use_ranged==0 {println scimitar}
+ld core/roll_attacks.txt
+
+
+@current::#l_range!=0 {rf @current disadavantage}

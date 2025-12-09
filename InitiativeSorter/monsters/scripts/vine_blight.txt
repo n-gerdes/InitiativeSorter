@@ -1,0 +1,30 @@
+@current::#use_entangling_plants=0
+@current::#restrained=0
+if @current entangling_plants {println use entangling_plants?}
+if @current entangling_plants {@current::#use_entangling_plants=input()}
+@current::#use_entangling_plants==1 {println plants sprout in 15ft radius around the blight & last 1 min.}
+@current::#use_entangling_plants==1 {println sprouted area is difficult terrain for non-plants.}
+@current::#use_entangling_plants==1 {println large/smaller creatures in area can be forced to roll dc 12 str save vs restrained}
+//@current::#use_entangling_plants==1 {flag @current entangling}
+@current::#use_entangling_plants==1 {return}
+
+println
+println Attacking a restrained target?
+@current::#restrained=input()
+@current::#restrained!=0 {flag @current advantage}
+
+println CONSTRICT (10 ft reach):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d6=2
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt
+@current::#restrained!=0 {rf @current advantage}
+println GRAPPLES and RESTRAINS a target size 'large' or smaller!
+println It can only constrict one target at a time!
+println Escape DC 12.

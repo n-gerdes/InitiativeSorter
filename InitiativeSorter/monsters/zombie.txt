@@ -1,1 +1,1 @@
-zombie1 aliases:z1 ac:8 hp:22 str:1 dex:-2 con:3 int:-4 wis:0 cha:-3 -2 start:.../:::/monsters/scripts/zombie.txt flags:#enemy,#enemies,#zombie,#zombies,#undead
+zombie1 aliases:z1 ac:8 hp:22 str:1 dex:-2 con:3 int:-4 wis:0 cha:-3 -2 start:.../:::/monsters/scripts/zombie.txt flags:#enemy,#enemies,#zombie,#zombies,#undead,UNDEAD_FORTITUDE

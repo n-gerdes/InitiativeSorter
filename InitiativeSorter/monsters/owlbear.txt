@@ -1,0 +1,2 @@
+add owlbear1 ac:13 hp:59 str:5 dex:1 +1 con:3 int:-4 wis:1 cha:-2 aliases:ob1,owl1,obear1 flags:#monster,#monstrocity,#monstrosity,#monsters,#monstrocities,#monstrosities,#owlbear,#owlbears,#enemy,#enemies start:.../:::/monsters/scripts/owlbear.txt
+owlbear1 reminder Speed 40ft.

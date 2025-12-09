@@ -1,0 +1,17 @@
+@current::#total_slots=0
+if @current fireball {@current::#total_slots = 1}
+@current::#total_slots += @current::#lv1
+@current::#total_slots += @current::#lv2
+@current::#total_slots==0 flameskull_fire_rays.txt
+@current::#total_slots==0 {return}
+
+println What does the flameskull do?
+println 1. Spell (Recommended)
+println 2. Fire Rays
+@current::#turn==0 {println Recommend casting *blur* (2nd lv) on the first turn.}
+@current::#choice=input()
+@current::#choice<0 {@current:#choice=0}
+@current::#choice>2 flameskull.txt
+@current::#turn+=1
+@current::#choice==1 flameskull_spells.txt
+@current::#choice==2 flameskull_fire_rays.txt

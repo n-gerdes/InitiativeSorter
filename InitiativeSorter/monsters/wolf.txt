@@ -1,0 +1,2 @@
+add wolf1 aliases:w1,wf1,wlf1,wo1,wol1 flags:#beast,#beasts,#animal,#animals,#wolf,#wolfs,#wolves ac:13 hp:11 str:1 +2 dex:2 con:1 int:-4 wis:1 cha:-2 start:.../:::/monsters/scripts/wolf.txt
+reminder wolf1 Speed 40ft.

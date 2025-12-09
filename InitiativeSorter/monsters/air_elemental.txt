@@ -1,0 +1,3 @@
+add air_elemental1 +5 str:2 dex:5 con:2 int:-2 wis:0 cha:-2 aliases:ae1,air1,elemental1,airy1,aelem1,a_elem1,airelem1,air_elem1 flags:#elemental,#elementals,#air,#air_elemental,#air_elementals ac:15 hp:90 start:.../:::/monsters/scripts/air_elemental.txt
+reminder air_elemenal1 Fly 90 ft (hover).
+recharge4-6 air_elemental1 whirlwind

@@ -1,0 +1,2 @@
+cerberus1 +1 ac:17 hp:199 flags:#cerberi,#cerberuses,#cerberus,#monster,#monstrosity,#monstrocity aliases:cb1,c1,cbs1,cerb1 str:11 dex:1 con:10 int:0 wis:3 cha:-1 start:monsters/scripts/the_legendary_cerberus.txt
+cerberus1 reminder speed 60ft.

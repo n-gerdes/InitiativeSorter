@@ -1,0 +1,2 @@
+add galeb_duhr1 +2 str:5 dex:2 con:5 int:0 wis:1 cha:-1 aliases:gd1,galeb1,duhr1,galebduhr1 ac:16 hp:85 start:.../:::/monsters/scripts/galeb_duhr.txt flags:#elemental,#elementals,#galeb,#duhr,#galebduhr,#galeb_duhr,#galeb_duhrs,#galebduhrs
+flag galeb_duhr1 animate_boulders

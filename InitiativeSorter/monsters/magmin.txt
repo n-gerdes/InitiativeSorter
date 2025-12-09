@@ -1,0 +1,1 @@
+add magmin1 ac:14 hp:9 flags:DEATH_BURST,#elemental,#elementals,#magmin,#magmen,#magmins,#enemy,#enemies str:-2 dex:2 con:1 int:-1 wis:0 cha:0 +2 start:.../:::/monsters/scripts/magmin.txt

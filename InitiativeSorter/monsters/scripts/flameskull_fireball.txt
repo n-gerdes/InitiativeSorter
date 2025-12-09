@@ -1,0 +1,5 @@
+println
+println 150 ft range, 20 ft radius (40 ft diameter)
+println Targets must roll a DC 13 DEX Save to halve fire damage:
+printnum 8d6
+@current rf fireball

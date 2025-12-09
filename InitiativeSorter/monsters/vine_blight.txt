@@ -1,0 +1,4 @@
+add vine_blight1 ac:12 hp:26 -1 str:2 dex:-1 con:2 int:-3 wis:0 cha:-4 flags:#enemy,#enemies,#blight,#vine,#vines,#blights,#vine_blight,#vine_blights,#vineblight,#vineblights,#plant,#plants aliases:b1,v1,vb1 start:.../:::/monsters/scripts/vine_blight.txt
+reminder vine_blight1 speed 10ft.
+note vine_blight Escape DC 12
+recharge5-6 vine_blight1 entangling_plants

@@ -1,0 +1,29 @@
+@current::#use_breath=0
+@current::#use_fog=0
+if @current frost_breath {println use frost breath?}
+if @current frost_breath {@current::#use_breath=input()}
+@current::#use_breath==1 {println targets in 15ft cone must roll dc 10 dex save to halve dmg:}
+@current::#use_breath==1 {printnum 2d4}
+@current::#use_breath==1 {rf @current frost_breath}
+@current::#use_breath==1 {return}
+
+if @current fog_cloud {println use fog cloud spell (1/day)?}
+if @current fog_cloud {@current::#use_fog=input()}
+@current::#use_fog==1 {println 20-ft radius sphere spawned within 120 ft.}
+@current::#use_fog==1 {println cloud heavily obscures area.}
+@current::#use_fog==1 {rf @current fog_cloud}
+@current::#use_fog==1 {return}
+println
+@current flag #secondary_cold_dmg
+println CLAWS:
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=1
+@current::#secondary_d4=1
+
+ld core/roll_attacks.txt

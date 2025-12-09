@@ -1,0 +1,20 @@
+@current::#use_breath=0
+if @current breath {println use fire breath?}
+if @current breath {@current::#use_breath=input()}
+@current::#use_breath==1 {println targets in 15ft cone must roll dc 13 dex save to halve dmg:}
+@current::#use_breath==1 {printnum 7d6}
+@current::#use_breath==1 {rf @current breath}
+@current::#use_breath==1 {return}
+
+println BITE (5 ft reach):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=6
+flag @current #adds_secondary_fire_dmg
+//Damage stuff
+@current::#d10=1
+@current::#dmg_bonus=4
+@current::#secondary_d6=1
+
+ld core/roll_attacks.txt

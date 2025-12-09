@@ -1,0 +1,37 @@
+@current::#using_song=0
+if @current singing {@current::#using_song=1}
+@current::#using_song==0 {println Does the harpy use LURING SONG as an ACTION?}
+@current::#use_song==0 {@current::#use_song=input()}
+@current::#using_song==1 {@current::#use_song=1}
+@current::#use_song!=0 {@current::#use_song=1}
+@current::#use_song==1 {println all humanoids and giant within 300 ft must roll dc 11 wisdom save.}
+@current::#use_song==1 {println on a failure it is charmed & incapacitated (no actions/bonus actions/reactions/speech/concentration).}
+@current::#use_song==1 {println must use movement to move towards the harpy, ignoring all others.}
+@current::#use_song==1 {println can't avoid opportunity attacks}
+@current::#use_song==1 {println can reroll wisdom save before walking into direct danger or after taking damage from anything but the harpy, & at end of its turns}
+@current::#use_song==1 {println passing the save grants immunity to this harpy (and no others) only for 24 hours}
+@current::#use_song==1 {println}
+@current::#use_song==1 {println Can maintain song as a bonus action}
+@current::#use_song==1 {flag @current singing}
+rf @current #_temp
+@current::#_temp=@current::#use_song
+@current::#_temp+=@current::#using_song
+@current::#_temp==1 {return}
+println
+
+ld reset.txt
+println CLAWS:
+@current::#attacks=1
+@current::#atk_bonus=3
+@current::#d4=2
+@current::#dmg_bonus=1
+ld core/roll_attacks.txt
+print      
+print     
+ld reset.txt
+print CLUB
+@current::#attacks=1
+@current::#atk_bonus=3
+@current::#d4=1
+@current::#dmg_bonus=1
+ld core/roll_attacks.txt

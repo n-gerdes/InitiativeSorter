@@ -1,0 +1,30 @@
+@current::#use_spittle=0
+@current::#bite_adv=0
+if @current blinding_spittle {println use blinding spittle (no damage)?}
+if @current blinding_spittle {@current::#use_spittle=input()}
+@current::#use_spittle!=0 {@current::#use_spittle=1}
+@current::#use_spittle==1 {println}
+@current::#use_spittle==1 {println target point within 15 feet.}
+@current::#use_spittle==1 {println each creature within 5 feet must roll dc 13 dex save vs blindness.}
+@current::#use_spittle==1 {println blindness lasts until end of mouther's next turn.}
+@current::#use_spittle==1 {rf @current blinding_spittle}
+@current::#use_spittle==1 {println}
+@current::#use_spittle==1 {println was bite target blinded?}
+@current::#use_spittle==1 {@current::#bite_adv=input()}
+@current::#bite_adv!=0 {flag @current advantage}
+println
+println BITE (5 ft reach):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=2
+
+//Damage stuff
+@current::#d6=5
+@current::#dmg_bonus=0
+
+ld core/roll_attacks.txt
+println
+println Also forces DC 10 STR Save vs Prone.
+
+@current::#bite_adv!=0 {rf @current advantage}

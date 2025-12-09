@@ -1,0 +1,1 @@
+add hezrou1 ac:16 hp:136 str:7 dex:3 +3 con:8 int:-3 wis:4 cha:1 flags:#magic_resistance,#fiend,#fiends,#demon,#demons,#enemy,#enemies,#hezrou,#hezrous,STENCH_DC14 aliases:hz1,h1,hez1 start:.../:::/monsters/scripts/hezrou.txt

@@ -1,0 +1,17 @@
+println Does Pack Tactics apply (or is it Prone)?
+@current::#pack=input()
+
+@current::#pack!=0 {flag @current advantage}
+
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d4=2
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt
+println Hit: DC 11 STR Save vs Prone
+@current::#pack!=0 {rf @current advantage}

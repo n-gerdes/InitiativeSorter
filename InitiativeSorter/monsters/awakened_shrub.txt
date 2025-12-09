@@ -1,0 +1,2 @@
+add awakened_shrub1 str:-4 dex:-1 -1 con:0 int:0 wis:0 cha:-2 ac:9 hp:10 aliases:as1,shrub1,a1 flags:#enemy,#enemies,#awakened,#awakened_shrub,#awaekened_shrub,#awakened_shrubs,#shrub,#shrubs start:.../:::/monsters/scripts/awakened_shrub.txt
+reminder awakened_shrub1 Speed 20ft.

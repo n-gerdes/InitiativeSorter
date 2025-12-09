@@ -2763,7 +2763,7 @@ inline int get_number_arg(std::string dummy_line, bool& is_signed, std::list<cre
 		std::string user_input = "a";
 		while (!is_digits(user_input))
 		{
-			std::cout << "Please enter a number: ";
+			std::cout << "Please enter a value: ";
 			std::getline(std::cin, user_input);
 			const std::string& LC = get_lowercase(user_input);
 			if (LC == "yes" || LC == "true" || LC == "y" || LC == "yeah")
@@ -4492,6 +4492,253 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					}
 				}
 
+				else if (comp_substring("if not " + lowercase_name + " ", dummy_line, ("if not " + lowercase_name + " ").size()))
+				{
+					int cmd_len = ("if not " + lowercase_name + " ").size();
+					std::string sub = dummy_line.substr(cmd_len);
+					trim(sub);
+					std::string og_sub = sub;
+					int space = sub.find(" ");
+					sub.resize(space);
+					if (!i->has_flag(sub))
+					{
+						if (dummy_line.find("{") == std::string::npos)
+						{
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							std::string filename = sub;
+							if (sub == "return" || sub == "return;")
+							{
+								found_return_directive = true;
+								force_return = true;
+								line = "";
+								if (file.is_open())
+								{
+									while (file.good() && !file.eof())
+									{
+										std::string ln;
+										std::getline(file, ln);
+									}
+									file.close();
+								}
+								using_file = false;
+								return false;
+							}
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+									if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+										wd = directory;
+								}
+							}
+							std::ifstream new_file;
+							process_filename(filename);
+							dir_fix(filename);
+							search_links(filename);
+							new_file.open(filename);
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								return false;
+							}
+							else {
+								bool force_return = false;
+								while (new_file.good() && !new_file.eof() && !force_return)
+								{
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
+									if (!new_file.is_open())
+										break;
+								}
+								ignore_initial_file_load = true;
+								new_file.close();
+								save_buffer();
+								return false;
+							}
+						}
+						else
+						{
+							sub = og_sub;
+							int index = sub.find("{");
+							sub = sub.substr(index);
+							trim(sub);
+							if (sub[sub.size() - 1] == '}')
+								sub[sub.size() - 1] = ' ';
+							if (sub[0] == '{')
+								sub[0] = ' ';
+							trim(sub);
+							if (sub == "return" || sub == "return;")
+							{
+								found_return_directive = true;
+								force_return = true;
+								line = "";
+								if (file.is_open())
+								{
+									while (file.good() && !file.eof())
+									{
+										std::string ln;
+										std::getline(file, ln);
+									}
+									file.close();
+								}
+								using_file = false;
+								return false;
+							}
+							std::ifstream file;
+							bool dummy_taking_initiatives = true;
+							bool force_return = false;
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
+							used_command = true;
+							if (success)
+							{
+								creatures.sort();
+							}
+							save_buffer();
+							return false;
+						}
+					}
+					else
+						used_command = true;
+						}
+
+				else if (comp_substring(lowercase_name + " if not ", dummy_line, (lowercase_name + " if not ").size()))
+				{
+					int cmd_len = (lowercase_name + " if not ").size();
+					std::string sub = dummy_line.substr(cmd_len);
+					trim(sub);
+					std::string og_sub = sub;
+					int space = sub.find(" ");
+					sub.resize(space);
+					if (!i->has_flag(sub))
+					{
+						if (dummy_line.find("{") == std::string::npos)
+						{
+							sub = og_sub;
+							space = sub.find(" ");
+							sub = sub.substr(space);
+							trim(sub);
+							if (sub == "return" || sub == "return;")
+							{
+								found_return_directive = true;
+								line = "";
+								force_return = true;
+								if (file.is_open())
+								{
+									while (file.good() && !file.eof())
+									{
+										std::string ln;
+										std::getline(file, ln);
+									}
+									file.close();
+								}
+								using_file = false;
+								return false;
+							}
+							std::string filename = sub;
+
+							if (directory != "")
+							{
+								filename = directory + "/" + filename;
+							}
+							else
+							{
+								if (filename.find("/") != std::string::npos || filename.find("\\") != std::string::npos)
+								{
+									size_t backi = filename.size() - 1;
+									while (filename[backi] != '/' && filename[backi] != '\\')
+									{
+										--backi;
+									}
+									directory = filename;
+									directory.resize(backi);
+									if (initial_execution && LOAD_CHANGES_WORKING_DIRECTORY)
+										wd = directory;
+								}
+							}
+							std::ifstream new_file;
+							process_filename(filename);
+							dir_fix(filename);
+							search_links(filename);
+							new_file.open(filename);
+							if (!new_file.is_open())
+							{
+								std::cout << "Error: Could not open " << filename << std::endl;
+								//std::cerr << "\tError details: " << std::strerror(errno) << std::endl;
+								return false;
+							}
+							else {
+								bool force_return = false;
+								while (new_file.good() && !new_file.eof() && !force_return)
+								{
+									get_creature(creatures, taking_intiatives, line, new_file, true, false, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
+									if (!new_file.is_open())
+										break;
+								}
+								ignore_initial_file_load = true;
+								new_file.close();
+								save_buffer();
+								return false;
+							}
+						}
+						else
+						{
+							sub = og_sub;
+							int index = sub.find("{");
+							sub = sub.substr(index);
+							trim(sub);
+							if (sub[sub.size() - 1] == '}')
+								sub[sub.size() - 1] = ' ';
+							if (sub[0] == '{')
+								sub[0] = ' ';
+							trim(sub);
+							if (sub == "return" || sub == "return;")
+							{
+								found_return_directive = true;
+								force_return = true;
+								line = "";
+								if (file.is_open())
+								{
+									while (file.good() && !file.eof())
+									{
+										std::string ln;
+										std::getline(file, ln);
+									}
+									file.close();
+								}
+								using_file = false;
+								return false;
+							}
+							std::ifstream file;
+							bool dummy_taking_initiatives = true;
+							bool force_return = false;
+							bool success = get_creature(creatures, dummy_taking_initiatives, sub, file, true, true, true, filename, ignore_initial_file_load, directory, false, turn_msg, suppress_display, current_turn, current_creature, current_round, force_return);
+							used_command = true;
+							if (success)
+							{
+								creatures.sort();
+							}
+							save_buffer();
+							return false;
+						}
+					}
+					else
+						used_command = true;
+						}
+
+
 				else if (comp_substring("if " + lowercase_name + " ", dummy_line, ("if " + lowercase_name + " ").size()))
 				{
 					int cmd_len = ("if " + lowercase_name + " ").size();
@@ -4737,6 +4984,7 @@ inline bool get_creature(std::list<creature>& creatures, bool& taking_intiatives
 					else
 						used_command = true;
 				}
+
 
 				else if (comp_substring(lowercase_name + " dv ", dummy_line, (lowercase_name + " dv ").length()))
 				{
@@ -18272,7 +18520,7 @@ int main(int argc, char** args)
 	std::list<creature> creatures; //Create a list to hold the creature data in
 
 	//Display help instructions
-	std::cout << "Program started, begin character entries below. See \"instrunctions.txt\" for help." << std::endl;
+	std::cout << "Program started, begin character entries below. See \"instructions.txt\" for help." << std::endl;
 
 	const static bool PROMPT_FILE_LOAD = false;
 	

@@ -1,0 +1,3 @@
+add ice_mephit1 aliases:im1,mephit1,ice1,icem1,ice_m1,ic_mephti1,ic_mephit1,icmephot1,icmephit1 flags:#elemental,#enemy,#enemies,#elementals,#mephit,#mephits,#mehpits,#mehpt,#mehpit,#mehpts,#ice_mephit,#ice_mephits,#icemephit,#icemephits,#ice_mephots,#ice_mephot,fog_cloud,DEATH_BURST ac:11 hp:21 str:-2 dex:1 con:0 int:-1 wis:0 cha:1 +1 start:.../:::/monsters/scripts/ice_mephit.txt
+recharge6 ice_mephit1 frost_breath
+reminder ice_mephit1 Walk/Fly 30 ft.

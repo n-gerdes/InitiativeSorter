@@ -1,0 +1,1 @@
+add troglodyte1 ac:11 hp:13 str:2 dex:0 +0 con:2 int:-2 wis:0 cha:-2 aliases:trogolodyte1,trog1,t1,td1,tdt1,tt1 flags:#troglodyte,#troglodytes,#trogolodytes,#trogolodyte,#trogs,#trog,PASSIVE_STENCH,#enemy,#enemies start:.../:::/monsters/scripts/troglodyte.txt

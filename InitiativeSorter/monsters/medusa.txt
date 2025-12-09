@@ -1,0 +1,1 @@
+add medusa1 flags:#enemy,#enemies,#medusa,#medusas,PETRIFYING_GAZE ac:15 hp:127 start:.../:::/monsters/scripts/medusa.txt str:0 dex:2 +2 con:3 int:1 wis:1 cha:2

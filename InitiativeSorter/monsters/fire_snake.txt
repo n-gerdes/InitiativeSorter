@@ -1,0 +1,1 @@
+add fire_snake1 +2 str:1 dex:2 con:0 int:-2 wis:0 cha:-1 aliases:firensake1,firesnake1,fs1,sf1,fsnake1,fires1,snake1,fire1 ac:14 hp:22 start:.../:::/monsters/scripts/fire_snake.txt flags:#elemental,#elementals,#fire_snake,#fire_snakes,#firesnake,#firesnakes,#enemy,#enemies,#fire

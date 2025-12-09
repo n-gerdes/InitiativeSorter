@@ -1,0 +1,12 @@
+ld reset.txt
+println TAIL x 1
+flag @current #adds_poison_dmg
+@current::#attacks=1
+@current::#atk_bonus=6
+@current::#d10=1
+@current::#dmg_bonus=4
+@current::#secondary_d10=2
+ld core/roll_attacks.txt
+println *Damage is magical
+println *Also forces DC 15 CON Save vs Poisoned for 1 minute (can reroll at end of turn)
+rf @current #adds_poison_dmg

@@ -1,0 +1,6 @@
+add flameskull1 ac:13 hp:40 +3 str:-5 dex:3 con:2 int:3 wis:0 cha:0 aliases:fs1,s1,f1,sf1,flmeskul11,flmeskull1,skull1,flame1,fskull1 flags:#enemy,#enemies,#undead,#flameskull,#flameskull,#fs,#skull,#skulls,#magic_resistance start:.../:::/monsters/scripts/flameskull.txt
+reminder flameskull1 Fly 40 ft (hover).
+flag flameskull1 fireball
+flameskull1::lv1=3
+flameskull1::lv2=2
+flameskull1::#turn=0

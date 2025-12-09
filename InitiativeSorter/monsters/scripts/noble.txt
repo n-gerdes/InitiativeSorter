@@ -1,0 +1,6 @@
+@current::#attacks=1
+@current::#atk_bonus=3
+@current::#d8=1
+@current::#dmg_bonus=1
+
+ld core/roll_attacks.txt

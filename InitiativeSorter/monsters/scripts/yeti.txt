@@ -1,0 +1,34 @@
+@current::#fire=0
+println Has the Yeti taken fire damage since its last turn?
+@current::#fire=input()
+@current::#fire!=0 {@current::#fire=1}
+@current::#fire==1 {flag @current disadvantage}
+println
+
+println CHILLING GAZE:
+println One creature within 30 feet must succeed on DC 13 CON Save vs 1-min paralysis & instant dmg:
+printnum 3d6
+println *no dmg taken on a succssful save.
+println Success makes it immune for an hour
+println Can repeat save at end of turns.
+println
+println Is target for claws paralyzed?
+@current::#para=input()
+@current::#para!=0 {flag @current advantage}
+println
+println CLAW x 2 (5 ft reach):
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=6
+
+//Damage stuff
+@current::#d6=1
+@current::#dmg_bonus=4
+@current::#secondary_d6=1
+flag @current #adds_cold_dmg
+
+ld core/roll_attacks.txt
+
+@current::#fire==1 {rf @current disadvantage}
+@current::#para!=0 {rf @current advantage}

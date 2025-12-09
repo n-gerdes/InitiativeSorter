@@ -1,0 +1,2 @@
+add giant_constrictor_snake1 ac:12 hp:60 flags:#beast,#beasts,#enemy,#enemies,#snake,#snakes aliases:gsc1,constrictor1,giant_constrictor1,giant_snake1,gs1,snake1,constrictor_snake1 start:.../:::/monsters/scripts/giant_constrictor.txt
+reminder giant_constrictor_snake1 Move/Swim 30ft.

@@ -1,0 +1,2 @@
+add noble1 aliases:nb1,n1 flags:#noble,#nobility,#nobles ac:15 hp:9 str:0 dex:1 con:0 int:1 wis:2 cha:3 +1 start:.../:::/monsters/scripts/noble.txt
+recharge1-6 noble1 parry

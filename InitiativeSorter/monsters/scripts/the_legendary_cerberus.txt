@@ -1,0 +1,33 @@
+ld reset.txt
+println TAIL x 1
+flag @current #adds_poison_dmg
+@current::#attacks=1
+@current::#atk_bonus=11
+@current::#d6=1
+@current::#dmg_bonus=5
+@current::#secondary_d6=1
+ld core/roll_attacks.txt
+rf @current #adds_poison_dmg
+
+ld reset.txt
+println
+println
+println CLAW x 2
+@current::#attacks=2
+@current::#atk_bonus=11
+@current::#d10=1
+@current::#dmg_bonus=5
+ld core/roll_attacks.txt
+
+ld reset.txt
+println
+println
+println BITE x 3
+flag @current #adds_fire_dmg
+@current::#attacks=3
+@current::#atk_bonus=11
+@current::#d6=2
+@current::#dmg_bonus=5
+@current::#secondary_d6=1
+ld core/roll_attacks.txt
+rf @current #adds_fire_dmg

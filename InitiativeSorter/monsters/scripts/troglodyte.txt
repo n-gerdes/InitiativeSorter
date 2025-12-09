@@ -1,0 +1,8 @@
+println CLAW/CLAW/BITE
+@current::#attacks=3
+@current::#atk_bonus=4
+@current::#d4=1
+@currenet::#dmg_bonus=2
+ld core/roll_attacks.txt
+
+println Remember STENCH on OTHER CREATURES' turns!

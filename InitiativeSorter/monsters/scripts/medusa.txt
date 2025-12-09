@@ -1,0 +1,45 @@
+println Use Melee Routine? (Recommended)
+@current::#use_melee=input()
+ld reset.txt
+flag @current #adds_secondary_poison_dmg
+@current::#use_melee==0 {println}
+@current::#use_melee==0 {println longbow x 2 (range 150/600ft):}
+@current::#use_melee==0 {@current::#atk_bonus=5}
+@current::#use_melee==0 {@current::#attacks=2}
+@current::#use_melee==0 {@current::#d8=1}
+@current::#use_melee==0 {@current::#dmg_bonus=2}
+@current::#use_melee==0 {@current::#secondary_d6=2}
+@current::#use_melee==0 core/roll_attacks.txt
+@current::#use_melee==0 {return}
+println
+println Shortsword x 2:
+@current::#attacks=2
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d6=1
+@current::#dmg_bonus=2
+
+ld core/roll_attacks.txt
+
+ld reset.txt
+
+println
+println
+
+println Snake Hair:
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=5
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=2
+@current::#secondary_d6=4
+
+ld core/roll_attacks.txt
+println
+println Remember petrifying gaze on OTHER CREATURE'S turns!

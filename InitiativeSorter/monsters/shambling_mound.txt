@@ -1,0 +1,2 @@
+add shambling_mound1 aliases:sm1,mound1,shamble1,shamb1,shambling1,smound1 ac:15 hp:136 str:4 dex:-1 -1 con:3 int:-3 wis:0 cha:-3 flags:#shambling,#mound,#mounds,#shambling_mounds,#shambling_mound,#shamblingmound,#shamblingmounds,#plant,#plants,#enemy,#enemies start:.../:::/monsters/scripts/shambling_mound.txt
+reminder shambling_mound1 Walk/Swim 20ft.

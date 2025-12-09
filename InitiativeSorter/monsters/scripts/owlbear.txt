@@ -1,0 +1,17 @@
+ld reset.txt
+println CLAWS X 2 (5 ft reach):
+@current::#attacks=2
+@current::#atk_bonus=7
+@current::#d8=2
+@currenet::#dmg_bonus=5
+ld core/roll_attacks.txt
+
+println
+
+ld reset.txt
+println BEAK (5 ft reach):
+@current::#attacks=1
+@current::#atk_bonus=7
+@current::#d10=1
+@currenet::#dmg_bonus=5
+ld core/roll_attacks.txt

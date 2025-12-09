@@ -1,0 +1,21 @@
+@current::lv2==0 {println No spell slots of that level remain.}
+@current::lv2==0 flameskull_spells.txt
+println
+println Which spell?
+println 1. Magic Missile (Upcasted, recommended if in melee range or other slots depleted)
+println 2. Blur (Gives disadvantage to hit the flameskull, recommended on the first turn)
+println 3. Flaming Sphere 
+println
+@current::#spell=input()
+
+@current::#spell==1 {print Damage:}
+@current::#spell==1 {printnum 1d4+1}
+@current::#spell==1 {printnum 1d4+1}
+@current::#spell==1 {printnum 1d4+1}
+@current::#spell==1 {printnum 1d4+1}
+
+@current::#spell==2 {flag @current blurry}
+@current::#spell==2 {flag @current concentrating}
+@current::#spell==3 {flag @current concentrating}
+@current::#spell==3 flameskull_flaming_sphere.txt
+@current::lv2-=1

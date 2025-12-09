@@ -1,0 +1,15 @@
+ld reset.txt
+println Apply Pack Tactics Advantage (other heads can proc)?
+@current::#pack_tactics=input()
+@current::#pack_tactics!=0 {flag @current adv}
+println BITE x 1
+flag @current #adds_fire_dmg
+@current::#attacks=1
+@current::#atk_bonus=8
+@current::#d12=2
+@current::#dmg_bonus=6
+@current::#secondary_d10=3
+ld core/roll_attacks.txt
+println *Damage is magical
+rf @current #adds_fire_dmg
+rf @current adv

@@ -1,0 +1,12 @@
+ld reset.txt
+println CLAW x 2
+@current::#attacks=2
+@current::#atk_bonus=10
+@current::#d6=2
+@current::#dmg_bonus=6
+ld core/roll_attacks.txt
+println *Damage is magical
+println
+println
+println Creatures within 5 feet must make a DC 18 DEX Save to halve fire damage:
+printnum 3d6

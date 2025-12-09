@@ -1,0 +1,1 @@
+add guard1 +1 str:1 dex:1 con:1 int:0 wis:0 cha:0 aliases:g1,gd1 flags:#guard,#guards ac:16 hp:11 start:.../:::/monsters/scripts/guard.txt

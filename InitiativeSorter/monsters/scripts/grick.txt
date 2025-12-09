@@ -1,0 +1,17 @@
+@current::#did_hit = 0
+ld reset.txt
+println TENTACLES (5 ft reach):
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=4
+
+//Damage stuff
+@current::#d6=2
+@currenet::#dmg_bonus=2
+
+ld core/roll_attacks.txt
+println
+println Did the Tentacles attack hit?
+@current::#did_hit = input()
+@current::#did_hit!=0 grick_beak.txt

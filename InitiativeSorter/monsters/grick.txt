@@ -1,0 +1,2 @@
+add grick1 str:2 dex:2 2 con:0 int:-4 wis:2 cha:-3 ac:14 hp:27 aliases:g1,grk1,gri1,gc1,gric1,grik1 flags:#enemy,#enemies,#grick,#gricks,#monster,#monsters,#monstrosity,#monstrocity,#monstrosities,#monstrocities start:.../:::/monsters/scripts/grick.txt
+reminder grick1 walk/climb 30 ft.

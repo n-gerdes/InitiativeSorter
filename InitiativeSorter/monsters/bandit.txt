@@ -1,0 +1,1 @@
+bandit1 aliases:b1,bndt1,bd1,bt1,bn1 ac:12 hp:11 str:0 dex:1 +1 con:1 int:0 wis:0 cha:0 start:.../:::/monsters/scripts/bandit.txt flags:#enemy,#enemies,#bandit,#bandits

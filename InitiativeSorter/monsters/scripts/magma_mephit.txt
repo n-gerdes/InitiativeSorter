@@ -1,0 +1,36 @@
+@current::#use_breath=0
+@current::#use_spell=0
+if @current fire_breath {println use fire breath?}
+if @current fire_breath {@current::#use_breath=input()}
+@current::#use_breath==1 {println targets in 15ft cone must roll dc 11 dex save to halve dmg:}
+@current::#use_breath==1 {printnum 2d6}
+@current::#use_breath==1 {rf @current fire_breath}
+@current::#use_breath==1 {return}
+
+if @current heat_metal {println use 'heat metal' spell (1/day)?}
+if @current heat_metal {@current::#use_spell=input()}
+@current::#use_spell==1 {println if target in contact with metal, take automatic dmg:}
+@current::#use_spell==1 {printnum 2d8}
+@current::#use_spell==1 {println can use bonus action on subsequent turns to deal 2d8 more dmg}
+@current::#use_spell==1 {rf @current heat_metal}
+@current::#use_spell==1 {flag @current concentrating}
+@current::#use_spell==1 {return}
+println
+if @current concentrating {println can use bonus action to deal damage to target in contact with heated metal:}
+if @current concentrating {printnum 2d8}
+
+@current flag #secondary_fire_dmg
+println
+println
+println CLAWS:
+@current::#attacks=1
+
+//Configure attack data
+@current::#atk_bonus=3
+
+//Damage stuff
+@current::#d4=1
+@current::#dmg_bonus=1
+@current::#secondary_d4=1
+
+ld core/roll_attacks.txt
