@@ -2,11 +2,11 @@ println
 println Using MELEE attack routine!
 //Set number of attacks
 ld reset.txt
-
+println
 println Constrict: Target is blind or restrained?
 @current::#target_blind=input()
 @current::#target_blind!=0 {flag @current advantage}
-
+println
 println CONSTRICT (10ft reach):
 @current::#attacks=1
 @current::#atk_bonus=12

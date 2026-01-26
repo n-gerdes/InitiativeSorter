@@ -1,6 +1,7 @@
 println Will the Hierophant Medusa use its PETRIFYING GAZE (30ft cone)?
 @current::#use_gaze = input()
 @current::#use_gaze != 0 {rf @current has_petrifying_gaze}
+@current::#use_gaze != 0 {println}
 @current::#use_gaze != 0 {println Targets can avert their eyes -OR- roll a CON Save.}
 @current::#use_gaze != 0 {println Closing eyes blinds it until end of its next turn}
 @current::#use_gaze != 0 {println If roll 13 or below, it's instantly petrified}
@@ -8,3 +9,4 @@ println Will the Hierophant Medusa use its PETRIFYING GAZE (30ft cone)?
 @current::#use_gaze != 0 {println A restrained creature rolls a DC 18 CON save at the end of its next turn, petrifying on a failure or shaking it on a success}
 @current::#use_gaze != 0 {println Greater Restoration can unpetrify a creature}
 rv @current #use_gaze
+println

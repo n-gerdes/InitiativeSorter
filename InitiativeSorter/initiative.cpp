@@ -2257,6 +2257,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 			|| lowerc == "back"
 			|| lowerc == "prev"
 			|| lowerc == "next"
+			|| lowerc == "nex"
 			|| lowerc == "ht"
 			|| lowerc == "hur"
 			|| lowerc == "hrt"
@@ -12033,7 +12034,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 			std::getline(std::cin, dummy_line);
 			trim(dummy_line);
 		}
-		if (dummy_line != "" && dummy_line != "next")
+		if (dummy_line != "" && dummy_line != "next" && dummy_line != "nex")
 			event_log += "\nEntered command: " + dummy_line + "\n";
 		else
 			event_log += "\nEntered command: next\n";
@@ -18378,7 +18379,7 @@ inline void track_initiatives(std::list<creature>& creatures, std::string& dummy
 
 		if (!used_command)
 		{
-			if (dummy_line == "" || dummy_line == "next")
+			if (dummy_line == "" || dummy_line == "next" || dummy_line == "nex")
 			{
 				std::string filename = current_creature->turn_end_file;
 				if (filename != "")
