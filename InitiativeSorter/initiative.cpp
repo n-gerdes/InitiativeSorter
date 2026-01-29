@@ -2056,6 +2056,7 @@ bool name_is_unique(const std::string& name, const std::list<creature>& creature
 		|| lowerc == "al"
 		|| lowerc == "full"
 		|| lowerc == "rf"
+		|| lowerc == "sae"
 		|| lowerc == "reminder"
 			|| lowerc == "quit"
 			|| lowerc == "end"
@@ -3245,6 +3246,9 @@ inline void command_replacement(std::string& dummy_line)
 	{
 		dummy_line = "dc";
 	}
+
+	dummy_line = replace_first(dummy_line, "sae", "save", true, false);
+
 	dummy_line = replace_first(dummy_line, "falg", "flag", true, false);
 	dummy_line = replace_first(dummy_line, "talfg", "tf", true,false);
 	dummy_line = replace_first(dummy_line, "tflag", "tf", true,false);
